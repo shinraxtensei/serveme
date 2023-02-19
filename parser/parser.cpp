@@ -21,10 +21,14 @@ Lexer::Lexer(std::string filename) : pos(0)
     std::ifstream file(filename);
     std::string input;
     std::string line;
+    int pos = 0;
     while (std::getline(file, line))
     {
+
         input += line;
         input += '\n';
+        if (line.size() > 0 )
+            lines.push_back(line + '\n');
     }
     this->input = input;
 };
@@ -54,9 +58,9 @@ static void skip_whitespace(std::istringstream &input)
     }
 }
 
-std::string Lexer::next_token()
+std::string Lexer::next_token(std::string input)
 {
-    static std::istringstream input_stream(this->input);
+    static std::istringstream input_stream(input);
     skip_whitespace(input_stream);
     std::string token;
     char c;
@@ -65,14 +69,16 @@ std::string Lexer::next_token()
         return "EOF";
 
     c = input_stream.get();
-    if (c == '"' || c == '\'') {
+    if (c == '"' || c == '\'')
+    {
         char quote = c;
-        while (input_stream && (c = input_stream.get()) != quote) {
+        while (input_stream && (c = input_stream.get()) != quote)
+        {
             token += c;
         }
         token = quote + token + quote;
-    } 
-    else 
+    }
+    else
     {
         while (input_stream && !is_whitespace(c))
         {

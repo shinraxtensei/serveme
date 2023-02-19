@@ -40,8 +40,10 @@ public:
     Lexer(std::string input);
     ~Lexer(){};
     void print_input();
-    std::string next_token();
+    std::string next_token(std::string input);
     std::vector<std::string> tokens;
+    std::vector<std::string> lines;
+    
 
     int pos;
     std::string input;
