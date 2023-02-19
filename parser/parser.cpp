@@ -59,20 +59,28 @@ std::string Lexer::next_token()
     static std::istringstream input_stream(this->input);
     skip_whitespace(input_stream);
     std::string token;
-    char c = input_stream.get();
+    char c;
 
-    // TODO : handle quotes
-
-    while (input_stream && !is_whitespace(c))
-    {
-        token += c;
-        c = input_stream.get();
-    }
-    if (token.empty())
-    {
+    if (input_stream.eof())
         return "EOF";
-    }
-    this->tokens.push_back(token);
 
+    c = input_stream.get();
+    if (c == '"' || c == '\'') {
+        char quote = c;
+        while (input_stream && (c = input_stream.get()) != quote) {
+            token += c;
+        }
+        token = quote + token + quote;
+    } 
+    else 
+    {
+        while (input_stream && !is_whitespace(c))
+        {
+            token += c;
+            c = input_stream.get();
+        }
+    }
+
+    this->tokens.push_back(token);
     return token;
 }
