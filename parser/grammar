@@ -1,0 +1,100 @@
+<config-file> ::= <top-level-directive>*
+    
+<top-level-directive> ::= <global-directive>
+                        | <events-directive>
+                        | <http-directive>
+                        
+<global-directive> ::= "user" <user-value> ";"
+                     | "worker_processes" <worker-processes-value> ";"
+                     | "error_log" <file-path> [ <log-level> ] ";"
+                     | "pid" <file-path> ";"
+                     
+<events-directive> ::= "events" "{" <event-directive>* "}"
+                     
+<event-directive> ::= "worker_connections" <worker-connections-value> ";"
+                     
+<http-directive> ::= "http" "{" <http-block-directive>* "}"
+                     
+<http-block-directive> ::= <server-directive>
+                         | <location-directive>
+                         | <http-core-directive>
+                         
+<http-core-directive> ::= "access_log" <file-path> [ <log-format> ] ";"
+                        | "add_header" <header-name> <header-value> ";"
+                        | "client_body_buffer_size" <buffer-size> ";"
+                        | "client_body_in_file_only" <on-or-off> ";"
+                        | "client_body_timeout" <timeout-value> ";"
+                        | "client_header_buffer_size" <buffer-size> ";"
+                        | "client_header_timeout" <timeout-value> ";"
+                        | "default_type" <mime-type> ";"
+                        | "sendfile" <on-or-off> ";"
+                        | "server_tokens" <on-or-off> ";"
+                        | "tcp_nodelay" <on-or-off> ";"
+                        | "tcp_nopush" <on-or-off> ";"
+                        | "types" "{" <mime-types> "}"
+                        | "gzip" <on-or-off> ";"
+                        | "gzip_types" <mime-types> ";"
+                        
+<server-directive> ::= "server" <server-name> "{" <server-block-directive>* "}"
+                     
+<server-block-directive> ::= <location-directive>
+                           | <server-core-directive>
+                     
+<server-core-directive> ::= "auth_basic" <basic-auth-value> ";"
+                          | "auth_basic_user_file" <file-path> ";"
+                          | "charset" <charset-value> ";"
+                          | "listen" <listen-value> [ <default-server> ] ";"
+                          | "root" <file-path> ";"
+                          | "server_name" <server-name> ";"
+                          | "ssl_certificate" <file-path> ";"
+                          | "ssl_certificate_key" <file-path> ";"
+                          | "ssl_protocols" <ssl-protocols-value> ";"
+                          | "ssl_ciphers" <ssl-ciphers-value> ";"
+                          
+<location-directive> ::= "location" <location-value> "{" <location-block-directive>* "}"
+                     
+<location-block-directive> ::= <location-core-directive>
+                             | <http-core-directive>
+                             
+<location-core-directive> ::= "alias" <file-path> ";"
+                            | "try_files" <file-path> [ "=" <code> ] [ "/" <file-path> ]* ";"
+                            | "index" <file-path> ";"
+                            | "limit_except" <http-methods> "{" <http-core-directive>* "}"
+                            | "proxy_pass" <url> ";"
+                            | "rewrite" <regex> <replacement> [ <flag> ] ";"
+                            | "set" <variable> <value> ";"
+                            | "fastcgi_param" <param-name>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<http> ::= "http" "{" <http-directives> | <server> "}"
+
+<http-directives> ::= "root" <VALUE> 
+                    | "allowed_methods" {("GET" | "POST" | "DELETE")}+ 
+                    | "client_max_body_size" <SIZE> 
+                    | "autoindex" ("on" | "off") 
+                    | "index" <VALUE> 
+                    | "error_page" <CODE> <VALUE>
+
+<server> ::= "server" "{" <server-directives> | <location> "}"
+
+<server-directives> ::= <http-directive>
+                     | "listen" <VALUE>
+                     | "server_name" <VALUE>
+
+<location> ::= "location" <VALUE> "{" <location-directives> | <location> "}"
+
+<location-directives> ::= <http-directive>
+                       | "return" <INT> [<VALUE>]
+                       | <location>
+                    
