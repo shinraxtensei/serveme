@@ -39,9 +39,13 @@ public:
     Lexer(){};
     Lexer(std::string input);
     ~Lexer(){};
+    void set_input(const std::string& input);
     void print_input();
     std::string next_token();
     std::vector<std::string> tokens;
+    std::vector<std::string> lines;
+
+    std::istringstream input_stream;
 
     int pos;
     std::string input;
