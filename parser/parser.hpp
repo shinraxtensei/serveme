@@ -11,27 +11,32 @@
 #include <set>
 #include <unordered_set>
 
-// class location : public server
-// {
-//     public:
-//         std::map<std::string , std::pair<std::string , std::string> > directives;
-//         std::vector<location> locations;
-// };
+class server;
+class location;
+class Http
+{
+    public:
+        std::map<std::string ,  std::vector<std::string> > http_directives;
+        std::vector<server> servers;
 
-// class server : public http
-// {
-//     public:
-//         std::map<std::string , std::pair<std::string , std::string> > directives;
-//         std::vector<location> locations;
-// };
+};
 
-// class http
-// {
-//     public:
-//         std::map<std::string , std::pair<std::string , std::string> > directives;
-//         std::vector<server> servers;
+class Server : public Http
+{
+    public:
+        std::map<std::string ,  std::vector<std::string> > server_directives;
+        std::vector<location> locations;
+};
 
-// };
+class Location : public Server
+{
+    public:
+        std::map<std::string , std::vector<std::string> > location_directives;
+        std::vector<location> locations;
+};
+
+
+
 
 class Lexer
 {
@@ -55,8 +60,16 @@ class Parser
 {
 private:
     static Lexer *ptr;
+    static Http *http;
+
 
 public:
     static Lexer *lex(std::string filename);
     static Lexer *lex();
+    static Http *getHttp();
+    static void parse();
+    static bool match(std::string token);
+    static void parse_directives(int type);
+    static void parse_server();
+    static void parse_location();
 };

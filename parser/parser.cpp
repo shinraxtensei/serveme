@@ -16,6 +16,16 @@ Lexer *Parser::lex()
     return ptr;
 }
 
+Http *Parser::getHttp()
+{
+    if (Parser::http == NULL)
+        Parser::http = new Http();
+    return http;
+}
+
+
+
+
 Lexer::Lexer(std::string filename) : pos(0)
 {
     std::ifstream file(filename);
@@ -92,3 +102,75 @@ static void skip_whitespace(std::istringstream &input)
         this->tokens.push_back(token);
         return token;
     }
+
+
+bool Parser::match(std::string token)
+{
+    if (token == Parser::lex()->next_token())
+        return true;
+    return false;
+}
+
+void Parser::parse_directives(int type){
+    std::string directive = Parser::lex()->next_token();
+    std::vector<std::string> values;
+    while (Parser::lex()->next_token().back() != ';')
+    {
+        values.push_back(Parser::lex()->next_token());
+    }
+    if (type == 0)
+        Parser::getHttp()->http_directives[directive] = values;
+    // else if (type == 1)
+    // else if (type == 2)
+    else
+        std::cout << "Error: Invalid type" << std::endl;
+
+}
+
+void Parser::parse_location(){
+    if (Parser::match("{"))
+    {
+        if (Parser::match("location"))
+            parse_location();
+        else if (Parser::match("}"))
+            return;
+        else
+            parse_directives(2);
+    }
+}
+
+void Parser::parse_server(){
+    if (Parser::match("{"))
+    {
+        if (Parser::match("location"))
+            parse_location();
+        else if (Parser::match("}"))
+            return;
+        else
+            parse_directives(1);
+    }
+}
+
+
+void Parser::parse()
+{
+    for(int i = 0 ; i < Parser::lex()->lines.size() ; i++)
+    {
+        std::string line = Parser::lex()->lines[i];
+        std::cout << line << std::endl;
+        Parser::lex()->set_input(line);
+        std::string token = Parser::lex()->next_token();
+        if (Parser::match("http"))
+        {
+            if (Parser::match("{"))
+            {
+                if (Parser::match("server"))
+                    parse_server();
+                else if (Parser::match("}"))
+                    return;
+                else
+                    parse_directives(0);
+            }
+        }
+    }
+}

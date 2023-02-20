@@ -1,6 +1,7 @@
 #include "parser/parser.hpp"
 
 Lexer *Parser::ptr = nullptr;
+Http *Parser::http = nullptr;
 
 int main()
 {
@@ -33,3 +34,8 @@ int main()
 
     return 0;
 }
+
+
+
+
+

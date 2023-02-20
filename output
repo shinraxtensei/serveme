@@ -9,11 +9,6 @@ pid
 logs/nginx.pid;
 worker_rlimit_nofile
 8192;
-events
-{
-worker_connections
-4096;
-}
 http
 {
 include
