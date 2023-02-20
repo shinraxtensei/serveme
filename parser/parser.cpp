@@ -38,6 +38,13 @@ void Lexer::print_input()
     std::cout << this->input << std::endl;
 }
 
+void Lexer::set_input(const std::string& input) {
+    this->input_stream.clear();
+    this->input_stream.str(input);
+}
+
+
+
 static bool is_whitespace(char c)
 {
     return c == ' ' || c == '\t' || c == '\n';
@@ -58,35 +65,30 @@ static void skip_whitespace(std::istringstream &input)
     }
 }
 
-std::string Lexer::next_token(std::string input)
-{
-    static std::istringstream input_stream(input);
-    skip_whitespace(input_stream);
-    std::string token;
-    char c;
+    std::string Lexer::next_token() {
+        skip_whitespace(input_stream);
+        std::string token;
+        char c;
 
-    if (input_stream.eof())
-        return "EOF";
-
-    c = input_stream.get();
-    if (c == '"' || c == '\'')
-    {
-        char quote = c;
-        while (input_stream && (c = input_stream.get()) != quote)
-        {
-            token += c;
+        if (input_stream.eof()) {
+            return "EOF";
         }
-        token = quote + token + quote;
-    }
-    else
-    {
-        while (input_stream && !is_whitespace(c))
-        {
-            token += c;
-            c = input_stream.get();
-        }
-    }
 
-    this->tokens.push_back(token);
-    return token;
-}
+        c = input_stream.get();
+        if (c == '"' || c == '\'') {
+            char quote = c;
+            while (input_stream && (c = input_stream.get()) != quote) {
+                token += c;
+            }
+            token = quote + token + quote;
+        }
+        else {
+            while (input_stream && !is_whitespace(c)) {
+                token += c;
+                c = input_stream.get();
+            }
+        }
+
+        this->tokens.push_back(token);
+        return token;
+    }

@@ -16,12 +16,18 @@ int main()
     std::vector<std::string> lines = Parser::lex()->lines;
     // std::cout << Parser::lex()->lines[2] << std::endl;
 
-    std::cout << "line : " << lines[2] << std::endl;
+    for(auto line : lines)
+    {
+        Parser::lex()->set_input(line);
+        std::string token = Parser::lex()->next_token();
+        while (token != "EOF")
+        {
+            std::cout << token << std::endl;
+            token = Parser::lex()->next_token();
+        }
 
-    std::cout << Parser::lex()->next_token(lines[2]) << std::endl;
-    std::cout << Parser::lex()->next_token(lines[2]) << std::endl;
-    std::cout << Parser::lex()->next_token(lines[2]) << std::endl;
-    std::cout << Parser::lex()->next_token(lines[2]) << std::endl;
+    }
+
     // std::cout << Parser::lex()->next_token(lines[2]) << std::endl;
     // std::cout << Parser::lex()->next_token(lines[2]) << std::endl;
 
