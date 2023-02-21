@@ -11,13 +11,13 @@
 #include <set>
 #include <unordered_set>
 
-class server;
-class location;
+class Server;
+class Location;
 class Http
 {
     public:
         std::map<std::string ,  std::vector<std::string> > http_directives;
-        std::vector<server> servers;
+        std::vector<Server> servers;
 
 };
 
@@ -25,14 +25,14 @@ class Server : public Http
 {
     public:
         std::map<std::string ,  std::vector<std::string> > server_directives;
-        std::vector<location> locations;
+        std::vector<Location> locations;
 };
 
 class Location : public Server
 {
     public:
         std::map<std::string , std::vector<std::string> > location_directives;
-        std::vector<location> locations;
+        std::vector<Location> locations;
 };
 
 
@@ -46,7 +46,7 @@ public:
     ~Lexer(){};
     void set_input(const std::string& input);
     void print_input();
-    std::string next_token();
+    std::string next_token(bool consume);
     std::vector<std::string> tokens;
     std::vector<std::string> lines;
 

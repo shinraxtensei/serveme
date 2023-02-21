@@ -1,0 +1,5 @@
+http
+{
+parse_directives0
+directive: index
+values : index.html index.htm index.php 
