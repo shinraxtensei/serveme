@@ -122,7 +122,7 @@ bool Parser::match(std::string token)
 }
 
 void Parser::parse_directives(int type){
-    std::cout <<"parse_directives" << type << std::endl;
+    // std::cout <<" parse_directives : " << type << std::endl;
     std::string directive = Parser::lex()->next_token(true);
     std::vector<std::string> values;
     std::string value;
@@ -138,47 +138,37 @@ void Parser::parse_directives(int type){
         values.push_back(value);
         // std::cout << Parser::lex()->next_token() << std::endl;
     }
-    std::cout << "directive: " << directive << std::endl;
-    std::cout << "values : " ;
+    std::cout <<directive + " : " ;
     for (int i = 0; i < values.size(); i++)
         std::cout << values[i] << " ";
-
-
-
-        // values.push_back(Parser::lex()->next_token());
-    // if (type == 0)
-    //     Parser::getHttp()->http_directives[directive] = values;
-    // else if (type == 1)
-    // {
-
-    //     Server server;
-    //     server.server_directives[directive] = values;
-    //     Parser::getHttp()->servers.push_back(server);
-
-    // }
-    // else if (type == 2)
-    // {
-    //     Location location;
-    //     location.location_directives[directive] = values;
-    //     Parser::getHttp()->servers.back().locations.push_back(location);
-    // }
-    // else
-    //     std::cout << "Error: Invalid type" << std::endl;
+    std::cout << std::endl;
 
 }
 
 void Parser::parse_location(){
+    std::cout << "location : " << Parser::lex()->next_token(true) << Parser::lex()->next_token(true) << std::endl;
     if (Parser::match("{"))
     {
-        Parser::lex()->next_token(true);
-        std::cout << "location\n" << std::endl;
-        if (Parser::match("}"))
+        std::cout << '{' << std::endl;
+        while(1)
         {
-            std::cout << "}\n";
-            return;
+            if (Parser::match("location"))
+                parse_location();
+            else if (Parser::match("}"))
+                {
+                    std::cout << "}\n";
+                    return;
+                }
+            else
+                parse_directives(2);
         }
-        else
-            parse_directives(2);
+        // if (Parser::match("}"))
+        // {
+        //     std::cout << "}\n";
+        //     return;
+        // }
+        // else
+        //     parse_directives(2);
     }
     // if (Parser::match("{"))
     // {
@@ -189,67 +179,59 @@ void Parser::parse_location(){
     //     else
     //         parse_directives(2);
     // }
+    return;
 }
 
 void Parser::parse_server(){
 
+    std::cout << "server" << std::endl;
     if (Parser::match("{"))
-    {
-        std::cout << "server" << std::endl;
+    {   
         std::cout << '{' << std::endl;
-        if (Parser::match("location"))
-            parse_location();
-        else if (Parser::match("}"))
-            {
-                std::cout << "}\n";
-                return;
-            }
-        else
-            parse_directives(1);
+        // if (Parser::match("location"))
+        //     parse_location();
+        // else if (Parser::match("}"))
+        //     {
+        //         std::cout << "}\n";
+        //         return;
+        //     }
+        // else
+        //     parse_directives(1);
         // if (Parser::match("location"))
             // parse_location();
         // else if (Parser::match("}"))
             // return;
         // else
             // parse_directives(1);
+        while(1)
+        {
+            if (Parser::match("location"))
+                parse_location();
+            else if (Parser::match("}"))
+                {
+                    std::cout << "}\n";
+                    return;
+                }
+            else
+                parse_directives(1);
+        }
     }
 }
 
-
-// void Parser::parse()
-// {
-//     for(int i = 0 ; i < Parser::lex()->lines.size() ; i++)
-//     {
-//         std::string line = Parser::lex()->lines[i];
-//         // std::cout << line << std::endl;
-//         Parser::lex()->set_input(line);
-//         std::string token = Parser::lex()->next_token();
-//         std::cout << token << std::endl;
-//         if (Parser::match("http"))
-//         {
-//             if (Parser::match("{"))
-//             {
-//                 if (Parser::match("server"))
-//                     parse_server();
-//                 else if (Parser::match("}"))
-//                     return;
-//                 else
-//                     parse_directives(0);
-//             }
-//             else if (Parser::match("}"))
-//                 return;
-
-//         }
-//         else
-//             std::cout << "Error: Invalid token" << std::endl;
-//     }
-// }
-
 void Parser::parse()
 {
+    // TODO : need to parse the location bloc better (take tokens until the '{')
+    // TODO : need to store the data in the appropriate data structure
+    // TODO : need to handle errors , types , etc
+    // TODO : implement grammar rules precisely
     // for (auto i : Parser::lex()->lines)
     // {
         // std::cout << "line :" << i << std::endl;
+    // while (Parser::lex()->input_stream)
+    // {
+        // if(Parser::lex()->next_token(false) == "EOF")
+        //     break;
+        // std::cout << "here\n";
         Parser::lex()->set_input(Parser::lex()->input);
         std::string token ;
         // for(std::string token = Parser::lex()->next_token() ; token != "EOF" ; token = Parser::lex()->next_token())
@@ -259,28 +241,52 @@ void Parser::parse()
                 // break;
             // std::cout << token << std::endl;
                 // std::cout << "here\n";
-            if (Parser::match("http"))
-            {   
-                std::cout << "http\n";
-                if (Parser::match("{"))
-                {
-                    std::cout << "{\n";
-                    if (Parser::match("server"))
-                        parse_server();
-                    else if (Parser::match("}"))
-                    {
-                        std::cout << "}\n";
-                        return;
-                    }
-                    else
-                        parse_directives(0);
-                }
-            }
-            else
-                parse_directives(-1);
+    //     while(Parser::lex()->next_token(false) != "EOF")
+    //     {
+    //         if (Parser::match("http"))
+    //         {   
+    //             std::cout << "http\n";
+    //             if (Parser::match("{"))
+    //             {
+    //                 std::cout << "{\n";
+    //                 if (Parser::match("server"))
+    //                     parse_server();
+    //                 else if (Parser::match("}"))
+    //                 {
+    //                     std::cout << "}\n";
+    //                     return;
+    //                 }
+    //                 else
+    //                     parse_directives(0);
+    //             }
+    //         }
+    //         else
+    //             parse_directives(-1);
 
-        // }
+    //    }
     // }
+
+    if(Parser::match("http"))
+    {
+        std::cout << "http\n";
+        if (Parser::match("{"))
+        {
+            while(1)
+            {
+
+                if (Parser::match("server"))
+                    parse_server();
+                else if (Parser::match("}"))
+                {
+                    std::cout << "}\n";
+                    return;
+                }
+                else
+                    parse_directives(0);
+            }
+        }
+    }
+
 }
 
 
