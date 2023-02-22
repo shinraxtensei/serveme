@@ -15,28 +15,27 @@ class Server;
 class Location;
 class Http
 {
-    public:
-        std::map<std::string ,  std::vector<std::string> > http_directives;
-        std::vector<Server> servers;
-
+public:
+    // TODO : make it multimap to store multiple values for the same key
+    std::map<std::string, std::vector<std::string>> http_directives;
+    std::vector<Server> servers;
 };
 
 class Server : public Http
 {
-    public:
-        std::map<std::string ,  std::vector<std::string> > server_directives;
-        std::vector<Location> locations;
+public:
+    // TODO : make it multimap to store multiple values for the same key
+    std::map<std::string, std::vector<std::string>> server_directives;
+    std::vector<Location> locations;
 };
 
 class Location : public Server
 {
-    public:
-        std::map<std::string , std::vector<std::string> > location_directives;
-        std::vector<Location> locations;
+public:
+    // TODO : make it multimap to store multiple values for the same key
+    std::map<std::string, std::vector<std::string>> location_directives;
+    std::vector<Location> locations;
 };
-
-
-
 
 class Lexer
 {
@@ -44,9 +43,10 @@ public:
     Lexer(){};
     Lexer(std::string input);
     ~Lexer(){};
-    void set_input(const std::string& input);
+    void set_input(const std::string &input);
     void print_input();
     std::string next_token(bool consume);
+    bool errors_check(std::string line);
     std::vector<std::string> tokens;
     std::vector<std::string> lines;
 
@@ -61,7 +61,6 @@ class Parser
 private:
     static Lexer *ptr;
     static Http *http;
-
 
 public:
     static Lexer *lex(std::string filename);
