@@ -23,6 +23,14 @@ Http *Parser::getHttp()
     return http;
 }
 
+bool Lexer::errors_check(std::string line)
+{
+    this->set_input(line);
+    if ((line.back() != ';' && (this->next_token(false) == "server" || this->next_token(false) == "location" || this->next_token(false) == "http" || this->next_token(false) == "{" || this->next_token(false) == "}")) && (this->next_token(false).find_first_not_of("0123456789") == std::string::npos))
+        return false;
+    return true;
+}
+
 Lexer::Lexer(std::string filename) : pos(0)
 {
     std::ifstream file(filename);
@@ -37,7 +45,11 @@ Lexer::Lexer(std::string filename) : pos(0)
         if (line.size() > 0)
             lines.push_back(line + '\n');
     }
-    this->input = input;
+    // TODO : the errors function does not work properly for now
+    if (this->errors_check(input))
+        this->input = input;
+    else
+        exit(0);
 };
 
 void Lexer::print_input()
@@ -144,6 +156,25 @@ void Parser::parse_directives(int type)
     for (int i = 0; i < values.size(); i++)
         std::cout << values[i] << " ";
     std::cout << std::endl;
+
+    if (type == 0)
+        Parser::getHttp()->http_directives[directive] = values;
+    else if (type == 1)
+    // TODO : create constructors for server and location to make out life easier
+    // Parser::getHttp()->servers.push_back(Server(directive, values));
+    {
+        Server server;
+        server.server_directives[directive] = values;
+        Parser::getHttp()->servers.push_back(server);
+    }
+    else if (2)
+    {
+        Location location;
+        location.location_directives[directive] = values;
+        Parser::getHttp()->servers.back().locations.push_back(location);
+    }
+    else
+        std::cout << "Error: type not found" << std::endl;
 }
 
 void Parser::parse_location()
@@ -202,25 +233,29 @@ void Parser::parse()
 
     Parser::lex()->set_input(Parser::lex()->input);
 
-    if (Parser::match("http"))
+    while (Parser::lex()->next_token(false) != "EOF")
     {
-        std::cout << "http\n";
-        if (Parser::match("{"))
+        if (Parser::match("http"))
         {
-            std::cout << "{\n";
-            while (1)
+            std::cout << "http\n";
+            if (Parser::match("{"))
             {
-                if (Parser::match("server"))
-                    parse_server();
-                else if (Parser::match("}"))
+                std::cout << "{\n";
+                while (1)
                 {
-                    std::cout << "}\n";
-                    break;
-                    ;
+                    if (Parser::match("server"))
+                        parse_server();
+                    else if (Parser::match("}"))
+                    {
+                        std::cout << "}\n";
+                        break;
+                    }
+                    else
+                        parse_directives(0);
                 }
-                else
-                    parse_directives(0);
             }
         }
+        else
+            parse_directives(0);
     }
 }
