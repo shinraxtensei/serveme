@@ -25,9 +25,36 @@ Http *Parser::getHttp()
 
 bool Lexer::errors_check(std::string line)
 {
-    this->set_input(line);
-    if ((line.back() != ';' && (this->next_token(false) == "server" || this->next_token(false) == "location" || this->next_token(false) == "http" || this->next_token(false) == "{" || this->next_token(false) == "}")) && (this->next_token(false).find_first_not_of("0123456789") == std::string::npos))
-        return false;
+
+    for (int i = 0; i < this->lines.size(); i++)
+    {
+        int size = 0;
+        std::string newline;
+        std::vector<std::string> tokens;
+        this->set_input(this->lines[i]);
+        while (this->next_token(false) != "EOF")
+        {
+            std::string token;
+            token = this->next_token(true);
+
+            newline += token + " ";
+            tokens.push_back(token);
+            size += token.size();
+        }
+
+        if (!tokens.empty() && size > 0 && tokens.back().back() != ';' && (tokens[0] != "server" && tokens[0] != "location" && tokens[0] != "http" && tokens[0] != "events" && tokens[0] != "{" && tokens[0] != "}" && tokens.back().back() != '\'' && tokens.back().back() != '"'))
+        {
+            std::cout << tokens[0] << std::endl;
+            std::cout << "Error: missing ; at the end of the line" << std::endl;
+            // return false;
+            // TODO : throw an exception here
+            exit(1);
+        }
+    }
+
+    // TODO :  check if ; is at the end of the line if its not any special token
+    // TODO :  check the first directive is not a number ... directives should be known
+
     return true;
 }
 
@@ -48,8 +75,6 @@ Lexer::Lexer(std::string filename) : pos(0)
     // TODO : the errors function does not work properly for now
     if (this->errors_check(input))
         this->input = input;
-    else
-        exit(0);
 };
 
 void Lexer::print_input()
@@ -235,9 +260,12 @@ void Parser::parse()
 
     while (Parser::lex()->next_token(false) != "EOF")
     {
-        if (Parser::match("http"))
+        if (Parser::match("http") || Parser::match("events"))
         {
-            std::cout << "http\n";
+            if (Parser::match("http"))
+                std::cout << "http\n";
+            else
+                std::cout << "events\n";
             if (Parser::match("{"))
             {
                 std::cout << "{\n";

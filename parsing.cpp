@@ -8,15 +8,19 @@ int main()
     int pos = 0;
     Parser::lex("nginx.conf");
     Parser::parse();
-    std::cout << "------------------" << std::endl;
-    std::cout << "html direcitves :  " << std::endl;
-    for (auto i : Parser::getHttp()->http_directives)
-    {
-        std::cout << i.first << " : ";
-        for (auto j : i.second)
-            std::cout << j << " ";
-        std::cout << std::endl;
-    }
+    // std::cout << "------------------" << std::endl;
+    // std::cout << "html direcitves :  " << std::endl;
+    // for (auto i : Parser::getHttp()->http_directives)
+    // {
+    //     std::cout << i.first << " : ";
+    //     for (auto j : i.second)
+    //         std::cout << j << " ";
+    //     std::cout << std::endl;
+    // }
+
+    // *********  *********
+
+
     // for (auto i : Parser::getHttp()->servers)
     // {
     //     std::cout << "server :" << std::endl;
