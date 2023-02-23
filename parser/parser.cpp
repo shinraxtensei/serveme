@@ -255,17 +255,14 @@ void Parser::parse()
     // TODO : need to store the data in the appropriate data structure
     // TODO : need to handle errors , types , etc
     // TODO : implement grammar rules precisely
-
+    // TODO : need to handle events blocks
     Parser::lex()->set_input(Parser::lex()->input);
 
     while (Parser::lex()->next_token(false) != "EOF")
     {
-        if (Parser::match("http") || Parser::match("events"))
+        if (Parser::match("http"))
         {
-            if (Parser::match("http"))
-                std::cout << "http\n";
-            else
-                std::cout << "events\n";
+            std::cout << "http\n";
             if (Parser::match("{"))
             {
                 std::cout << "{\n";
