@@ -3,12 +3,78 @@
 Lexer *Parser::ptr = nullptr;
 Http *Parser::http = nullptr;
 
+
+#define BLUE "\033[0;34m"
+#define RESET "\033[0m"
+void generate_dot(Http& http)
+{
+    std::cout << "digraph G {\n";
+    std::cout << "http [shape=box3d ,style=filled];\n";
+    int i = 0 ;
+    int j = 0 ;
+    for (auto server : http.servers)
+    {   
+        std::cout << "http -> server" << i << ";\n";
+        std::cout << "server" << i << "" << " [shape=box , style=filled, label=\"";
+        for(auto directive : server.server_directives)
+        {
+            std::cout   << directive.first  << " : ";
+            for(auto value : directive.second)
+                std::cout << value << " ";
+            std::cout << "\\n-----------------------------------------------\\n";
+        }
+        std::cout << "\"];\n";
+        for (auto location : server.locations)
+        {
+            std::cout << "server" << i << " -> location" << j << ";\n";
+            std::cout << "location" << j  << "" << " [shape=box , style=filled, label=\"";
+            for(auto directive : location.location_directives)
+            {
+                std::cout   << directive.first  << " : ";
+                for(auto value : directive.second)
+                    std::cout << value << " ";
+                std::cout << "\\n-----------------------------------------------\\n";
+            }
+            std::cout << "\"];\n";
+            j++;
+        }
+        i++;
+    }
+    std::cout << "}\n";
+}
+
+
+
+
+
 int main()
 {
-    int pos = 0;
+
     Parser::lex("nginx.conf");
 
     Parser::parse();
+
+    std::cout  << std::endl<< "********* DOT  *********" << std::endl;
+
+    generate_dot(*Parser::getHttp());
+    // std::cout << "digraph G {\n";
+    // for (const auto& [key, values] : Parser::getHttp()->http_directives) {
+    //     std::cout << "  " << key << " -> {";
+    //     for (const auto& value : values) {
+    //         std::cout << " \"" << value << "\"";
+    //     }
+    //     std::cout << " }\n";
+    // }
+    // std::cout << "}\n";
+
+
+    // for (auto it : Parser::getHttp()->servers[0].server_directives)
+    // {
+    //     std::cout << it.first << " : ";
+    //     for (auto i : it.second)
+    //         std::cout << i << " ";
+    //     std::cout << std::endl;
+    // }
     // std::cout << "------------------" << std::endl;
     // std::cout << "html direcitves :  " << std::endl;
     // for (auto i : Parser::getHttp()->http_directives)
@@ -21,16 +87,18 @@ int main()
 
     // *********  *********
 
+
+
     // for (auto i : Parser::getHttp()->servers)
     // {
     //     std::cout << "server :" << std::endl;
-    //     for (auto j : i.server_directives)
-    //     {
-    //         std::cout << j.first << " : ";
-    //         for (auto k : j.second)
-    //             std::cout << k << " ";
-    //         std::cout << std::endl;
-    //     }
+        // for (auto j : Parser::getHttp()->servers[0].server_directives)
+        // {
+        //     std::cout << j.first << " : ";
+        //     for (auto k : j.second)
+        //         std::cout << k << " ";
+        //     std::cout << std::endl;
+        // }
     //     for (auto j : i.locations)
     //     {
     //         std::cout << "location :" << std::endl;
