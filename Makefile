@@ -1,5 +1,7 @@
 NAME = servme
 
+
+
 SRCS = parser/parser.cpp parsing.cpp
 
 OBJS = $(SRCS:.cpp=.o)
@@ -10,6 +12,7 @@ CFLAGS = -Wall -Wextra -Werror -std=c++17 -fsanitize=address
 
 
 all: $(NAME)
+	@./$(NAME) > output.dot
 
 $(NAME): $(OBJS)
 	@$(CC) $(CFLAGS) -o $(NAME) $(OBJS)
@@ -24,10 +27,10 @@ run: $(NAME)
 	@ ./$(NAME)
 
 clean:
-	@rm -f $(OBJS) 
+	@rm -f $(OBJS) output.dot
 
 fclean:
-	@rm -f $(NAME) $(OBJS) 
+	@rm -f $(NAME) $(OBJS) output.dot
 
 re : fclean all
 

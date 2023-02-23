@@ -167,10 +167,10 @@ void Parser::parse_directives(int type)
         values.push_back(value);
         // std::cout << Parser::lex()->next_token() << std::endl;
     }
-    std::cout << directive + " : ";
-    for (size_t i = 0; i < values.size(); i++)
-        std::cout << values[i] << " ";
-    std::cout << std::endl;
+    // std::cout << directive + " : ";
+    // for (size_t i = 0; i < values.size(); i++)
+    //     std::cout << values[i] << " ";
+    // std::cout << std::endl;
 
     //* a pair or key and values
     std::pair<std::string, std::vector<std::string> > pair(directive, values);
@@ -215,19 +215,19 @@ void Parser::parse_location()
 {
     //  TODO : while the token is not {  it will be considered as part of the location
     Parser::getHttp()->servers.back().locations.push_back(Location());
-    std::cout << "location : ";
+    // std::cout << "location : ";
 
-    while (!Parser::match("{"))
-        std::cout << Parser::lex()->next_token(true) << " ";
-    std::cout << std::endl
-              << "{" << std::endl;
+    // while (!Parser::match("{"))
+        // std::cout << Parser::lex()->next_token(true) << " ";
+    // std::cout << std::endl
+            //   << "{" << std::endl;
     while (1)
     {
         if (Parser::match("location"))
             Parser::parse_location();
         else if (Parser::match("}"))
         {
-            std::cout << "}\n";
+            // std::cout << "}\n";
             return;
         }
         else
@@ -238,10 +238,10 @@ void Parser::parse_location()
 void Parser::parse_server()
 {
     Parser::getHttp()->servers.push_back(Server());
-    std::cout << "server" << std::endl;
+    // std::cout << "server" << std::endl;
     if (Parser::match("{"))
     {
-        std::cout << '{' << std::endl;
+        // std::cout << '{' << std::endl;
 
         while (1)
         {
@@ -249,7 +249,7 @@ void Parser::parse_server()
                 parse_location();
             else if (Parser::match("}"))
             {
-                std::cout << "}\n";
+                // std::cout << "}\n";
                 break;
             }
             else
@@ -271,17 +271,17 @@ void Parser::parse()
     {
         if (Parser::match("http"))
         {
-            std::cout << "http\n";
+            // std::cout << "http\n";
             if (Parser::match("{"))
             {
-                std::cout << "{\n";
+                // std::cout << "{\n";
                 while (1)
                 {
                     if (Parser::match("server"))
                         parse_server();
                     else if (Parser::match("}"))
                     {
-                        std::cout << "}\n";
+                        // std::cout << "}\n";
                         break;
                     }
                     else
