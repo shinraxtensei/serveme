@@ -7,6 +7,7 @@ int main()
 {
     int pos = 0;
     Parser::lex("nginx.conf");
+
     Parser::parse();
     // std::cout << "------------------" << std::endl;
     // std::cout << "html direcitves :  " << std::endl;
@@ -19,7 +20,6 @@ int main()
     // }
 
     // *********  *********
-
 
     // for (auto i : Parser::getHttp()->servers)
     // {
