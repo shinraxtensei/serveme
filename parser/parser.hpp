@@ -11,27 +11,35 @@
 #include <set>
 #include <unordered_set>
 
-// class location : public server
-// {
-//     public:
-//         std::map<std::string , std::pair<std::string , std::string> > directives;
-//         std::vector<location> locations;
-// };
+class Server;
+class Location;
+class Http
+{
+public:
+    // TODO : make it multimap to store multiple values for the same key
 
-// class server : public http
-// {
-//     public:
-//         std::map<std::string , std::pair<std::string , std::string> > directives;
-//         std::vector<location> locations;
-// };
+    std::map<std::string, std::vector<std::string> > http_directives;
+    std::vector<Server> servers;
+};
 
-// class http
-// {
-//     public:
-//         std::map<std::string , std::pair<std::string , std::string> > directives;
-//         std::vector<server> servers;
+class Server : public Http
+{
+public:
+    // TODO : make it multimap to store multiple values for the same key
 
-// };
+    std::map<std::string, std::vector<std::string> > server_directives;
+
+    std::vector<Location> locations;
+};
+
+class Location : public Server
+{
+public:
+    // TODO : make it multimap to store multiple values for the same key
+    
+    std::map<std::string, std::vector<std::string> > location_directives;
+    std::vector<Location> locations;
+};
 
 class Lexer
 {
@@ -39,9 +47,10 @@ public:
     Lexer(){};
     Lexer(std::string input);
     ~Lexer(){};
-    void set_input(const std::string& input);
+    void set_input(const std::string &input);
     void print_input();
-    std::string next_token();
+    std::string next_token(bool consume);
+    bool errors_check();
     std::vector<std::string> tokens;
     std::vector<std::string> lines;
 
@@ -55,8 +64,15 @@ class Parser
 {
 private:
     static Lexer *ptr;
+    static Http *http;
 
 public:
     static Lexer *lex(std::string filename);
     static Lexer *lex();
+    static Http *getHttp();
+    static void parse();
+    static bool match(std::string token);
+    static void parse_directives(int type);
+    static void parse_server();
+    static void parse_location();
 };

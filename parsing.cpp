@@ -1,35 +1,57 @@
 #include "parser/parser.hpp"
 
 Lexer *Parser::ptr = nullptr;
+Http *Parser::http = nullptr;
+
+#define BLUE "\033[0;34m"
+#define RESET "\033[0m"
+void generate_dot(Http &http)
+{
+    std::cout << "digraph G {\n";
+    std::cout << "http [shape=box3d ,style=filled];\n";
+    int i = 0;
+    int j = 0;
+    for (auto server : http.servers)
+    {
+        std::cout << "http -> server" << i << ";\n";
+        std::cout << "server" << i << ""
+                  << " [shape=box , style=filled, label=\"";
+        for (auto directive : server.server_directives)
+        {
+            std::cout << directive.first << " : ";
+            for (auto value : directive.second)
+                std::cout << value << " ";
+            std::cout << "\\n-----------------------------------------------\\n";
+        }
+        std::cout << "\"];\n";
+        for (auto location : server.locations)
+        {
+            std::cout << "server" << i << " -> location" << j << ";\n";
+            std::cout << "location" << j << ""
+                      << " [shape=box , style=filled, label=\"";
+            for (auto directive : location.location_directives)
+            {
+                std::cout << directive.first << " : ";
+                for (auto value : directive.second)
+                    std::cout << value << " ";
+                std::cout << "\\n-----------------------------------------------\\n";
+            }
+            std::cout << "\"];\n";
+            j++;
+        }
+        i++;
+    }
+    std::cout << "}\n";
+}
 
 int main()
 {
-    int pos = 0;
+
     Parser::lex("nginx.conf");
-    // for (auto i : Parser::lex()->lines)
-    // std::cout << "line :" << i << std::endl;
-    std::string input;
-    // while (input != "EOF")
-    // input = Parser::lex()->next_token(Parser::lex()->input);
-    // for (auto i : Parser::lex()->tokens)
-    //     std::cout << i << std::endl;
-    std::vector<std::string> lines = Parser::lex()->lines;
-    // std::cout << Parser::lex()->lines[2] << std::endl;
 
-    for(auto line : lines)
-    {
-        Parser::lex()->set_input(line);
-        std::string token = Parser::lex()->next_token();
-        while (token != "EOF")
-        {
-            std::cout << token << std::endl;
-            token = Parser::lex()->next_token();
-        }
+    Parser::parse();
 
-    }
-
-    // std::cout << Parser::lex()->next_token(lines[2]) << std::endl;
-    // std::cout << Parser::lex()->next_token(lines[2]) << std::endl;
-
+    generate_dot(*Parser::getHttp());
+   
     return 0;
 }
