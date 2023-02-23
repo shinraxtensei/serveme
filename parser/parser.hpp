@@ -17,7 +17,8 @@ class Http
 {
 public:
     // TODO : make it multimap to store multiple values for the same key
-    std::map<std::string, std::vector<std::string>> http_directives;
+
+    std::map<std::string, std::vector<std::string> > http_directives;
     std::vector<Server> servers;
 };
 
@@ -25,7 +26,9 @@ class Server : public Http
 {
 public:
     // TODO : make it multimap to store multiple values for the same key
-    std::map<std::string, std::vector<std::string>> server_directives;
+
+    std::map<std::string, std::vector<std::string> > server_directives;
+
     std::vector<Location> locations;
 };
 
@@ -33,7 +36,8 @@ class Location : public Server
 {
 public:
     // TODO : make it multimap to store multiple values for the same key
-    std::map<std::string, std::vector<std::string>> location_directives;
+    
+    std::map<std::string, std::vector<std::string> > location_directives;
     std::vector<Location> locations;
 };
 
@@ -46,7 +50,7 @@ public:
     void set_input(const std::string &input);
     void print_input();
     std::string next_token(bool consume);
-    bool errors_check(std::string line);
+    bool errors_check();
     std::vector<std::string> tokens;
     std::vector<std::string> lines;
 

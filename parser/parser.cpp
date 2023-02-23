@@ -23,10 +23,10 @@ Http *Parser::getHttp()
     return http;
 }
 
-bool Lexer::errors_check(std::string line)
+bool Lexer::errors_check()
 {
 
-    for (int i = 0; i < this->lines.size(); i++)
+    for (size_t i = 0; i < this->lines.size(); i++)
     {
         int size = 0;
         std::string newline;
@@ -63,7 +63,6 @@ Lexer::Lexer(std::string filename) : pos(0)
     std::ifstream file(filename);
     std::string input;
     std::string line;
-    int pos = 0;
     while (std::getline(file, line))
     {
 
@@ -73,7 +72,7 @@ Lexer::Lexer(std::string filename) : pos(0)
             lines.push_back(line + '\n');
     }
     // TODO : the errors function does not work properly for now
-    if (this->errors_check(input))
+    if (this->errors_check())
         this->input = input;
 };
 
@@ -115,7 +114,6 @@ std::string Lexer::next_token(bool consume)
     std::streampos pos = input_stream.tellg();
     skip_whitespace(input_stream);
     std::string token;
-    char c;
 
     if (input_stream.eof())
     {
@@ -170,25 +168,44 @@ void Parser::parse_directives(int type)
         // std::cout << Parser::lex()->next_token() << std::endl;
     }
     std::cout << directive + " : ";
-    for (int i = 0; i < values.size(); i++)
+    for (size_t i = 0; i < values.size(); i++)
         std::cout << values[i] << " ";
     std::cout << std::endl;
 
+    //* a pair or key and values
+    std::pair<std::string, std::vector<std::string> > pair(directive, values);
+    //* this is the pair of (iterator , bool ) to check if the pair is inserted or not , if not then its already exists
+    std::pair<std::map<std::string, std::vector<std::string> >::iterator, bool> ret;
+
     if (type == 0)
-        Parser::getHttp()->http_directives[directive] = values;
+    {
+        ret = Parser::getHttp()->http_directives.insert(pair);
+        if (ret.second == false)
+        {
+            std::cout << "Error: directive already exists" << std::endl;
+            exit(1);
+        }
+    }
+
     else if (type == 1)
     // TODO : create constructors for server and location to make out life easier
-    // Parser::getHttp()->servers.push_back(Server(directive, values));
     {
-        Server server;
-        server.server_directives[directive] = values;
-        Parser::getHttp()->servers.push_back(server);
+        ret = Parser::getHttp()->servers.back().server_directives.insert(pair);
+        if (ret.second == false)
+        {
+
+            std::cout << "Error: directive already exists" << std::endl;
+            exit(1);
+        }
     }
     else if (2)
     {
-        Location location;
-        location.location_directives[directive] = values;
-        Parser::getHttp()->servers.back().locations.push_back(location);
+        ret = Parser::getHttp()->servers.back().locations.back().location_directives.insert(pair);
+        if (ret.second == false)
+        {
+            std::cout << "Error: directive already exists" << std::endl;
+            exit(1);
+        }
     }
     else
         std::cout << "Error: type not found" << std::endl;
@@ -196,8 +213,8 @@ void Parser::parse_directives(int type)
 
 void Parser::parse_location()
 {
-    // TODO : while the token is not {  it will be considered as part of the location
-
+    //  TODO : while the token is not {  it will be considered as part of the location
+    Parser::getHttp()->servers.back().locations.push_back(Location());
     std::cout << "location : ";
 
     while (!Parser::match("{"))
@@ -220,7 +237,7 @@ void Parser::parse_location()
 
 void Parser::parse_server()
 {
-
+    Parser::getHttp()->servers.push_back(Server());
     std::cout << "server" << std::endl;
     if (Parser::match("{"))
     {
