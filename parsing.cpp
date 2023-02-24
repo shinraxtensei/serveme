@@ -47,6 +47,9 @@ void generate_dot(Http &http)
 int main()
 {
 
+    // TODO : hadnle unclosed curly braces and quotes
+    // TODO : handle unknown directives
+    
     Parser::lex("nginx.conf");
 
     Parser::parse();
