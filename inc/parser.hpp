@@ -36,7 +36,7 @@ class Location : public Server
 {
 public:
     // TODO : make it multimap to store multiple values for the same key
-    
+
     std::map<std::string, std::vector<std::string> > location_directives;
     std::vector<Location> locations;
 };
@@ -53,10 +53,8 @@ public:
     bool errors_check();
     std::vector<std::string> tokens;
     std::vector<std::string> lines;
-
     std::istringstream input_stream;
 
-    int pos;
     std::string input;
 };
 

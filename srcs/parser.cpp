@@ -1,4 +1,4 @@
-#include "parser.hpp"
+#include "../inc/parser.hpp"
 
 Lexer *Parser::lex(std::string filename)
 {
@@ -75,7 +75,7 @@ bool Lexer::errors_check()
     return true;
 }
 
-Lexer::Lexer(std::string filename) : pos(0)
+Lexer::Lexer(std::string filename)
 {
     std::ifstream file(filename);
     std::string input;
