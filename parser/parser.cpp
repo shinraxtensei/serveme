@@ -25,7 +25,7 @@ Http *Parser::getHttp()
 
 bool Lexer::errors_check()
 {
-
+    std::stack<std::string> stack;
     for (size_t i = 0; i < this->lines.size(); i++)
     {
         int size = 0;
@@ -36,12 +36,22 @@ bool Lexer::errors_check()
         {
             std::string token;
             token = this->next_token(true);
+            // * the for unclosed curly braces
+            if (token == "{" || token == "'" || token == "\"")
+                stack.push(token);
+            else if (token == "}" || token == "'" || token == "\"")
+            {
+                if (stack.empty())
+                    stack.push(token);
+                else
+                    stack.pop();
+            }
 
+            // ********************************
             newline += token + " ";
             tokens.push_back(token);
             size += token.size();
         }
-
         if (!tokens.empty() && size > 0 && tokens.back().back() != ';' && (tokens[0] != "server" && tokens[0] != "location" && tokens[0] != "http" && tokens[0] != "events" && tokens[0] != "{" && tokens[0] != "}" && tokens.back().back() != '\'' && tokens.back().back() != '"'))
         {
             std::cout << tokens[0] << std::endl;
@@ -50,6 +60,13 @@ bool Lexer::errors_check()
             // TODO : throw an exception here
             exit(1);
         }
+    }
+    if (!stack.empty())
+    {
+        std::cout << "Error: unclosed curly braces" << std::endl;
+        // return false;
+        // TODO : throw an exception here
+        exit(1);
     }
 
     // TODO :  check if ; is at the end of the line if its not any special token
@@ -173,9 +190,9 @@ void Parser::parse_directives(int type)
     // std::cout << std::endl;
 
     //* a pair or key and values
-    std::pair<std::string, std::vector<std::string> > pair(directive, values);
+    std::pair<std::string, std::vector<std::string>> pair(directive, values);
     //* this is the pair of (iterator , bool ) to check if the pair is inserted or not , if not then its already exists
-    std::pair<std::map<std::string, std::vector<std::string> >::iterator, bool> ret;
+    std::pair<std::map<std::string, std::vector<std::string>>::iterator, bool> ret;
 
     if (type == 0)
     {
@@ -218,9 +235,9 @@ void Parser::parse_location()
     // std::cout << "location : ";
 
     // while (!Parser::match("{"))
-        // std::cout << Parser::lex()->next_token(true) << " ";
+    // std::cout << Parser::lex()->next_token(true) << " ";
     // std::cout << std::endl
-            //   << "{" << std::endl;
+    //   << "{" << std::endl;
     while (1)
     {
         if (Parser::match("location"))
