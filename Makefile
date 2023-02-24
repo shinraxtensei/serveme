@@ -13,6 +13,8 @@ CFLAGS = -Wall -Wextra -Werror -std=c++17 -fsanitize=address
 all: $(NAME)
 	@./$(NAME) > output.dot
 
+
+
 $(NAME): $(OBJS)
 	@$(CC) $(CFLAGS) -o $(NAME) $(OBJS)
 	@printf "\n\t\033[1;34mCompilation successful\033[0m\n\n"

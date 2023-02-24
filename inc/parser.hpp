@@ -10,9 +10,21 @@
 #include <string>
 #include <set>
 #include <unordered_set>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#include <unistd.h>
+#include <fcntl.h>
+#include "core.hpp"
 
 class Server;
 class Location;
+
+
+// TODO : we need to refactor the class cuz they are useless for now ...
+
+
+
 class Http
 {
 public:
@@ -20,6 +32,11 @@ public:
 
     std::map<std::string, std::vector<std::string> > http_directives;
     std::vector<Server> servers;
+    // **** mandatory directives ****
+    std::string root;
+    std::string index;
+    std::string allowed_methos;
+    std::string error_page;
 };
 
 class Server : public Http
@@ -28,8 +45,14 @@ public:
     // TODO : make it multimap to store multiple values for the same key
 
     std::map<std::string, std::vector<std::string> > server_directives;
-
     std::vector<Location> locations;
+
+    // **** mandatory directives ****
+    SocketWrapper *sock; //* this is a socket wrapper 
+    // int sockfd;
+    int listen ; 
+    int port;
+
 };
 
 class Location : public Server
@@ -39,6 +62,8 @@ public:
 
     std::map<std::string, std::vector<std::string> > location_directives;
     std::vector<Location> locations;
+      // **** mandatory directives ****  
+    std::string Return ;
 };
 
 class Lexer
@@ -53,6 +78,7 @@ public:
     bool errors_check();
     std::vector<std::string> tokens;
     std::vector<std::string> lines;
+    std::vector<std::string> all_directs;
     std::istringstream input_stream;
 
     std::string input;

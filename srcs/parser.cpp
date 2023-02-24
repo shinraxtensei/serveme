@@ -76,10 +76,20 @@ bool Lexer::errors_check()
 }
 
 Lexer::Lexer(std::string filename)
-{
-    std::ifstream file(filename);
+{   
+    // ******* this is for inserting all the directives inside a vector in order to check if the directive is valid or not
+
+    std::ifstream dir("all_directs");
     std::string input;
     std::string line;
+    while (std::getline(dir, line))
+        this->all_directs.push_back(line);
+
+    // ************************************************************
+
+
+
+    std::ifstream file(filename);
     while (std::getline(file, line))
     {
 
@@ -182,17 +192,20 @@ void Parser::parse_directives(int type)
             break;
         }
         values.push_back(value);
-        // std::cout << Parser::lex()->next_token() << std::endl;
     }
-    // std::cout << directive + " : ";
-    // for (size_t i = 0; i < values.size(); i++)
-    //     std::cout << values[i] << " ";
-    // std::cout << std::endl;
 
     //* a pair or key and values
     std::pair<std::string, std::vector<std::string>> pair(directive, values);
     //* this is the pair of (iterator , bool ) to check if the pair is inserted or not , if not then its already exists
     std::pair<std::map<std::string, std::vector<std::string>>::iterator, bool> ret;
+
+    if ( find(lex()->all_directs.begin(),lex()->all_directs.end(), directive) == lex()->all_directs.end())
+    {
+        std::cout << directive << std::endl;
+        std::cout << "Error: directive not found" << std::endl;
+        exit(1);
+    }
+
 
     if (type == 0)
     {
