@@ -30,7 +30,7 @@ public:
         addr.sin_port = htons(port);
         int res = ::bind(sockfd_, (struct sockaddr*)&addr, sizeof(addr));
         if (res == -1) {
-            throw std::runtime_error("Failed to bind socket");
+            throw std::runtime_error("Failed to bind socket \n socket already in use");
         }
     }
 

@@ -54,7 +54,8 @@ int main()
 
     Parser::parse();
 
-    generate_dot(*Parser::getHttp());
+    // generate_dot(*Parser::getHttp());
    
+    Core::create_servers();
     return 0;
 }

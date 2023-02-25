@@ -1,6 +1,6 @@
 NAME = servme
 
-SRCS = srcs/parser.cpp servme.cpp
+SRCS = srcs/parser.cpp srcs/core.cpp servme.cpp 
 
 OBJ_DIR = obj/
 OBJS = $(addprefix $(OBJ_DIR), $(SRCS:.cpp=.o))
@@ -11,7 +11,7 @@ CFLAGS = -Wall -Wextra -Werror -std=c++17 -fsanitize=address
 
 
 all: $(NAME)
-	@./$(NAME) > output.dot
+	@./$(NAME) 
 
 
 

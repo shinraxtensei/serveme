@@ -39,6 +39,7 @@ public:
     std::string error_page;
 };
 
+class SocketWrapper;
 class Server : public Http
 {
 public:
@@ -49,9 +50,10 @@ public:
 
     // **** mandatory directives ****
     SocketWrapper *sock; //* this is a socket wrapper 
+    SocketWrapper *Socket();
     // int sockfd;
-    int listen ; 
-    int port;
+
+    int listen; 
 
 };
 
