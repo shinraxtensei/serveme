@@ -1,4 +1,4 @@
-#include "parser/parser.hpp"
+#include "inc/parser.hpp"
 
 Lexer *Parser::ptr = nullptr;
 Http *Parser::http = nullptr;
@@ -54,7 +54,8 @@ int main()
 
     Parser::parse();
 
-    generate_dot(*Parser::getHttp());
+    // generate_dot(*Parser::getHttp());
    
+    Core::create_servers();
     return 0;
 }
