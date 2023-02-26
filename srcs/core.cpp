@@ -7,12 +7,7 @@ Http *Core::get_http()
     return Parser::getHttp();
 }
 
-SocketWrapper *Server::Socket()
-{
-    if (sock == nullptr)
-        sock = new SocketWrapper(AF_INET , SOCK_STREAM , 0);
-    return sock;
-}
+
 
 
 void Core::create_servers()
@@ -48,3 +43,5 @@ void Core::create_servers()
         
     }
 }
+
+

@@ -1,11 +1,15 @@
 #include "../inc/parser.hpp"
+#include "../inc/core.hpp"
 
+
+//  this is a singleton for the lexer object
 Lexer *Parser::lex(std::string filename)
 {
     if (Parser::ptr == NULL)
         Parser::ptr = new Lexer(filename);
     return ptr;
 }
+//  this is a singleton for the lexer object
 Lexer *Parser::lex()
 {
     if (Parser::ptr == NULL)
@@ -16,12 +20,15 @@ Lexer *Parser::lex()
     return ptr;
 }
 
+// this is a singleton for the http object
 Http *Parser::getHttp()
 {
     if (Parser::http == NULL)
         Parser::http = new Http();
     return http;
 }
+
+
 
 bool Lexer::errors_check()
 {
@@ -36,7 +43,9 @@ bool Lexer::errors_check()
         {
             std::string token;
             token = this->next_token(true);
+
             // * the for unclosed curly braces
+
             if (token == "{" || token == "'" || token == "\"")
                 stack.push(token);
             else if (token == "}" || token == "'" || token == "\"")
@@ -46,8 +55,9 @@ bool Lexer::errors_check()
                 else
                     stack.pop();
             }
+            //*******************************
 
-            // ********************************
+
             newline += token + " ";
             tokens.push_back(token);
             size += token.size();
@@ -75,9 +85,11 @@ bool Lexer::errors_check()
     return true;
 }
 
+// this is the constructor for the lexer
+
 Lexer::Lexer(std::string filename)
 {   
-    // ******* this is for inserting all the directives inside a vector in order to check if the directive is valid or not
+    // *** this is for inserting all the directives inside a vector in order to check if the directive is valid or not
 
     std::ifstream dir("all_directs");
     std::string input;
@@ -85,7 +97,7 @@ Lexer::Lexer(std::string filename)
     while (std::getline(dir, line))
         this->all_directs.push_back(line);
 
-    // ************************************************************
+    // *********************************************************
 
 
 
@@ -98,7 +110,6 @@ Lexer::Lexer(std::string filename)
         if (line.size() > 0)
             lines.push_back(line + '\n');
     }
-    // TODO : the errors function does not work properly for now
     if (this->errors_check())
         this->input = input;
 };
@@ -138,14 +149,13 @@ std::string Lexer::next_token(bool consume)
 {
     // TODO : when there is ; after the quote, it will be considered as part of the token and will be added to the token
     // TODO : needs to be able to save the position in case we just want to match the token and not consume it
+
     std::streampos pos = input_stream.tellg();
     skip_whitespace(input_stream);
     std::string token;
 
     if (input_stream.eof())
-    {
         return "EOF";
-    }
     while (!input_stream.eof() && !is_whitespace(input_stream.peek()))
     {
         if (input_stream.peek() == '"' || input_stream.peek() == '\'')
@@ -196,6 +206,7 @@ void Parser::parse_directives(int type)
 
     //* a pair or key and values
     std::pair<std::string, std::vector<std::string>> pair(directive, values);
+    
     //* this is the pair of (iterator , bool ) to check if the pair is inserted or not , if not then its already exists
     std::pair<std::map<std::string, std::vector<std::string>>::iterator, bool> ret;
 
@@ -218,12 +229,10 @@ void Parser::parse_directives(int type)
     }
 
     else if (type == 1)
-    // TODO : create constructors for server and location to make out life easier
     {
         ret = Parser::getHttp()->servers.back().server_directives.insert(pair);
         if (ret.second == false)
         {
-
             std::cout << "Error: directive already exists" << std::endl;
             exit(1);
         }
@@ -245,21 +254,12 @@ void Parser::parse_location()
 {
     //  TODO : while the token is not {  it will be considered as part of the location
     Parser::getHttp()->servers.back().locations.push_back(Location());
-    // std::cout << "location : ";
-
-    // while (!Parser::match("{"))
-    // std::cout << Parser::lex()->next_token(true) << " ";
-    // std::cout << std::endl
-    //   << "{" << std::endl;
     while (1)
     {
         if (Parser::match("location"))
             Parser::parse_location();
         else if (Parser::match("}"))
-        {
-            // std::cout << "}\n";
             return;
-        }
         else
             Parser::parse_directives(2);
     }
@@ -268,20 +268,14 @@ void Parser::parse_location()
 void Parser::parse_server()
 {
     Parser::getHttp()->servers.push_back(Server());
-    // std::cout << "server" << std::endl;
     if (Parser::match("{"))
     {
-        // std::cout << '{' << std::endl;
-
         while (1)
         {
             if (Parser::match("location"))
                 parse_location();
             else if (Parser::match("}"))
-            {
-                // std::cout << "}\n";
                 break;
-            }
             else
                 parse_directives(1);
         }
@@ -290,30 +284,27 @@ void Parser::parse_server()
 
 void Parser::parse()
 {
-    // TODO : need to parse the location bloc better (take tokens until the '{')
-    // TODO : need to store the data in the appropriate data structure
-    // TODO : need to handle errors , types , etc
-    // TODO : implement grammar rules precisely
-    // TODO : need to handle events blocks
+                                                // TODO : need to parse the location bloc better (take tokens until the '{')
+                                                // TODO : need to store the data in the appropriate data structure
+                                                // TODO : need to handle errors , types , etc
+                                                // TODO : implement grammar rules precisely
+                                                // TODO : need to handle events blocks
+
+
     Parser::lex()->set_input(Parser::lex()->input);
 
     while (Parser::lex()->next_token(false) != "EOF")
     {
         if (Parser::match("http"))
         {
-            // std::cout << "http\n";
             if (Parser::match("{"))
             {
-                // std::cout << "{\n";
                 while (1)
                 {
                     if (Parser::match("server"))
                         parse_server();
                     else if (Parser::match("}"))
-                    {
-                        // std::cout << "}\n";
                         break;
-                    }
                     else
                         parse_directives(0);
                 }
