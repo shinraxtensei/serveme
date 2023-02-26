@@ -1,6 +1,12 @@
 NAME = servme
 
-SRCS = srcs/parser.cpp srcs/core.cpp servme.cpp 
+SRCS = srcs/parser.cpp srcs/core.cpp srcs/server.cpp servme.cpp 
+
+
+HEADER_DIR = inc/
+HEADERS  = $(shell find $(HEADER_DIR) -type f -name "*.hpp")
+
+
 
 OBJ_DIR = obj/
 OBJS = $(addprefix $(OBJ_DIR), $(SRCS:.cpp=.o))
@@ -11,12 +17,12 @@ CFLAGS = -Wall -Wextra -Werror -std=c++17 -fsanitize=address
 
 
 all: $(NAME)
-	@./$(NAME) 
 
 
 
-$(NAME): $(OBJS)
-	@$(CC) $(CFLAGS) -o $(NAME) $(OBJS)
+
+$(NAME): $(HEADERS) $(OBJS) 
+	@$(CC) $(CFLAGS) -o $(NAME)  $(OBJS)
 	@printf "\n\t\033[1;34mCompilation successful\033[0m\n\n"
 
 $(OBJ_DIR)%.o: %.cpp

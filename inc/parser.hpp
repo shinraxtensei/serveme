@@ -16,22 +16,18 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include "core.hpp"
+#include "socketWrapper.hpp"
 
 class Server;
 class Location;
 
 
-// TODO : we need to refactor the class cuz they are useless for now ...
-
-
-
 class Http
 {
 public:
-    // TODO : make it multimap to store multiple values for the same key
-
     std::map<std::string, std::vector<std::string> > http_directives;
     std::vector<Server> servers;
+    
     // **** mandatory directives ****
     std::string root;
     std::string index;
@@ -39,12 +35,16 @@ public:
     std::string error_page;
 };
 
+
+
+
+
 class SocketWrapper;
 class Server : public Http
 {
 public:
-    // TODO : make it multimap to store multiple values for the same key
-
+    Server();
+    ~Server();
     std::map<std::string, std::vector<std::string> > server_directives;
     std::vector<Location> locations;
 
@@ -53,6 +53,11 @@ public:
     SocketWrapper *Socket();
     // int sockfd;
 
+
+    void HandleConnection();
+    void HandleRequest();
+    void HandleResponse();
+
     int listen; 
 
 };
@@ -60,8 +65,6 @@ public:
 class Location : public Server
 {
 public:
-    // TODO : make it multimap to store multiple values for the same key
-
     std::map<std::string, std::vector<std::string> > location_directives;
     std::vector<Location> locations;
       // **** mandatory directives ****  
