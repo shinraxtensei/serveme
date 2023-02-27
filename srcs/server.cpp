@@ -28,7 +28,7 @@ void Server::connect()
         if (this->server_directives.find("listen") != this->server_directives.end())
         {
             this->listen = std::stoi(this->server_directives["listen"][0]);
-            // std::cout << "listen: " << this->listen << std::endl;
+            std::cout << "listen: " << this->listen << std::endl;
             this->sock->bind(this->listen);
         }
         else
@@ -36,6 +36,7 @@ void Server::connect()
             std::cout << "Error: listen directive not found" << std::endl;
             exit(1);
         }
+        this->sock->listen(10);
     }
     catch(const std::exception& e)
     {
@@ -43,8 +44,15 @@ void Server::connect()
     }
 }
 
-void Server::HandleRequest()
+void Server::HandleRequest( int fd)
 {
-std::cout << "HandleRequest" << std::endl;
+
+    char buffer[1024];
+    read(fd, buffer, 1024);
+    std::cout << "Request received" << std::endl;
+    std::cout << "Request: " << buffer << std::endl;
+
 }
 
+
+void Server::HandleResponse() {}
