@@ -52,7 +52,7 @@ public:
 
     // **** mandatory directives ****
     SocketWrapper *sock; //* this is a socket wrapper 
-    SocketWrapper *Socket();
+    // SocketWrapper *Socket();
     // int sockfd;
 
 

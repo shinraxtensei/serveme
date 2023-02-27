@@ -4,9 +4,10 @@ class SocketWrapper {
 public:
     SocketWrapper(int domain, int type, int protocol) {
         sockfd_ = socket(domain, type, protocol);
-        if (sockfd_ == -1) {
+        if (sockfd_ < 0) {
             throw std::runtime_error("Failed to create socket");
         }
+        fcntl(sockfd_, F_SETFL, O_NONBLOCK);
     }
 
     ~SocketWrapper() {
