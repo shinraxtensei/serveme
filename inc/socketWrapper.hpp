@@ -25,9 +25,6 @@ public:
             std::cerr << "bind error: " << strerror(errno) << std::endl;
             throw std::runtime_error("Failed to bind socket");
         }
-        // if (res == -1) {
-        //     throw std::runtime_error("Failed to bind socket \n socket already in use");
-        // }
     }
 
     void listen(int backlog) {

@@ -56,10 +56,9 @@ public:
     // int sockfd;
 
 
-    // void HandleConnection();
-    void HandleRequest();
+    void HandleRequest(int fd);
     void connect();
-    // void HandleResponse();
+    void HandleResponse();
 
     int listen; 
 
