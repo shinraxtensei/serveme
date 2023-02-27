@@ -1,12 +1,13 @@
 #include "../inc/core.hpp"
 
 
-SocketWrapper *Server::Socket()
-{
-    if (this->sock == nullptr)
-        this->sock = new SocketWrapper(AF_INET , SOCK_STREAM , 0);
-    return this->sock;
-}
+// SocketWrapper *Server::Socket()
+// {
+//     if (this->sock == nullptr)
+//         this->sock = new SocketWrapper(AF_INET , SOCK_STREAM , 0);
+//     std::cout << this->sock->get_sockfd() << std::endl;
+//     return this->sock;
+// }
 
 
 Server::Server()
@@ -16,22 +17,34 @@ Server::Server()
 
 Server::~Server()
 {
-    delete this->sock;
+    // delete this->sock;
 }
 
-void Server::HandleConnection()
-{
-    Socket();
-    std::map<std::string , std::vector<std::string> >::iterator  it; 
-    it = server_directives.find("listen");
-    if (it != server_directives.end())
-        this->listen = std::stoi(it->second[0]);
-    else
-    {
-        std::cout << "Error: listen directive not found" << std::endl;
-        exit(1);
+void Server::connect()
+{   
+    try
+    {    
+        
+        if (this->server_directives.find("listen") != this->server_directives.end())
+        {
+            this->listen = std::stoi(this->server_directives["listen"][0]);
+            // std::cout << "listen: " << this->listen << std::endl;
+            this->sock->bind(this->listen);
+        }
+        else
+        {
+            std::cout << "Error: listen directive not found" << std::endl;
+            exit(1);
+        }
     }
-    this->sock->bind(this->listen);
-
-
+    catch(const std::exception& e)
+    {
+        std::cerr << e.what() << '\n';
+    }
 }
+
+void Server::HandleRequest()
+{
+std::cout << "HandleRequest" << std::endl;
+}
+

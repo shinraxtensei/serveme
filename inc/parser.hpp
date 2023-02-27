@@ -48,15 +48,18 @@ public:
     std::map<std::string, std::vector<std::string> > server_directives;
     std::vector<Location> locations;
 
+    std::vector<int> fds;
+
     // **** mandatory directives ****
     SocketWrapper *sock; //* this is a socket wrapper 
-    SocketWrapper *Socket();
+    // SocketWrapper *Socket();
     // int sockfd;
 
 
-    void HandleConnection();
+    // void HandleConnection();
     void HandleRequest();
-    void HandleResponse();
+    void connect();
+    // void HandleResponse();
 
     int listen; 
 

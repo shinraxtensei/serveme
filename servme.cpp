@@ -53,9 +53,9 @@ int main()
     Parser::lex("nginx.conf");
 
     Parser::parse();
-
     // generate_dot(*Parser::getHttp());
+
    
-    Core::create_servers();
+    Core::handleConnections();
     return 0;
 }
