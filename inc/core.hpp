@@ -6,7 +6,7 @@
 #include <arpa/inet.h>
 #include <unistd.h>
 #include <fcntl.h>
-
+#include <sys/poll.h>
 
 
 
@@ -23,7 +23,7 @@ public:
     // TODO : create a wrapper for all sockets functions
 
 
-    static void create_servers();
+    static void handleConnections();
     static Http *get_http();
     // static void soket();
 };

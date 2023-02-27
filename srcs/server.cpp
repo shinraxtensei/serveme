@@ -16,22 +16,36 @@ Server::Server()
 
 Server::~Server()
 {
-    delete this->sock;
+    // delete this->sock;
 }
 
-void Server::HandleConnection()
+void Server::connect()
 {
-    Socket();
-    std::map<std::string , std::vector<std::string> >::iterator  it; 
-    it = server_directives.find("listen");
-    if (it != server_directives.end())
-        this->listen = std::stoi(it->second[0]);
-    else
-    {
-        std::cout << "Error: listen directive not found" << std::endl;
-        exit(1);
+    // TODO : handle the request
+    
+    try
+    {    
+        Socket();
+        if (this->server_directives.find("listen") != this->server_directives.end())
+        {
+            std::cout << "listen : " << this->server_directives["listen"][0]  << std::endl;
+            this->listen = std::stoi(this->server_directives["listen"][0]);
+            this->sock->bind(this->listen);
+        }
+        else
+        {
+            std::cout << "Error: listen directive not found" << std::endl;
+            exit(1);
+        }
     }
-    this->sock->bind(this->listen);
-
-
+    catch(const std::exception& e)
+    {
+        std::cerr << e.what() << '\n';
+    }
 }
+
+void Server::HandleRequest()
+{
+std::cout << "HandleRequest" << std::endl;
+}
+
