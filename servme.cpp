@@ -53,7 +53,11 @@ int main()
     Parser::lex("nginx.conf");
 
     Parser::parse();
-
+    for (auto i : Parser::getHttp()->servers)
+    {
+        i.Socket();
+        std::cout << i.Socket()->get_sockfd() << std::endl;
+    }
     // generate_dot(*Parser::getHttp());
    
     Core::handleConnections();

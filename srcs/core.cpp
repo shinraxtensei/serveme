@@ -64,6 +64,7 @@ void Core::handleConnections()
     for(size_t i = 0 ; i < Parser::getHttp()->servers.size() ; i++)
     {
         Parser::getHttp()->servers[i].connect();
+        
         pollfd fd;
         fd.fd = Parser::getHttp()->servers[i].sock->get_sockfd();
         fd.events = POLLIN;

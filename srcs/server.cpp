@@ -20,16 +20,14 @@ Server::~Server()
 }
 
 void Server::connect()
-{
-    // TODO : handle the request
-    
+{   
     try
     {    
-        Socket();
+        // Socket();
         if (this->server_directives.find("listen") != this->server_directives.end())
         {
-            std::cout << "listen : " << this->server_directives["listen"][0]  << std::endl;
             this->listen = std::stoi(this->server_directives["listen"][0]);
+            std::cout << "listen: " << this->listen << std::endl;
             this->sock->bind(this->listen);
         }
         else
