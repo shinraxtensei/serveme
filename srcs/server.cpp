@@ -52,6 +52,8 @@ void Server::HandleRequest( int fd)
     std::cout << "Request received" << std::endl;
     std::cout << "Request: " << buffer << std::endl;
 
+	std::cout << "test" << std::endl;
+
 }
 
 
