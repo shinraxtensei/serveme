@@ -17,7 +17,7 @@
 #include <fcntl.h>
 #include "core.hpp"
 #include "socketWrapper.hpp"
-
+#include <unordered_map>
 class Server;
 class Location;
 
@@ -55,7 +55,7 @@ public:
     // SocketWrapper *Socket();
     // int sockfd;
 
-
+	std::unordered_map<std::string, std::vector<std::string> >	request;
     void HandleRequest(int fd);
     void connect();
     void HandleResponse();

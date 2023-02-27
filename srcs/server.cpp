@@ -46,14 +46,73 @@ void Server::connect()
 
 void Server::HandleRequest( int fd)
 {
+	(void) fd;
+	// std::map<std::string, std::vector<std::string> >	;
+	// std::string	key;
+	// int		i = 0;
 
-    char buffer[1024];
-    read(fd, buffer, 1024);
-    std::cout << "Request received" << std::endl;
-    std::cout << "Request: " << buffer << std::endl;
+	std::vector<std::string> lines;
 
-	std::cout << "test" << std::endl;
+	std::string first;
+	
+	
+	std::string	line; 
+	std::string	buffer;
+	std::ifstream	file("/Users/yabtaour/Desktop/webserv-42/request");
+	while (std::getline(file, line))
+	{
+		buffer += line;
+		buffer += "\n";
+		if (line.size() > 0)
+			lines.push_back(line );
+	}
+	for(size_t i = 0 ; i < lines.size() ; i++)
+	{
+		std::vector<std::string> values;
+		Parser::lex()->set_input(lines[i]);
 
+		first = Parser::lex()->next_token(true);
+		while(Parser::lex()->next_token(false) != "EOF")
+			values.push_back(Parser::lex()->next_token(true));
+		std::pair<std::string , std::vector<std::string> > pair(first , values);
+		this->request.insert(pair);
+		values.clear();
+	}
+
+	for (auto it : this->request)
+	{
+		std::cout << "key : " << it.first << std::endl;
+		for(auto i : it.second)
+		{
+			std::cout << "values :" ;
+			std::cout << i + " " ;
+		}
+		std::cout << std::endl;
+	}
+	// Parser::lex()->set_input(buffer);
+	// while(Parser::lex()->next_token(false) != "EOF")
+	// {
+	// 	if (i == 0)
+	// 		this->request
+	// 	else
+	// 	while (Parser::lex()->next_token(false).back() != '\n')
+	// 	{
+
+	// 	}
+	// 	std::cout << Parser::lex()->next_token(true) << std::endl;
+	// 	while()
+
+	// }
+
+    // char buffer[1024];
+    // read(fd, buffer, 1024);
+    // std::cout << "Request received" << std::endl;
+    // std::cout << "Request: " << buffer << std::endl;
+
+	// std::string request = Parser::lex()->next_token(true);
+	// std::cout << request << std::endl;
+	// request = Parser::lex()->next_token(true);
+	// std::cout << request << std::endl;
 }
 
 
