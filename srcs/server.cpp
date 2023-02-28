@@ -36,7 +36,7 @@ void Server::connect()
             std::cout << "Error: listen directive not found" << std::endl;
             exit(1);
         }
-        this->sock->listen(10);
+        this->sock->listen(100);
     }
     catch(const std::exception& e)
     {
@@ -47,18 +47,38 @@ void Server::connect()
 void Server::HandleRequest( int fd)
 {
 	(void) fd;
+	int	emptyLine = 0;
 	std::vector<std::string> lines;
 	std::string key;
 	std::vector<std::string> values;
 	std::string	line; 
-	std::string	buffer;
 	std::ifstream	file("/Users/yabtaour/Desktop/webserv-42/request");
 	while (std::getline(file, line))
 	{
-		buffer += line;
-		buffer += "\n";
 		if (line.size() > 0)
 			lines.push_back(line + '\n');
+		else
+		{
+			emptyLine++;
+			std::getline(file, line);
+			if (line.size() > 0)
+			{
+				this->request_body += line + '\n';
+				while (std::getline(file, line))
+					this->request_body += line + '\n';
+				emptyLine++;
+				std::getline(file, line);
+				if (line.size() == 0)
+					emptyLine++;		
+			}
+			else
+				emptyLine++;
+		}
+	}
+	if (emptyLine > 1)
+	{
+		std::cout << "Error: empty line in request" << std::endl;
+		exit(1);
 	}
 	for(size_t i = 0 ; i < lines.size() ; i++)
 	{
@@ -84,23 +104,24 @@ void Server::HandleRequest( int fd)
 		else
 		{
 			key = Parser::lex()->next_token(true);
-			while(Parser::lex()->next_token(false) != "EOF" && Parser::lex()->next_token(false).back() != '\n' )
+			while(Parser::lex()->next_token(false) != "EOF" && Parser::lex()->next_token(false).back() != '\n')
 				values.push_back(Parser::lex()->next_token(true));
 			std::pair<std::string , std::vector<std::string> > pair(key , values);
 			this->request.insert(pair);
 			values.clear();
 		}
 	}
-	// for (auto it = this->request.begin() ; it != this->request.end() ; it++)
-	// {
-	// 	std::cout << "key : " << it->first << std::endl;
-	// 	for(auto i : it->second)
-	// 	{
-	// 		std::cout << "values :" ;
-	// 		std::cout << i + " " ;
-	// 	}
-	// 	std::cout << std::endl;
-	// }
+	for (auto it = this->request.begin() ; it != this->request.end() ; it++)
+	{
+		std::cout << "key : " << it->first << std::endl;
+		for(auto i : it->second)
+		{
+			std::cout << "values :" ;
+			std::cout << i + " " ;
+		}
+		std::cout << std::endl;
+	}
+	std::cout << "request body : " << this->request_body << std::endl;
 }
 
 void Server::HandleResponse() {}
