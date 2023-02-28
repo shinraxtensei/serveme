@@ -7,7 +7,7 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <sys/poll.h>
-
+#include <signal.h>
 
 
 
