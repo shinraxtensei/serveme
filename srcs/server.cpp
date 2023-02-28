@@ -46,13 +46,61 @@ void Server::connect()
 
 void Server::HandleRequest( int fd)
 {
-
-    char buffer[1024];
-    read(fd, buffer, 1024);
-    std::cout << "Request received" << std::endl;
-    std::cout << "Request: " << buffer << std::endl;
-
+	(void) fd;
+	std::vector<std::string> lines;
+	std::string key;
+	std::vector<std::string> values;
+	std::string	line; 
+	std::string	buffer;
+	std::ifstream	file("/Users/yabtaour/Desktop/webserv-42/request");
+	while (std::getline(file, line))
+	{
+		buffer += line;
+		buffer += "\n";
+		if (line.size() > 0)
+			lines.push_back(line + '\n');
+	}
+	for(size_t i = 0 ; i < lines.size() ; i++)
+	{
+		Parser::lex()->set_input(lines[i]);
+		if (i == 0)
+		{
+			key = "Method";
+			values.push_back(Parser::lex()->next_token(true));
+			std::pair<std::string , std::vector<std::string> > pair(key , values);
+			this->request.insert(pair);
+			values.clear();
+			key = "Path";
+			values.push_back(Parser::lex()->next_token(true));
+			pair.first = key ; pair.second = values;
+			this->request.insert(pair);
+			values.clear();
+			key = "Version";
+			values.push_back(Parser::lex()->next_token(true));
+			pair.first = key ; pair.second = values;
+			this->request.insert(pair);
+			values.clear();
+		}
+		else
+		{
+			key = Parser::lex()->next_token(true);
+			while(Parser::lex()->next_token(false) != "EOF" && Parser::lex()->next_token(false).back() != '\n' )
+				values.push_back(Parser::lex()->next_token(true));
+			std::pair<std::string , std::vector<std::string> > pair(key , values);
+			this->request.insert(pair);
+			values.clear();
+		}
+	}
+	// for (auto it = this->request.begin() ; it != this->request.end() ; it++)
+	// {
+	// 	std::cout << "key : " << it->first << std::endl;
+	// 	for(auto i : it->second)
+	// 	{
+	// 		std::cout << "values :" ;
+	// 		std::cout << i + " " ;
+	// 	}
+	// 	std::cout << std::endl;
+	// }
 }
-
 
 void Server::HandleResponse() {}

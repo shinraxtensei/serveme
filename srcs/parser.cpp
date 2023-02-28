@@ -158,11 +158,11 @@ std::string Lexer::next_token(bool consume)
         return "EOF";
     while (!input_stream.eof() && !is_whitespace(input_stream.peek()))
     {
-        if (input_stream.peek() == '"' || input_stream.peek() == '\'')
+        if (input_stream.peek() == '"' || input_stream.peek() == '\'' || input_stream.peek() == '(')
         {
             char quote = input_stream.get();
             token += quote;
-            while (!input_stream.eof() && (input_stream.peek() != quote))
+            while (!input_stream.eof() && (input_stream.peek() != quote) && (quote == '(' && input_stream.peek() != ')'))
                 token += input_stream.get();
         }
         if (is_whitespace(input_stream.peek()))
