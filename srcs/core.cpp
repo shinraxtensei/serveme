@@ -22,6 +22,7 @@ int check_servers_socket(int fd)
 
 void Core::handleConnections()
 {
+
     std::vector<pollfd> pollFds;
     for (size_t i = 0; i < Parser::getHttp()->servers.size(); i++)
     {
@@ -36,7 +37,7 @@ void Core::handleConnections()
 
     while(true)
     {
-        int ret = poll(pollFds.data(), pollFds.size(), -1);
+        int ret = poll(pollFds.data(), pollFds.size(), 10);
         if (ret == -1)
         {
             std::cerr << "Error: poll() failed" << std::endl;
@@ -58,7 +59,7 @@ void Core::handleConnections()
                         std::cerr << "Error: accept() failed" << std::endl;
                         continue;
                     }
-                    // fcntl(client_fd, F_SETFL, O_NONBLOCK);
+                    fcntl(client_fd, F_SETFL, O_NONBLOCK);
                     pollfd fd;
                     fd.fd = client_fd;
                     fd.events = POLLIN;
@@ -77,8 +78,8 @@ void Core::handleConnections()
 
                     }
 
-                    close(pollFds[i].fd);
-                    pollFds.erase(pollFds.begin() + i);
+                    // close(pollFds[i].fd);
+                    // pollFds.erase(pollFds.begin() + i);
                     continue;
                 }
             }
