@@ -77,9 +77,8 @@ void Core::handleConnections()
                         }
 
                     }
-
-                    // close(pollFds[i].fd);
-                    // pollFds.erase(pollFds.begin() + i);
+                    close(pollFds[i].fd);
+                    pollFds.erase(pollFds.begin() + i);
                     continue;
                 }
             }
