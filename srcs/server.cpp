@@ -51,6 +51,7 @@ void Server::HandleRequest( int fd)
     read(fd, buffer, 1024);
     std::cout << "Request received" << std::endl;
     std::cout << "Request: " << buffer << std::endl;
+    Parser::lex()->set_input(buffer);
 
 }
 
