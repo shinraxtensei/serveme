@@ -1,10 +1,12 @@
 #include "inc/parser.hpp"
+#include "inc/core.hpp"
+#include "inc/socketWrapper.hpp"
+#include "inc/server.hpp"
 
 Lexer *Parser::ptr = nullptr;
 Http *Parser::http = nullptr;
 
-#define BLUE "\033[0;34m"
-#define RESET "\033[0m"
+
 // void generate_dot(Http &http)
 // {
 //     std::cout << "digraph G {\n";
@@ -56,7 +58,11 @@ int main()
     // // generate_dot(*Parser::getHttp());
 
    
+    // Core::handleConnections();
+    std::cout << BLUE << "---------------------- Serverme  -------------------------" << RESET << std::endl;
+    Core::startup();
     Core::handleConnections();
+    
 
 
  
