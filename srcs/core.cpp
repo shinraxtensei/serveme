@@ -20,6 +20,12 @@ int check_servers_socket(int fd)
 }
 
 
+// TODO : make the funcion cleaner , add the handle response  (listne on pollout)
+// TODO : make the clients able to disconnect
+// TODO : create a client class that will store info about every client 
+// TODO : now the servers dont have to have a socket wrapper , they only has to store the port and the socket fd
+// TODO : the core should handle the creation and binding of sockets , and it should be able to give to the server to handle the appropriate request , depending on the servername/default server 
+
 void Core::handleConnections()
 {
 
@@ -31,7 +37,7 @@ void Core::handleConnections()
 
         pollfd fd;
         fd.fd = Parser::getHttp()->servers[i].sock->get_sockfd();
-        fd.events = POLLIN;
+        fd.events = POLLIN | POLLHUP | POLLERR;
         pollFds.push_back(fd);
     }
 
@@ -44,10 +50,9 @@ void Core::handleConnections()
             exit(1);
         }
         for (size_t i = 0 ; i < pollFds.size() ; i++)
-        {
+        {   
             if (pollFds[i].revents & POLLIN)
             {
-                
                 if (int server_index = check_servers_socket(pollFds[i].fd); server_index != -1)
                 {
                     // then its server socket
@@ -75,13 +80,18 @@ void Core::handleConnections()
                             Parser::getHttp()->servers[j].HandleRequest(pollFds[i].fd);
                             break;
                         }
-
                     }
-
+                }
                     // close(pollFds[i].fd);
                     // pollFds.erase(pollFds.begin() + i);
                     continue;
-                }
+            }
+            else if (pollFds[i].revents & POLLHUP)
+            {
+                std::cout << "client disconnected \n";
+                close(pollFds[i].fd);
+                pollFds.erase(pollFds.begin() + i);
+                // continue;
             }
         }
     }

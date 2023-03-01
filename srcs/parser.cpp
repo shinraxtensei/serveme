@@ -284,11 +284,8 @@ void Parser::parse_server()
 
 void Parser::parse()
 {
-                                                // TODO : need to parse the location bloc better (take tokens until the '{')
-                                                // TODO : need to store the data in the appropriate data structure
-                                                // TODO : need to handle errors , types , etc
-                                                // TODO : implement grammar rules precisely
-                                                // TODO : need to handle events blocks
+    // TODO: need to store the server name , and patse the listen directive to look for the port number and the ip address
+    // TODO : store the ports in a set or a map , it should be linked to its servers
 
 
     Parser::lex()->set_input(Parser::lex()->input);
