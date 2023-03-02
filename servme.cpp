@@ -2,10 +2,10 @@
 #include "inc/core.hpp"
 #include "inc/socketWrapper.hpp"
 #include "inc/server.hpp"
-
+#include "inc/servme.hpp"
 Lexer *Parser::ptr = nullptr;
 Http *Parser::http = nullptr;
-
+Core *Servme::core = nullptr;
 
 // void generate_dot(Http &http)
 // {
@@ -60,11 +60,17 @@ int main()
    
     // Core::handleConnections();
     std::cout << BLUE << "---------------------- Serverme  -------------------------" << RESET << std::endl;
-    Core::startup();
-    Core::handleConnections();
-    
+    // Core::startup();
+    // Core::handleConnections();
+        
+    Servme::getCore()->startup();
+    Servme::getCore()->handleConnections();
 
 
+    // for (auto it : Servme::getCore()->serverSockets)
+    // {
+    //     std::cout << BLUE << "socket_fd: " << it.get_sockfd() << RESET << std::endl;
+    // }
  
     return 0;
 }

@@ -9,14 +9,21 @@ Http *Core::get_http()
 
 
 
-std::set<SocketWrapper>::iterator check_servers_socket(int fd)
+int  Core::check_servers_socket(int fd)
 {
-    for (std::set<SocketWrapper>::iterator it = Core::serverSockets.begin(); it != Core::serverSockets.end(); it++)
-    {
-        if (it->get_sockfd() == fd)
-            return it;
+    // std::cout << "inside check_servers_socket - fd : " << fd << std::endl;
+    // for (std::vector<SocketWrapper>::iterator it = this->serverSockets.begin(); it != Core::serverSockets.end(); it++)
+    // {
+    //     if (it->get_sockfd() == fd)
+    //         return it;
+    // }
+
+    for (size_t i = 0; i < this->serverSockets.size(); i++)
+    {   
+        if (this->serverSockets[i].get_sockfd() == fd)
+            return  i;
     }
-    return Core::serverSockets.end();
+    return -1;
 }
 
 
@@ -41,7 +48,7 @@ void Core::startup()
         else
             sock->bind(it->first, it->second);
         sock->listen(100);
-        Core::serverSockets.insert(*sock);
+        this->serverSockets.push_back(*sock);
     }
 
     for (auto it : listens)
@@ -155,8 +162,9 @@ void Core::HandleResquest(int fd)
 void Core::handleConnections()
 {
     std::vector<pollfd> pollFds;
-    for (std::set<SocketWrapper>::iterator it = Core::serverSockets.begin(); it != Core::serverSockets.end(); it++)
+    for (std::vector<SocketWrapper>::iterator it = this->serverSockets.begin(); it != this->serverSockets.end(); it++)
     {
+        // std::cout << RED << "inside handle connections - fd :" << it->get_sockfd() << RESET << std::endl;
         pollfd fd;
         fd.fd = it->get_sockfd();
         fd.events = POLLIN | POLLHUP | POLLOUT;
@@ -176,18 +184,38 @@ void Core::handleConnections()
         {
             if (pollFds[i].revents & POLLIN)
             {
-                if (std::set<SocketWrapper>::iterator it =  check_servers_socket(pollFds[i].fd) ; it != Core::serverSockets.end())
+                if (int it = check_servers_socket(pollFds[i].fd) ; it != -1)
                 {
+                    // std::cout << "it : " << this->serverSockets[it].get_sockfd() << std::endl;
                     // then its server socket
                     std::cout << "new connection\n" ;
-                    Client client(*it);
-                    pollFds.push_back(client.pollfd_);
+
+                    sockaddr_in client_addr;
+                    int client_fd = this->serverSockets[it].accept(client_addr);
+                    // std::cout << "client fd : " << client_fd << std::endl;
+                    if (client_fd == -1)
+                    {
+                        std::cerr << "Error: accept() failed" << std::endl;
+                        continue;
+                    }
+                    fcntl(client_fd, F_SETFL, O_NONBLOCK);
+                    pollfd fd;
+                    fd.fd = client_fd;
+                    fd.events = POLLIN | POLLHUP | POLLOUT;
+                    pollFds.push_back(fd);
+
+
+
+
+                    // Client client(*it);
+                    // pollFds.push_back(client.pollfd_);
                     // this clients vector is useless for now
-                    clients.push_back(Client(*it));
+                    // clients.push_back(Client(*it));
                 }
                 else
                 {
                     Core::HandleResquest(pollFds[i].fd);
+                    break;
                     // continue;
                 }
             }

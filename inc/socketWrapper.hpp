@@ -14,7 +14,7 @@ public:
     }
 
     ~SocketWrapper() {
-        close(sockfd_);
+        // close(sockfd_);
     }
 
     void bind(int port) {
@@ -56,6 +56,7 @@ public:
         socklen_t addrlen = sizeof(client_addr);
         int clientfd = ::accept(sockfd_, (struct sockaddr*)&client_addr, &addrlen);
         if (clientfd == -1) {
+            std::cerr << "accept error: " << strerror(errno) << std::endl;
             throw std::runtime_error("Failed to accept connection");
         }
         return clientfd;
@@ -77,6 +78,32 @@ public:
     int get_sockfd() const {
         return sockfd_;
     }
+
+    bool operator==(const SocketWrapper& other) const {
+        return sockfd_ == other.sockfd_;
+    }
+
+    bool operator!=(const SocketWrapper& other) const {
+        return sockfd_ != other.sockfd_;
+    }
+
+    bool operator<(const SocketWrapper& other) const {
+        return sockfd_ < other.sockfd_;
+    }
+
+    bool operator>(const SocketWrapper& other) const {
+        return sockfd_ > other.sockfd_;
+    }
+
+    bool operator<=(const SocketWrapper& other) const {
+        return sockfd_ <= other.sockfd_;
+    }
+
+    bool operator>=(const SocketWrapper& other) const {
+        return sockfd_ >= other.sockfd_;
+    }
+
+
 
 private:
     int sockfd_;

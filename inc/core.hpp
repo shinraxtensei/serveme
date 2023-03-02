@@ -19,15 +19,29 @@
 
 
 class Http;
+// class Core
+// {
+// public:
+//     // TODO : create a wrapper for all sockets functions
+//     static std::set<SocketWrapper> serverSockets;
+//     static std::vector<Client> clients;
+//     static void handleConnections();
+//     static void HandleResquest(int fd);
+//     static Http *get_http();
+//     // static void soket();
+//     static void startup();
+// };
+
+
+
 class Core
 {
-public:
-    // TODO : create a wrapper for all sockets functions
-    static std::set<SocketWrapper> serverSockets;
-    static std::vector<Client> clients;
-    static void handleConnections();
-    static void HandleResquest(int fd);
-    static Http *get_http();
-    // static void soket();
-    static void startup();
+    public:
+        std::vector<SocketWrapper> serverSockets;
+        std::vector<Client> clients;
+        int check_servers_socket(int fd);
+        void handleConnections();
+        void HandleResquest(int fd);
+        Http *get_http();
+        void startup();
 };
