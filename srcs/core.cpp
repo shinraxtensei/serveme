@@ -214,6 +214,7 @@ void Core::handleConnections()
                 }
                 else
                 {
+
                     Core::HandleResquest(pollFds[i].fd);
                     break;
                     // continue;

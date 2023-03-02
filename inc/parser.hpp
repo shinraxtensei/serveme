@@ -59,13 +59,15 @@ public:
     std::vector<Location> locations;
 
     std::vector<int> fds;
+	
+	std::unordered_map<std::string, std::vector<std::string> >	request;
+	std::string		request_body;
 
     // **** mandatory directives ****
     SocketWrapper *sock; //* this is a socket wrapper 
     // SocketWrapper *Socket();
     // int sockfd;
 
-	std::unordered_map<std::string, std::vector<std::string> >	request;
     void HandleRequest(int fd);
     void connect();
     void HandleResponse();
