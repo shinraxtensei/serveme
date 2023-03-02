@@ -230,6 +230,43 @@ void Parser::parse_directives(int type)
 
     else if (type == 1)
     {
+
+        if (pair.first == "listen")
+        {
+            if (pair.second.size() > 1)
+            {
+                std::cout << "Error: listen directive can only have one value" << std::endl;
+                exit(1);
+            }
+            else if (pair.second[0].find(":") != std::string::npos)
+            {
+                Parser::getHttp()->servers.back().ipPort.first = pair.second[0].substr(0, pair.second[0].find(":"));
+                Parser::getHttp()->servers.back().ipPort.second = std::stoi(pair.second[0].substr(pair.second[0].find(":") + 1));
+            }
+            else
+            {
+                Parser::getHttp()->servers.back().ipPort.first = "NONE";
+                Parser::getHttp()->servers.back().ipPort.second = std::stoi(pair.second[0]);
+            }
+
+        }
+        else if (pair.first == "server_name")
+        {
+            if (pair.second.size() > 1)
+            {
+                std::cout << "Error: server_name directive can only have one value" << std::endl;
+                exit(1);
+            }
+            else
+                Parser::getHttp()->servers.back().server_name = pair.second[0];
+        }
+        
+
+
+
+
+
+
         ret = Parser::getHttp()->servers.back().server_directives.insert(pair);
         if (ret.second == false)
         {
@@ -284,11 +321,7 @@ void Parser::parse_server()
 
 void Parser::parse()
 {
-                                                // TODO : need to parse the location bloc better (take tokens until the '{')
-                                                // TODO : need to store the data in the appropriate data structure
-                                                // TODO : need to handle errors , types , etc
-                                                // TODO : implement grammar rules precisely
-                                                // TODO : need to handle events blocks
+    // TODO : store the ports in a set or a map , it should be linked to its servers
 
 
     Parser::lex()->set_input(Parser::lex()->input);
