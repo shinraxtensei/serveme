@@ -7,70 +7,68 @@ Lexer *Parser::ptr = nullptr;
 Http *Parser::http = nullptr;
 Core *Servme::core = nullptr;
 
-// void generate_dot(Http &http)
-// {
-//     std::cout << "digraph G {\n";
-//     std::cout << "http [shape=box3d ,style=filled];\n";
-//     int i = 0;
-//     int j = 0;
-//     for (auto server : http.servers)
-//     {
-//         std::cout << "http -> server" << i << ";\n";
-//         std::cout << "server" << i << ""
-//                   << " [shape=box , style=filled, label=\"";
-//         for (auto directive : server.server_directives)
-//         {
-//             std::cout << directive.first << " : ";
-//             for (auto value : directive.second)
-//                 std::cout << value << " ";
-//             std::cout << "\\n-----------------------------------------------\\n";
-//         }
-//         std::cout << "\"];\n";
-//         for (auto location : server.locations)
-//         {
-//             std::cout << "server" << i << " -> location" << j << ";\n";
-//             std::cout << "location" << j << ""
-//                       << " [shape=box , style=filled, label=\"";
-//             for (auto directive : location.location_directives)
-//             {
-//                 std::cout << directive.first << " : ";
-//                 for (auto value : directive.second)
-//                     std::cout << value << " ";
-//                 std::cout << "\\n-----------------------------------------------\\n";
-//             }
-//             std::cout << "\"];\n";
-//             j++;
-//         }
-//         i++;
-//     }
-//     std::cout << "}\n";
-// }
+void generate_dot(Http &http)
+{
+    std::ofstream Parse_tree;
+    Parse_tree.open("parse_tree.dot");
+    if (!Parse_tree.is_open())
+        throw std::runtime_error("Error opening file");
+    Parse_tree << "digraph G {\n";
+    Parse_tree << "http [shape=box3d ,style=filled];\n";
+    int i = 0;
+    int j = 0;
+    for (auto server : http.servers)
+    {
+        Parse_tree << "http -> server" << i << ";\n";
+        Parse_tree << "server" << i << ""
+             << " [shape=box , style=filled, label=\"";
+        for (auto directive : server.server_directives)
+        {
+            Parse_tree << directive.first << " : ";
+            for (auto value : directive.second)
+                Parse_tree << value << " ";
+            Parse_tree << "\\n-----------------------------------------------\\n";
+        }
+        Parse_tree << "\"];\n";
+        for (auto location : server.locations)
+        {
+            Parse_tree << "server" << i << " -> location" << j << ";\n";
+            Parse_tree << "location" << j << ""
+                 << " [shape=box , style=filled, label=\"";
+            for (auto directive : location.location_directives)
+            {
+                Parse_tree << directive.first << " : ";
+                for (auto value : directive.second)
+                    Parse_tree << value << " ";
+                Parse_tree << "\\n-----------------------------------------------\\n";
+            }
+            Parse_tree << "\"];\n";
+            j++;
+        }
+        i++;
+    }
+    Parse_tree << "}\n";
+    Parse_tree.close();
+}
 
 int main()
 {
 
-    // // TODO : hadnle unclosed curly braces and quotes
-    // // TODO : handle unknown directives
+    std::cout << BLUE << "---------------------- Serverme  -------------------------" << RESET << std::endl;
     
     Parser::lex("nginx.conf");
 
     Parser::parse();
-    // // generate_dot(*Parser::getHttp());
+    generate_dot(*Parser::getHttp());
+
 
    
-    // Core::handleConnections();
-    std::cout << BLUE << "---------------------- Serverme  -------------------------" << RESET << std::endl;
-    // Core::startup();
-    // Core::handleConnections();
         
     Servme::getCore()->startup();
     Servme::getCore()->handleConnections();
 
 
-    // for (auto it : Servme::getCore()->serverSockets)
-    // {
-    //     std::cout << BLUE << "socket_fd: " << it.get_sockfd() << RESET << std::endl;
-    // }
+
  
     return 0;
 }

@@ -33,7 +33,7 @@ run: $(NAME)
 	@ ./$(NAME)
 
 clean:
-	@rm -rf $(OBJ_DIR) output.dot
+	@rm -rf $(OBJ_DIR) parse_tree.dot
 
 fclean: clean
 	@rm -f $(NAME)

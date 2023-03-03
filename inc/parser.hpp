@@ -50,6 +50,7 @@ public:
 
 
 class SocketWrapper;
+
 class Server : public Http
 {
 public:

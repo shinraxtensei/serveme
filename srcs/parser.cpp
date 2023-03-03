@@ -79,9 +79,6 @@ bool Lexer::errors_check()
         exit(1);
     }
 
-    // TODO :  check if ; is at the end of the line if its not any special token
-    // TODO :  check the first directive is not a number ... directives should be known
-
     return true;
 }
 
@@ -147,9 +144,6 @@ static void skip_whitespace(std::istringstream &input)
 
 std::string Lexer::next_token(bool consume)
 {
-    // TODO : when there is ; after the quote, it will be considered as part of the token and will be added to the token
-    // TODO : needs to be able to save the position in case we just want to match the token and not consume it
-
     std::streampos pos = input_stream.tellg();
     skip_whitespace(input_stream);
     std::string token;
@@ -289,7 +283,6 @@ void Parser::parse_directives(int type)
 
 void Parser::parse_location()
 {
-    //  TODO : while the token is not {  it will be considered as part of the location
     Parser::getHttp()->servers.back().locations.push_back(Location());
     while (1)
     {
@@ -321,9 +314,9 @@ void Parser::parse_server()
 
 void Parser::parse()
 {
-    // TODO : store the ports in a set or a map , it should be linked to its servers
 
-
+    // TODO : handle a bug (when the last directive and ;  are seperated by a space the ; is taken as a token by itself) -> this makes the parser return an error of more that one value for a directive that can only have one value
+    
     Parser::lex()->set_input(Parser::lex()->input);
 
     while (Parser::lex()->next_token(false) != "EOF")
