@@ -96,6 +96,7 @@ void Core::HandleResquest(int fd)
 
 
 
+
 void Core::handleConnections()
 {
     
@@ -137,6 +138,7 @@ void Core::handleConnections()
                 }
                 else
                 {
+
                     Core::HandleResquest(pollFds[i].fd);
                     break;
                 }
