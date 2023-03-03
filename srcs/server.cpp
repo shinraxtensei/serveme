@@ -36,7 +36,7 @@ void Server::connect()
             std::cout << "Error: listen directive not found" << std::endl;
             exit(1);
         }
-        this->sock->listen(10);
+        this->sock->listen(100);
     }
     catch(const std::exception& e)
     {
