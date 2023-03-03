@@ -7,7 +7,6 @@
 class Servme
 {
     static Core *core;
-    // static Parser *parser;
 
     public:
 

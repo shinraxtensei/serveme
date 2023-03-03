@@ -12,8 +12,10 @@ class Client
         int fd;
         pollfd pollfd_;
         sockaddr_in *addr;
+        
+        std::string buffer;
     
-    Client(SocketWrapper socket){
+    Client(SocketWrapper &socket){
         addr = new sockaddr_in;
 
         fd = socket.accept(*addr);
@@ -22,7 +24,8 @@ class Client
         }
         fcntl(fd, F_SETFL, O_NONBLOCK);
         pollfd_.fd = fd;
-        pollfd_.events = POLLIN;
+        pollfd_.events = POLLIN | POLLHUP | POLLOUT;
         
     }
+    ~Client() {}
 };
