@@ -283,9 +283,15 @@ void Parser::parse_directives(int type)
 
 void Parser::parse_location()
 {
+
+
+
     Parser::getHttp()->servers.back().locations.push_back(Location());
+    while(!Parser::match("{"))
+        Parser::lex()->next_token(true);
     while (1)
     {
+
         if (Parser::match("location"))
             Parser::parse_location();
         else if (Parser::match("}"))
