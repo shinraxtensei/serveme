@@ -224,10 +224,9 @@ void Parser::parse_directives(int type)
 
     else if (type == 1)
     {
-
-        if (pair.first == "listen")
+        if (pair.first == "listen" )
         {
-            if (pair.second.size() > 1)
+            if (pair.second.size() > 1  && pair.second[1] == ";")
             {
                 std::cout << "Error: listen directive can only have one value" << std::endl;
                 exit(1);
@@ -244,9 +243,9 @@ void Parser::parse_directives(int type)
             }
 
         }
-        else if (pair.first == "server_name")
+        else if (pair.first == "server_name" )
         {
-            if (pair.second.size() > 1)
+            if (pair.second.size() > 1 && pair.second[1] == ";")
             {
                 std::cout << "Error: server_name directive can only have one value" << std::endl;
                 exit(1);
@@ -283,9 +282,15 @@ void Parser::parse_directives(int type)
 
 void Parser::parse_location()
 {
+
+
+
     Parser::getHttp()->servers.back().locations.push_back(Location());
+    while(!Parser::match("{"))
+        Parser::lex()->next_token(true);
     while (1)
     {
+
         if (Parser::match("location"))
             Parser::parse_location();
         else if (Parser::match("}"))

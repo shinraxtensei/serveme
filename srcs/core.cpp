@@ -59,8 +59,8 @@ void Core::startup()
 
 void Core::HandleResquest(int fd)
 {
-    // TODO: we need to parse the request in order to check for the servername to see which server should handle the request
-
+    // TODO : we need to parse the request in order to check for the servername to see which server should handle the request
+    // TODO : 
 
     std::cout << "handle request\n";
     std::string request;
@@ -137,8 +137,10 @@ void Core::handleConnections()
 
                 }
                 else
-                {
-
+                {   
+                    char buf[2];
+                    recv(pollFds[i].fd, buf, 2, 0);
+                    std::cout << "request\n";
                     Core::HandleResquest(pollFds[i].fd);
                     break;
                 }
@@ -150,9 +152,11 @@ void Core::handleConnections()
             // }
             else if (pollFds[i].revents & POLLHUP)
             {
+
                 std::cout << "client disconnected \n";
                 close(pollFds[i].fd);
                 pollFds.erase(pollFds.begin() + i);
+                exit(0);
             }
 
 
