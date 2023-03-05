@@ -35,12 +35,24 @@ class Http;
 
 class Core
 {
+
+
     public:
+
+    Core(){};
+    ~Core()
+    {
+        for (size_t i = 0; i < this->serverSockets.size(); i++)
+            this->serverSockets[i].~SocketWrapper();
+        for (size_t i = 0; i < this->clients.size(); i++)
+            this->clients[i].~Client();
+    }
+
         std::vector<SocketWrapper> serverSockets;
         std::vector<Client> clients;
         int check_servers_socket(int fd);
         void handleConnections();
-        void HandleResquest(int fd);
+        void HandleResquest(pollfd FD);
         Http *get_http();
         void startup();
 };

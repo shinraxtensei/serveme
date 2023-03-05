@@ -57,12 +57,8 @@ int main()
     std::cout << BLUE << "---------------------- Serverme  -------------------------" << RESET << std::endl;
     
     Parser::lex("nginx.conf");
-
     Parser::parse();
     generate_dot(*Parser::getHttp());
-
-
-   
         
     Servme::getCore()->startup();
     Servme::getCore()->handleConnections();
