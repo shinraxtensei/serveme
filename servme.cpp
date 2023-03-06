@@ -71,30 +71,28 @@ int main(int argc, char **argv)
     }
     else if (argc == 2)
     {   
-        switch (argv[1][1])
+        if (std::string av(argv[1]) ; av == "-h")
         {
-            case 'h':
-                std::cout  << GREEN << "Usage: ./serverme [OPTION]" << RESET << std::endl;
-                std::cout << YELLOW << "-h : help" << std::endl;
-                std::cout <<  "-t : check the syntax of the configuration file"  << std::endl;
-                std::cout <<  "-d : check the syntax of the configuration file and generate a dot file" << RESET << std::endl;   
-                break;
-            case 't':
-                Parser::lex("nginx.conf");
-                Parser::parse();
-                std::cout << GREEN << "Syntax OK" << RESET << std::endl;
-                break;
-            case 'd':
-                Parser::lex("nginx.conf");
-                Parser::parse();
-                std::cout << GREEN << "Syntax OK" << RESET << std::endl;
-                generate_dot(*Parser::getHttp());
-                break;
-            default:
-                std::cout << RED << "Usage: ./serverme -h" << RESET << std::endl;
-                break;
+            std::cout  << GREEN << "Usage: ./serverme [OPTION]" << RESET << std::endl;
+            std::cout << YELLOW << "-h : help" << std::endl;
+            std::cout <<  "-t : check the syntax of the configuration file"  << std::endl;
+            std::cout <<  "-d : check the syntax of the configuration file and generate a dot file" << RESET << std::endl;   
         }
-
+        else if (std::string av(argv[1]) ; av == "-t")
+        {
+            Parser::lex("nginx.conf");
+            Parser::parse();
+            std::cout << GREEN << "Syntax OK" << RESET << std::endl;
+        }
+        else if (std::string av(argv[1]) ; av == "-d")
+        {
+            Parser::lex("nginx.conf");
+            Parser::parse();
+            std::cout << GREEN << "Syntax OK" << RESET << std::endl;
+            generate_dot(*Parser::getHttp());
+        }
+        else
+            std::cout << RED << "Usage: ./serverme -h" << RESET << std::endl;
     }
     else
         std::cout << RED << "Usage: ./serverme -h" << RESET << std::endl;

@@ -91,7 +91,8 @@ public:
     std::map<std::string, std::vector<std::string> > location_directives;
     std::vector<Location> locations;
       // **** mandatory directives ****  
-    std::string Return ;
+    // std::string Return ;
+    std::pair<int ,std::string > Return;
 };
 
 class Lexer
