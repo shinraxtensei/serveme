@@ -4,6 +4,7 @@ error_log
 pid
 worker_rlimit_nofile
 events
+autoindex
 http
 include
 index
@@ -21,5 +22,6 @@ fastcgi_pass
 expires
 proxy_pass
 upstream
+return
 ~
 /

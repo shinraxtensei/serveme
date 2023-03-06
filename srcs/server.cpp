@@ -22,26 +22,26 @@ Server::~Server()
 
 void Server::connect()
 {   
-    try
-    {    
+    // try
+    // {    
         
-        if (this->server_directives.find("listen") != this->server_directives.end())
-        {
-            this->listen = std::stoi(this->server_directives["listen"][0]);
-            std::cout << "listen: " << this->listen << std::endl;
-            this->sock->bind(this->listen);
-        }
-        else
-        {
-            std::cout << "Error: listen directive not found" << std::endl;
-            exit(1);
-        }
-        this->sock->listen(100);
-    }
-    catch(const std::exception& e)
-    {
-        std::cerr << e.what() << '\n';
-    }
+    //     if (this->server_directives.find("listen") != this->server_directives.end())
+    //     {
+    //         this->listen = std::stoi(this->server_directives["listen"][0]);
+    //         std::cout << "listen: " << this->listen << std::endl;
+    //         this->sock->bind(this->listen);
+    //     }
+    //     else
+    //     {
+    //         std::cout << "Error: listen directive not found" << std::endl;
+    //         exit(1);
+    //     }
+    //     this->sock->listen(100);
+    // }
+    // catch(const std::exception& e)
+    // {
+    //     std::cerr << e.what() << '\n';
+    // }
 }
 
 void Server::HandleRequest( int fd)

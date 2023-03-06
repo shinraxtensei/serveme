@@ -42,10 +42,13 @@ public:
     std::vector<Server> servers;
     
     // **** mandatory directives ****
+    
     std::string root;
-    std::string index;
-    std::string allowed_methos;
-    std::string error_page;
+    std::vector<std::string> index;
+    std::vector<std::string> allowed_methods;
+    std::vector<std::string> error_page;
+    bool autoindex;
+    int client_max_body_size;
 };
 
 
@@ -73,8 +76,6 @@ public:
     void connect();
     void HandleResponse();
 
-    int listen; 
-
 
     // **** optional directives ****
     std::pair<std::string ,int> ipPort;
@@ -90,7 +91,8 @@ public:
     std::map<std::string, std::vector<std::string> > location_directives;
     std::vector<Location> locations;
       // **** mandatory directives ****  
-    std::string Return ;
+    // std::string Return ;
+    std::pair<int ,std::string > Return;
 };
 
 class Lexer
@@ -126,4 +128,5 @@ public:
     static void parse_directives(int type);
     static void parse_server();
     static void parse_location();
+    static void init_servers();
 };
