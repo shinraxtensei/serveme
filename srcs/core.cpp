@@ -25,6 +25,7 @@ int  Core::check_servers_socket(int fd)
 
 void Core::startup()
 {
+    
     std::set< std::pair<std::string, int> > listens ;
     for(size_t i = 0; i < Parser::getHttp()->servers.size(); i++)
     {

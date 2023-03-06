@@ -42,10 +42,13 @@ public:
     std::vector<Server> servers;
     
     // **** mandatory directives ****
+    
     std::string root;
-    std::string index;
-    std::string allowed_methos;
-    std::string error_page;
+    std::vector<std::string> index;
+    std::vector<std::string> allowed_methods;
+    std::vector<std::string> error_page;
+    bool autoindex;
+    int client_max_body_size;
 };
 
 
@@ -72,8 +75,6 @@ public:
     void HandleRequest(int fd);
     void connect();
     void HandleResponse();
-
-    int listen; 
 
 
     // **** optional directives ****
@@ -126,4 +127,5 @@ public:
     static void parse_directives(int type);
     static void parse_server();
     static void parse_location();
+    static void init_servers();
 };

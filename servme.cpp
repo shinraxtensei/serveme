@@ -51,20 +51,52 @@ void generate_dot(Http &http)
     Parse_tree.close();
 }
 
-int main()
+int main(int argc, char **argv)
 {
-
-    std::cout << BLUE << "---------------------- Serverme  -------------------------" << RESET << std::endl;
+    (void ) argv;
+    if (argc == 1)
+    {
+        std::cout << BLUE << "---------------------- Serverme  -------------------------" << RESET << std::endl;
     
-    Parser::lex("nginx.conf");
-    Parser::parse();
-    generate_dot(*Parser::getHttp());
+        Parser::lex("nginx.conf");
+        Parser::parse();
         
-    Servme::getCore()->startup();
-    Servme::getCore()->handleConnections();
+        Servme::getCore()->startup();
+        Servme::getCore()->handleConnections();
 
 
 
- 
+
+
+    }
+    else if (argc == 2)
+    {   
+        switch (argv[1][1])
+        {
+            case 'h':
+                std::cout  << GREEN << "Usage: ./serverme [OPTION]" << RESET << std::endl;
+                std::cout << YELLOW << "-h : help" << std::endl;
+                std::cout <<  "-t : check the syntax of the configuration file"  << std::endl;
+                std::cout <<  "-d : check the syntax of the configuration file and generate a dot file" << RESET << std::endl;   
+                break;
+            case 't':
+                Parser::lex("nginx.conf");
+                Parser::parse();
+                std::cout << GREEN << "Syntax OK" << RESET << std::endl;
+                break;
+            case 'd':
+                Parser::lex("nginx.conf");
+                Parser::parse();
+                std::cout << GREEN << "Syntax OK" << RESET << std::endl;
+                generate_dot(*Parser::getHttp());
+                break;
+            default:
+                std::cout << RED << "Usage: ./serverme -h" << RESET << std::endl;
+                break;
+        }
+
+    }
+    else
+        std::cout << RED << "Usage: ./serverme -h" << RESET << std::endl;
     return 0;
 }
