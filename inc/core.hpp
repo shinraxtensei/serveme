@@ -1,5 +1,6 @@
 #pragma once
 
+#include <chrono>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
@@ -7,7 +8,7 @@
 #include <fcntl.h>
 #include <sys/poll.h>
 #include <signal.h>
-
+#include <string.h>
 #include "parser.hpp"
 #include "socketWrapper.hpp"
 #include "server.hpp"
@@ -55,4 +56,5 @@ class Core
         void HandleResquest(pollfd FD);
         Http *get_http();
         void startup();
+        void checkInactivity();
 };

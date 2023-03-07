@@ -100,12 +100,10 @@ void Core::HandleResquest(pollfd FD)
 
 void Core::handleConnections()
 {
-    
-//     // TODO : make the clients able to disconnect 
-//     // TODO : the core should handle the creation and binding of sockets , and it should be able to give to the server to handle the appropriate request , depending on the servername/default server 
-
-
     std::vector<pollfd> pollFds;
+    std::unordered_map<int, std::string> buffers;
+    std::unordered_map<int, std::chrono::steady_clock::time_point> lastInteraction;
+
     for (std::vector<SocketWrapper>::iterator it = this->serverSockets.begin(); it != this->serverSockets.end(); it++)
     {
         pollfd fd;
@@ -114,113 +112,79 @@ void Core::handleConnections()
         pollFds.push_back(fd);
     }
 
-//     while(true)
-//     {
-//         int ret = poll(pollFds.data(), pollFds.size(), 10);
-//         if (ret == -1)
-//         {
-//             std::cerr << "Error: poll() failed" << std::endl;
-//             exit(1);
-//         }
+    while (true) {
+        int ret = poll(pollFds.data(), pollFds.size(), 10);
+        if (ret == -1) {
+            std::cerr << "Error: poll() failed" << std::endl;
+            exit(1);
+        }
 
-//         for (size_t i = 0; i < pollFds.size() ; i++)
-//         {
-//             if (pollFds[i].revents & POLLIN)
-//             {
-//                 if (int it = check_servers_socket(pollFds[i].fd) ; it != -1)
-//                 {
-//                     std::cout << "new connection\n" ;
-
-
-
-//                     this->clients.push_back(Client(this->serverSockets[it]));
-//                     pollFds.push_back(this->clients.back().pollfd_);
-
-//                 }
-//                 else
-//                 {   
-//                     std::cout << "request\n";
-//                     char buf[1024];
-//                     recv(pollFds[i].fd, buf, 1024, 0);
-//                     // read(pollFds[i].fd, buf, 1);
-
-//                     break;
-//                 }
-//             }
-//             // else if (pollFds[i].revents & POLLOUT)
-//             // {
-//             //     std::cout << "POLLOUT\n";
-//             //     exit(0);
-//             // }
-//             // else if (pollFds[i].revents & POLLHUP)
-//             // {
-
-//             //     std::cout << "client disconnected \n";
-//             //     pollFds[i].fd = -1;
-
-//             // }
-
-
-//         }
-//     }
-
-
-while (true) {
-    int ret = poll(pollFds.data(), pollFds.size(), 10);
-    if (ret == -1) {
-        std::cerr << "Error: poll() failed" << std::endl;
-        exit(1);
-    }
-
-    for (size_t i = 0; i < pollFds.size(); i++) {
-        if (pollFds[i].revents & POLLIN) {
-            if (int it = check_servers_socket(pollFds[i].fd); it != -1) 
-            {
-                // New connection
-                std::cout << "New connection\n";
-                this->clients.push_back(Client(this->serverSockets[it]));
-                pollFds.push_back(this->clients.back().pollfd_);
-            } 
-            else {
-                // Client request
-                std::cout << "Client request\n";
-                char buf[1024];
-                int bytes_received = recv(pollFds[i].fd, buf, 1024, 0);
-                if (bytes_received == -1) {
-                    // Error
-                    std::cerr << "Error: recv() failed" << std::endl;
-                    close(pollFds[i].fd);
-                    pollFds.erase(pollFds.begin() + i);
-                    i--;
-                } 
-                else if (bytes_received == 0) {
-                    // Client disconnected
-                    std::cout << "Client disconnected\n";
-                    close(pollFds[i].fd);
-                    pollFds.erase(pollFds.begin() + i);
-                    i--;
+        for (size_t i = 0; i < pollFds.size(); i++) {
+            if (pollFds[i].revents & POLLIN) {
+                if (int it = check_servers_socket(pollFds[i].fd); it != -1) 
+                {
+                    // New connection
+                    std::cout << "New connection\n";
+                    this->clients.push_back(Client(this->serverSockets[it]));
+                    pollFds.push_back(this->clients.back().pollfd_);
+                    // buffers[this->clients.back().get_sockfd()] = "";
+                    buffers[this->clients.back().fd] = "";
+                    lastInteraction[this->clients.back().fd] = std::chrono::steady_clock::now();
                 } 
                 else {
-                    std::cout << "Request: " <<  buf << std::endl;
-                    send(pollFds[i].fd, "<html> <h1> hello </h1> </html>", 5, 0);
-                    // Parse request and send response
-                    // std::string request(buf, bytes_received);
-                    // std::string response = handle_request(request);
-                    // send(pollFds[i].fd, response.c_str(), response.length(), 0);
-                    // std::cout << "Request: " << request << std::endl;
-                    // request = "Request : " + request;
-                    // send(pollFds[i].fd,request.c_str(), 5, 0);
+                    // Client request
+                    // std::cout << "Client request\n";
+                    char buf[1024];
+                    int bytes_received = recv(pollFds[i].fd, buf, 1024, 0);
+                    if (bytes_received == -1) {
+                        // Error
+                        std::cerr << "Error: recv() failed" << std::endl;
+                        close(pollFds[i].fd);
+                        pollFds.erase(pollFds.begin() + i);
+                        i--;
+                    } 
+                    else if (bytes_received == 0) {
+                        // Client disconnected
+                        std::cout << "Client disconnected\n";
+                        close(pollFds[i].fd);
+                        pollFds.erase(pollFds.begin() + i);
+                        buffers.erase(pollFds[i].fd);
+                        lastInteraction.erase(pollFds[i].fd);
+                        i--;
+                    } 
+                    else {
+                        // std::cout << "Received " <<  bytes_received << " bytes from socket " << pollFds[i].fd << std::endl;
+                        buffers[pollFds[i].fd] += std::string(buf, bytes_received);
+                        lastInteraction[pollFds[i].fd] = std::chrono::steady_clock::now();
+
+                        if (buffers[pollFds[i].fd].find("EOF") != std::string::npos) {
+                            // We have a complete request
+                            std::cout << "Complete request received from socket " << pollFds[i].fd << ": " << std::endl;
+
+                            std::cout<< GREEN << buffers[pollFds[i].fd] << RESET << std::endl;
+                            // std::string response = handle_request(buffers[pollFds[i].fd]);
+                            // send(pollFds[i].fd, response.c_str(), response.length(), 0);
+                            buffers[pollFds[i].fd] = "";
+                        }
+                    }
                 }
             }
+
+
+            for (size_t i = 0 ; i < this->clients.size() ; i++)
+            {
+                auto elapsed_time = std::chrono::duration_cast<std::chrono::seconds>(std::chrono::steady_clock::now() - lastInteraction[this->clients[i].fd]);
+                if (elapsed_time.count() >= 50) 
+                {
+                    std::cout << "closing connection with client, because of inactivity :\n";
+                    close(this->clients[i].fd);
+                    pollFds.erase(std::remove_if(pollFds.begin(), pollFds.end(), [this, i](const pollfd& fd) { return fd.fd == this->clients[i].fd; }), pollFds.end());
+                    this->clients.erase(this->clients.begin() + i);
+                    i--;
+                }
+            }
+
         }
+
     }
 }
-
-
-
-
-
-}
-
-
-
