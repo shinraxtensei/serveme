@@ -157,7 +157,9 @@ void Core::handleConnections()
                         buffers[pollFds[i].fd] += std::string(buf, bytes_received);
                         lastInteraction[pollFds[i].fd] = std::chrono::steady_clock::now();
 
-                        if (buffers[pollFds[i].fd].find("EOF") != std::string::npos) {
+                        if (buffers[pollFds[i].fd].find("\r\n\r\n0\r\n\r\n") != std::string::npos ||
+                            buffers[pollFds[i].fd].find("\r\n\r\n") != std::string::npos) 
+                        {
                             // We have a complete request
                             std::cout << "Complete request received from socket " << pollFds[i].fd << ": " << std::endl;
 
