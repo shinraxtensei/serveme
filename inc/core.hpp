@@ -13,34 +13,66 @@
 #include "socketWrapper.hpp"
 #include "server.hpp"
 
-
-
-// *socket wrapper :
-
-
-
 class Http;
-// class Core
-// {
-// public:
-//     // TODO : create a wrapper for all sockets functions
-//     static std::set<SocketWrapper> serverSockets;
-//     static std::vector<Client> clients;
-//     static void handleConnections();
-//     static void HandleResquest(int fd);
-//     static Http *get_http();
-//     // static void soket();
-//     static void startup();
-// };
+
+
+
+
+enum Stat
+{
+    FIRSTLINE,
+    HEADERS,
+    BODY,
+    DONE
+};
+
+
+
+
+
+class Request
+{
+
+    Request(Client &client)
+    {
+        this->client = client;
+        this->status = FIRSTLINE;
+    };
+
+    // Http *http;
+    Client client;
+    Stat status;
+    std::string buffer; 
+    std::stringstream ss; 
+    std::map<std::string, std::string> headers;
+    std::ofstream body;
+
+
+    void ParseRequest();
+    void ParseFirstLine();
+    void ParseHeaders();
+    void ParseBody();
+    void ParseBodyChunked();
+    // int handle error();
+};
+
+
+
+
+class Response
+{
+
+};
+
 
 
 class Core
 {
 
-
     public:
 
     Core(){};
+    
     ~Core()
     {
         for (size_t i = 0; i < this->serverSockets.size(); i++)
@@ -49,6 +81,9 @@ class Core
             this->clients[i].~Client();
     }
 
+
+        // std::multimap<Request> requests;
+        // std::vector<Request> requests;
         std::vector<SocketWrapper> serverSockets;
         std::vector<Client> clients;
         int check_servers_socket(int fd);

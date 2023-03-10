@@ -199,10 +199,10 @@ void Parser::parse_directives(int type)
     }
 
     //* a pair or key and values
-    std::pair<std::string, std::vector<std::string>> pair(directive, values);
+    std::pair<std::string, std::vector<std::string> > pair(directive, values);
     
     //* this is the pair of (iterator , bool ) to check if the pair is inserted or not , if not then its already exists
-    std::pair<std::map<std::string, std::vector<std::string>>::iterator, bool> ret;
+    std::pair<std::map<std::string, std::vector<std::string> >::iterator, bool> ret;
 
     if ( find(lex()->all_directs.begin(),lex()->all_directs.end(), directive) == lex()->all_directs.end())
     {

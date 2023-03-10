@@ -4,8 +4,6 @@
 #include "core.hpp"
 
 
-
-
 class Client
 {
     public:
@@ -15,6 +13,14 @@ class Client
         
         std::string buffer;
     
+    Client() {
+        // addr = new sockaddr_in;
+    }
+    ~Client() {
+        delete addr;
+        close(fd);
+    }
+
     Client(SocketWrapper &socket){
         addr = new sockaddr_in;
 
@@ -24,8 +30,6 @@ class Client
         }
         fcntl(fd, F_SETFL, O_NONBLOCK);
         pollfd_.fd = fd;
-        pollfd_.events = POLLIN | POLLHUP | POLLOUT;
-        
+        pollfd_.events = POLLIN; 
     }
-    ~Client() {}
 };

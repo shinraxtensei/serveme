@@ -108,7 +108,8 @@ void Core::handleConnections()
     {
         pollfd fd;
         fd.fd = it->get_sockfd();
-        fd.events = POLLIN | POLLHUP | POLLOUT;
+        fd.events = POLLIN;
+        setsockopt(fd.fd, SOL_SOCKET, SO_REUSEADDR, NULL, 0);
         pollFds.push_back(fd);
     }
 
@@ -135,7 +136,7 @@ void Core::handleConnections()
                     // Client request
                     // std::cout << "Client request\n";
                     char buf[1024];
-                    int bytes_received = recv(pollFds[i].fd, buf, 1024, 0);
+                    int bytes_received = recv(pollFds[i].fd, buf, 1024, 0); //!
                     if (bytes_received == -1) {
                         // Error
                         std::cerr << "Error: recv() failed" << std::endl;
@@ -171,12 +172,12 @@ void Core::handleConnections()
                     }
                 }
             }
-
+ 
 
             for (size_t i = 0 ; i < this->clients.size() ; i++)
             {
                 auto elapsed_time = std::chrono::duration_cast<std::chrono::seconds>(std::chrono::steady_clock::now() - lastInteraction[this->clients[i].fd]);
-                if (elapsed_time.count() >= 50) 
+                if (elapsed_time.count() >= 100) 
                 {
                     std::cout << "closing connection with client, because of inactivity :\n";
                     close(this->clients[i].fd);
