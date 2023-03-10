@@ -36,8 +36,6 @@ class Http;
 
 class Core
 {
-
-
     public:
 
     Core(){};
@@ -48,7 +46,8 @@ class Core
         for (size_t i = 0; i < this->clients.size(); i++)
             this->clients[i].~Client();
     }
-
+		std::map<std::string, std::string> mimeTypes;
+		void	parseMimeTypes();
         std::vector<SocketWrapper> serverSockets;
         std::vector<Client> clients;
         int check_servers_socket(int fd);

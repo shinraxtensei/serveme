@@ -55,16 +55,22 @@ void generate_dot(Http &http)
 int main(int argc, char **argv)
 {
     (void ) argv;
-    // if (argc == 1)
-    // {
-    //     std::cout << BLUE << "---------------------- Serverme  -------------------------" << RESET << std::endl;
+	std::pair<std::string, std::string> result;
+	result = generateError(E404);
+	std::cout << result.first << std::endl;
+	std::cout << result.second << std::endl;
+
+	
+    if (argc == 1)
+    {
+        std::cout << BLUE << "---------------------- Serverme  -------------------------" << RESET << std::endl;
     
-    //     Parser::lex("nginx.conf");
-    //     Parser::parse();
+        Parser::lex("nginx.conf");
+        Parser::parse();
         
-    //     Servme::getCore()->startup();
-    //     Servme::getCore()->handleConnections();
-    // }
+        Servme::getCore()->startup();
+        Servme::getCore()->handleConnections();
+    }
    	if (argc == 2)
     {   
         if (std::string av(argv[1]) ; av == "-h")
@@ -92,6 +98,5 @@ int main(int argc, char **argv)
     }
     else
         std::cout << RED << "Usage: ./serverme -h" << RESET << std::endl;
-	std::cout << generateError(E404) << std::endl;
     return 0;
 }
