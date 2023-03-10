@@ -50,12 +50,13 @@ class Core
             	this->clients[i].~Client();
     	}
 
-		void	parseMimeTypes();
-    	int check_servers_socket(int fd);
-    	void handleConnections();
-    	void HandleResquest(pollfd FD);
-    	Http *get_http();
-    	void startup();
-    	void checkInactivity();
+		void		parseMimeTypes();
+		std::string	checkType(std::string path);
+    	int 		check_servers_socket(int fd);
+    	void 		handleConnections();
+    	void 		HandleResquest(pollfd FD);
+    	Http 		*get_http();
+    	void 		startup();
+    	void 		checkInactivity();
 };
 

@@ -68,6 +68,7 @@ int main(int argc, char **argv)
         // Parser::lex("nginx.conf");
         // Parser::parse();
 		Servme::getCore()->parseMimeTypes();
+		std::cout << Servme::getCore()->checkType("chihaja.html.css") << std::endl;
         // Servme::getCore()->startup();
         // Servme::getCore()->handleConnections();
     }
