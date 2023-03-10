@@ -115,3 +115,22 @@ void Server::HandleRequest( int fd)
 }
 
 void Server::HandleResponse() {}
+
+void	Core::parseMimeTypes(void)
+{
+	std::string buffer;
+	std::ifstream file("/Users/yabtaour/Desktop/webserv-42/mime.types");
+	while (std::getline(file, buffer))
+	{
+		if (buffer.size() > 0 && buffer[0] != '#')
+		{
+			std::pair<std::string, std::string> pair;
+			std::istringstream iss(buffer);
+			iss >> pair.first;
+			iss >> pair.second;
+			this->mimeTypes.insert(pair);
+			for (const auto& pair : this->mimeTypes)
+    			std::cout << pair.first << " => " << pair.second << std::endl;
+		}
+	}
+}

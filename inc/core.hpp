@@ -37,23 +37,25 @@ class Http;
 class Core
 {
     public:
-
-    Core(){};
-    ~Core()
-    {
-        for (size_t i = 0; i < this->serverSockets.size(); i++)
-            this->serverSockets[i].~SocketWrapper();
-        for (size_t i = 0; i < this->clients.size(); i++)
-            this->clients[i].~Client();
-    }
 		std::map<std::string, std::string> mimeTypes;
+    	std::vector<SocketWrapper> serverSockets;
+    	std::vector<Client> clients;
+
+    	Core(){};
+    	~Core()
+    	{
+        	for (size_t i = 0; i < this->serverSockets.size(); i++)
+        		this->serverSockets[i].~SocketWrapper();
+        	for (size_t i = 0; i < this->clients.size(); i++)
+            	this->clients[i].~Client();
+    	}
+
 		void	parseMimeTypes();
-        std::vector<SocketWrapper> serverSockets;
-        std::vector<Client> clients;
-        int check_servers_socket(int fd);
-        void handleConnections();
-        void HandleResquest(pollfd FD);
-        Http *get_http();
-        void startup();
-        void checkInactivity();
+    	int check_servers_socket(int fd);
+    	void handleConnections();
+    	void HandleResquest(pollfd FD);
+    	Http *get_http();
+    	void startup();
+    	void checkInactivity();
 };
+

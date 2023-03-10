@@ -8,11 +8,12 @@ std::pair<std::string, std::string>	generateError(std::string error);
 class Servme
 {
     static Core *core;
+
     public:
-    static Core *getCore()
-    {
-		if (core == nullptr)
-        	core = new Core();
-        return core;
-    };
+    	static Core *getCore()
+    	{
+			if (core == nullptr)
+        		core = new Core();
+        	return core;
+    	};
 };

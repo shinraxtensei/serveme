@@ -60,16 +60,16 @@ int main(int argc, char **argv)
 	std::cout << result.first << std::endl;
 	std::cout << result.second << std::endl;
 
-	
+
     if (argc == 1)
     {
         std::cout << BLUE << "---------------------- Serverme  -------------------------" << RESET << std::endl;
     
-        Parser::lex("nginx.conf");
-        Parser::parse();
-        
-        Servme::getCore()->startup();
-        Servme::getCore()->handleConnections();
+        // Parser::lex("nginx.conf");
+        // Parser::parse();
+		Servme::getCore()->parseMimeTypes();
+        // Servme::getCore()->startup();
+        // Servme::getCore()->handleConnections();
     }
    	if (argc == 2)
     {   
