@@ -3,6 +3,7 @@
 #include "socketWrapper.hpp"
 #include "server.hpp"
 
+std::string	generateError(std::string error);
 
 class Servme
 {
