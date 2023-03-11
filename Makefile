@@ -1,6 +1,6 @@
 NAME = servme
 
-SRCS = srcs/parser.cpp srcs/core.cpp srcs/server.cpp servme.cpp 
+SRCS = srcs/parser.cpp srcs/core.cpp srcs/server.cpp servme.cpp  srcs/generateError.cpp
 
 
 HEADER_DIR = inc/

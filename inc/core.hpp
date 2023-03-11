@@ -61,6 +61,7 @@ class Request
 
 class Response
 {
+<<<<<<< HEAD
 
 };
 
@@ -69,8 +70,33 @@ class Response
 class Core
 {
 
+=======
+>>>>>>> master
     public:
+		std::map<std::string, std::string> mimeTypes;
+    	std::vector<SocketWrapper> serverSockets;
+    	std::vector<Client> clients;
 
+    	Core(){};
+    	~Core()
+    	{
+        	for (size_t i = 0; i < this->serverSockets.size(); i++)
+        		this->serverSockets[i].~SocketWrapper();
+        	for (size_t i = 0; i < this->clients.size(); i++)
+            	this->clients[i].~Client();
+    	}
+
+		void		parseMimeTypes();
+		std::string	checkType(std::string path);
+    	int 		check_servers_socket(int fd);
+    	void 		handleConnections();
+    	void 		HandleResquest(pollfd FD);
+    	Http 		*get_http();
+    	void 		startup();
+    	void 		checkInactivity();
+};
+
+<<<<<<< HEAD
     Core(){};
     
     ~Core()
@@ -93,3 +119,5 @@ class Core
         void startup();
         void checkInactivity();
 };
+=======
+>>>>>>> master

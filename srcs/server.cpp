@@ -116,3 +116,38 @@ void Server::HandleRequest( int fd)
 
 void Server::HandleResponse() {}
 
+void	Core::parseMimeTypes(void)
+{
+	std::string buffer;
+	std::ifstream file("/Users/yabtaour/Desktop/webserv-42/mime.types");
+	while (std::getline(file, buffer))
+	{
+		if (buffer.size() > 0 && buffer[0] != '#')
+		{
+			std::pair<std::string, std::string> pair;
+			std::istringstream iss(buffer);
+			iss >> pair.first;
+			iss >> pair.second;
+			this->mimeTypes.insert(pair);
+		}
+	}
+	for (const auto& pair : this->mimeTypes)
+    	std::cout << pair.first << " => " << pair.second << std::endl;
+}
+
+std::string	Core::checkType(std::string	path)
+{
+	size_t dot = path.find_last_of('.');
+    if (dot == std::string::npos) {
+		std::cout << "No extension" << std::endl;
+		return "";
+	} else {
+    	std::string extension = path.substr(dot + 1);
+		std::map<std::string, std::string>::iterator iter;
+		for (iter = this->mimeTypes.begin(); iter != this->mimeTypes.end(); ++iter) {
+        	if (iter->first == extension)
+            	return (iter->second);
+    	}
+		return ("");
+    }
+}
