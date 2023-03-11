@@ -1,19 +1,46 @@
-#include "parser.hpp"
-#include "core.hpp"
-#include "socketWrapper.hpp"
-#include "server.hpp"
 
-std::pair<std::string, std::string>	generateError(std::string error);
+#pragma once
+
+#include <chrono>
+
+#include <sys/poll.h>
+#include <signal.h>
+#include <string.h>
+#include <string>
+
+#include <iostream>
+#include <vector>
+#include <map>
+#include <stack>
+#include <fstream>
+#include <sstream>
+#include <algorithm>
+
+#include <set>
+#include <unordered_set>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#include <unistd.h>
+#include <fcntl.h>
+#include <unordered_map>
+
+#include "client.hpp"
+#include "core.hpp"
+#include "lexer.hpp"
+#include "macros.hpp"
+#include "parser.hpp"
+#include "socketWrapper.hpp"
+
+std::pair<std::string, std::string> generateError(std::string error);
+
+class Core;
 
 class Servme
 {
-    static Core *core;
+private:
+	static Core *core;
 
-    public:
-    	static Core *getCore()
-    	{
-			if (core == nullptr)
-        		core = new Core();
-        	return core;
-    	};
+public:
+	static Core *getCore();
 };

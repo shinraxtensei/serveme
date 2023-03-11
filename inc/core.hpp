@@ -1,62 +1,29 @@
 #pragma once
 
-#include <chrono>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
-#include <unistd.h>
-#include <fcntl.h>
-#include <sys/poll.h>
-#include <signal.h>
-#include <string.h>
-#include "parser.hpp"
-#include "socketWrapper.hpp"
-#include "server.hpp"
+#include "servme.hpp"
 
 
-
-// *socket wrapper :
-
-
-
+class SocketWrapper;
+class Client;
 class Http;
-// class Core
-// {
-// public:
-//     // TODO : create a wrapper for all sockets functions
-//     static std::set<SocketWrapper> serverSockets;
-//     static std::vector<Client> clients;
-//     static void handleConnections();
-//     static void HandleResquest(int fd);
-//     static Http *get_http();
-//     // static void soket();
-//     static void startup();
-// };
 
 
 class Core
 {
     public:
 		std::map<std::string, std::string> mimeTypes;
+		// std::map<int, Client> clients; //TODO : this should be the new map to store each fd with its client
     	std::vector<SocketWrapper> serverSockets;
     	std::vector<Client> clients;
 
-    	Core(){};
-    	~Core()
-    	{
-        	for (size_t i = 0; i < this->serverSockets.size(); i++)
-        		this->serverSockets[i].~SocketWrapper();
-        	for (size_t i = 0; i < this->clients.size(); i++)
-            	this->clients[i].~Client();
-    	}
+    	Core();
+    	~Core();
 
 		void		parseMimeTypes();
-		std::string	checkType(std::string path);
+		// std::string	checkType(std::string path);    //TODO  : move it to request class
     	int 		check_servers_socket(int fd);
     	void 		handleConnections();
-    	void 		HandleResquest(pollfd FD);
     	Http 		*get_http();
     	void 		startup();
-    	void 		checkInactivity();
 };
 
