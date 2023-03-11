@@ -1,6 +1,10 @@
 #include "../inc/core.hpp"
 
 
+
+
+// ! : not used for now but can have important impolementations , so not deleting it for now 
+
 // SocketWrapper *Server::Socket()
 // {
 //     if (this->sock == nullptr)
@@ -10,18 +14,18 @@
 // }
 
 
-Server::Server()
-{
+// Server::Server()
+// {
     // Socket();
-}
+// }
 
-Server::~Server()
-{
+// Server::~Server()
+// {
     // delete this->sock;
-}
+// }
 
-void Server::connect()
-{   
+// void Server::connect()
+// {   
     // try
     // {    
         
@@ -42,13 +46,13 @@ void Server::connect()
     // {
     //     std::cerr << e.what() << '\n';
     // }
-}
+// }
 
-void Server::HandleRequest( int fd)
-{
-	char buff[1024];
-	while(read(fd, buff, 1024) > 0);
-	std::cout << buff << std::endl;
+// void Server::HandleRequest( int fd)
+// {
+// 	char buff[1024];
+// 	while(read(fd, buff, 1024) > 0);
+// 	std::cout << buff << std::endl;
 
 
 
@@ -112,42 +116,46 @@ void Server::HandleRequest( int fd)
 // 		}
 // 		std::cout << std::endl;
 // 	}
-}
+// }
 
-void Server::HandleResponse() {}
+// void Server::HandleResponse() {}
 
-void	Core::parseMimeTypes(void)
-{
-	std::string buffer;
-	std::ifstream file("/Users/yabtaour/Desktop/webserv-42/mime.types");
-	while (std::getline(file, buffer))
-	{
-		if (buffer.size() > 0 && buffer[0] != '#')
-		{
-			std::pair<std::string, std::string> pair;
-			std::istringstream iss(buffer);
-			iss >> pair.first;
-			iss >> pair.second;
-			this->mimeTypes.insert(pair);
-		}
-	}
-	for (const auto& pair : this->mimeTypes)
-    	std::cout << pair.first << " => " << pair.second << std::endl;
-}
+// void	Core::parseMimeTypes(void)
+// {
+// 	std::string buffer;
+// 	// std::ifstream file("/Users/yabtaour/Desktop/webserv-42/mime.types");
+// 	std::ifstream file("/Users/ahouari/triz_work/serveme/mime.types");
+// 	while (std::getline(file, buffer))
+// 	{
+// 		if (buffer.size() > 0 && buffer[0] != '#')
+// 		{
+// 			std::pair<std::string, std::string> pair;
+// 			std::istringstream iss(buffer);
+// 			iss >> pair.first;
+// 			iss >> pair.second;
+// 			this->mimeTypes.insert(pair);
+// 		}
+// 	}
+// 	// for (const auto& pair : this->mimeTypes)
+//     // 	std::cout << pair.first << " => " << pair.second << std::endl;
+// }
 
-std::string	Core::checkType(std::string	path)
-{
-	size_t dot = path.find_last_of('.');
-    if (dot == std::string::npos) {
-		std::cout << "No extension" << std::endl;
-		return "";
-	} else {
-    	std::string extension = path.substr(dot + 1);
-		std::map<std::string, std::string>::iterator iter;
-		for (iter = this->mimeTypes.begin(); iter != this->mimeTypes.end(); ++iter) {
-        	if (iter->first == extension)
-            	return (iter->second);
-    	}
-		return ("");
-    }
-}
+// std::string	Core::checkType(std::string	path)
+// {
+// 	size_t dot = path.find_last_of('.');
+//     if (dot == std::string::npos) {
+// 		std::cout << "No extension" << std::endl;
+// 		return "";
+// 	} else {
+//     	std::string extension = path.substr(dot + 1);
+// 		std::map<std::string, std::string>::iterator iter;
+// 		// for (iter = this->mimeTypes.begin(); iter != this->mimeTypes.end(); ++iter) {
+//         // 	if (iter->first == extension)
+//         //     	return (iter->second);
+//     	// }
+// 		// if ((iter = this->mimeTypes.find(extension)) != this->mimeTypes.end())
+// 		if (this->mimeTypes[extension] != "")
+// 			return (this->mimeTypes[extension]);
+// 		return ("");
+//     }
+// }

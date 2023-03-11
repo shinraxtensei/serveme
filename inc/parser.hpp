@@ -1,24 +1,13 @@
 #pragma once
 
-#include <iostream>
-#include <string>
-#include <vector>
-#include <map>
-#include <stack>
-#include <fstream>
-#include <sstream>
-#include <algorithm>
-#include <string>
-#include <set>
-#include <unordered_set>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
-#include <unistd.h>
-#include <fcntl.h>
-#include "core.hpp"
-#include "socketWrapper.hpp"
-#include <unordered_map>
+
+
+#include "servme.hpp"
+
+
+// #include "socketWrapper.hpp"
+// #include "core.hpp"
+// #include "lexer.hpp"
 
 
 #define BLUE "\033[0;34m"
@@ -34,6 +23,7 @@
 
 class Server;
 class Location;
+
 
 
 class Http
@@ -58,8 +48,8 @@ class SocketWrapper;
 class Server : public Http
 {
 public:
-    Server();
-    ~Server();
+    Server(){};
+    ~Server(){};
     std::map<std::string, std::vector<std::string> > server_directives;
     std::vector<Location> locations;
 
@@ -73,9 +63,9 @@ public:
     // SocketWrapper *Socket();
     // int sockfd;
 
-    void HandleRequest(int fd);
-    void connect();
-    void HandleResponse();
+    // void HandleRequest(int fd);
+    // void connect();
+    // void HandleResponse();
 
 
     // **** optional directives ****
@@ -96,24 +86,11 @@ public:
     std::pair<int ,std::string > Return;
 };
 
-class Lexer
-{
-public:
-    Lexer(){};
-    Lexer(std::string input);
-    ~Lexer(){};
-    void set_input(const std::string &input);
-    void print_input();
-    std::string next_token(bool consume);
-    bool errors_check();
-    std::vector<std::string> tokens;
-    std::vector<std::string> lines;
-    std::vector<std::string> all_directs;
-    std::istringstream input_stream;
 
-    std::string input;
-};
 
+
+
+class Lexer;
 class Parser
 {
 private:

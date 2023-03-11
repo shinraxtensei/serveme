@@ -1,6 +1,11 @@
 NAME = servme
 
-SRCS = srcs/parser.cpp srcs/core.cpp srcs/server.cpp servme.cpp  srcs/generateError.cpp
+# SRCS = srcs/parser.cpp srcs/core.cpp \
+ 		# srcs/client.cpp servme.cpp  srcs/generateError.cpp\
+		# srcs/lexer.cpp srcs/request.cpp srcs/server.cpp\
+		# srcs/socketWrapper.cpp
+
+SRCS = $(shell find srcs -type f -name "*.cpp") servme.cpp
 
 
 HEADER_DIR = inc/
