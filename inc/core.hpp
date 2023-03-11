@@ -12,9 +12,9 @@ class Core
 {
     public:
 		std::map<std::string, std::string> mimeTypes;
-		// std::map<int, Client> clients; //TODO : this should be the new map to store each fd with its client
-    	std::vector<SocketWrapper> serverSockets;
+		std::map<int, Client> map_clients; //TODO : this should be the new map to store each fd with its client
     	std::vector<Client> clients;
+    	std::vector<SocketWrapper> serverSockets;
 
     	Core();
     	~Core();

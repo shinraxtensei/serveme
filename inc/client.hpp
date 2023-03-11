@@ -71,7 +71,7 @@ class Client
 
         //**  methods
     
-    // void handleRequest();
+    void handleRequest();
     // void generateResponse();
     // void writeResponse();
     // void checkInactivity();
