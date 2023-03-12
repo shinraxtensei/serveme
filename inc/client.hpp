@@ -15,7 +15,7 @@ enum Stat
     DONE
 };
 
-
+class Server;
 class Request
 {
     public:
@@ -27,10 +27,22 @@ class Request
         // Http *http;
         Stat state;
         Core *core;
+        Server *server;
         std::string buffer; 
         std::stringstream ss; 
         std::map<std::string, std::string> headers;
         std::ofstream body;
+
+
+
+        std::string method;
+        std::string url;
+        std::string version;
+
+        std::string contentLength;
+        std::string transferEncoding;
+        std::string host;
+        std::string connection;
 
 
         // std::map<std::string, std::string> mimeTypes;
@@ -39,10 +51,13 @@ class Request
         //** methods
         // void ParseRequest();
         std::string	checkType(std::string path);
-        void ParseFirstLine();
-        void ParseHeaders();
+        void ParseFirstLine(std::string &line);
+        void ParseHeaders(std::string &line);
         void ParseBody();
         void ParseBodyChunked();
+
+        void selectServer();
+        
     // int handle error();
 };
 

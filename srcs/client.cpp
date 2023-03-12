@@ -64,6 +64,52 @@ std::string	Request::checkType(std::string	path)
 void Client::handleRequest()
 {
     std::cout << "handling request !!!" << std::endl;
+    if (this->request->state == FIRSTLINE || this->request->state == HEADERS)
+    {
+        char buffer[1];
+        std::string line;
+
+        while(buffer[0] != '\n')
+        {
+            if (recv(this->fd, buffer, 1, 0) == -1)
+            {
+                // handle error
+                std::cerr << "Error: recv() failed" << std::endl;
+            }
+            else if (recv(this->fd, buffer, 1, 0) == 0) 
+            {
+                // disconnection
+                std::cout << "disconnection" << std::endl;
+            }
+
+            line += buffer[0];
+            this->request->buffer += buffer[0];
+        }
+        if (this->request->state == FIRSTLINE)
+            this->request->ParseFirstLine(line);
+        else if (this->request->state == HEADERS)
+            this->request->ParseHeaders(line);
+    }
+    else if (this->request->state == BODY)
+    {
+        char buffer[1024];
+        if (recv(this->fd, buffer, 1024, 0) == -1)
+        {
+            // handle error
+            std::cerr << "Error: recv() failed" << std::endl;
+        }
+        else if (recv(this->fd, buffer, 1024, 0) == 0) 
+        {
+            // disconnection
+            std::cout << "disconnection" << std::endl;
+        }
+        this->request->buffer += buffer;
+        this->request->body << buffer;
+
+        // this->request->ParseBody();
+        // generateResponse();
+        // writeResponse();
+    }
 
 
 }
