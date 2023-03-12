@@ -56,12 +56,13 @@ class Response
 class Client
 {
     public:
-        Core *core;
         int fd;
+        Core *core;
         pollfd pollfd_;
         sockaddr_in *addr; 
         Request *request;
         Response *response;
+        SocketWrapper *socket;
 
     Client();
     ~Client();

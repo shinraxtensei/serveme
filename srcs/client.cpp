@@ -21,6 +21,7 @@ Client::~Client()
 
 Client::Client(SocketWrapper &sock)
 {
+        this->socket = &sock;
         addr = new sockaddr_in;
         fd = sock.accept(*addr);
         if (fd == -1) {
