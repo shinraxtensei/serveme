@@ -97,52 +97,11 @@ void Core::startup()
 
 
 
-
-
-
-
-// void Core::HandleResquest(pollfd FD)
-// {
-//     // TODO : we need to parse the request in order to check for the servername to see which server should handle the request
-//     // TODO : 
-
-//     std::cout << "handle request\n";
-//     std::string request;
-//     char buf[1024];
-//     int ret = 0;
-//     while ((ret = recv(FD.fd, buf, 1024, 0)) > 0)
-//     {
-//         if (ret == -1 || ret == 0)
-//         {
-//             if (ret == -1)
-//             {
-//                 std::cerr << "Error: recv() failed" << std::endl;
-//                 exit(1);
-//             }
-//             else
-//             {
-//                 std::cerr << "Error: client disconnected" << std::endl;
-//                 exit(1);
-//             }
-//         }
-//         request.append(buf, ret);
-//         if (ret < 1024)
-//             break;
-//     }
-
-//     std::string status = "HTTP/1.1 200 OK\r\n";
-//     std::string headers = "Content-Type: text/html\r\n";
-//     std::string body = "<html><body><h1>Hello, world!</h1></body></html>";
-//     std::string response = status + headers + "\r\n" + body;
-//     send(FD.fd, response.c_str(), response.size(), 0);
-
-// }
-
-
-
-
 void Core::handleConnections()
 {
+
+
+    // std::map<int , Client> map_clients;
     std::vector<pollfd> pollFds;
     std::unordered_map<int, std::string> buffers; // TODO : these will get replaced with ones for each request 
     std::unordered_map<int, std::chrono::steady_clock::time_point> lastInteraction; // TODO : these will get replaced with ones for each client
@@ -172,10 +131,12 @@ void Core::handleConnections()
                 {
                     // New connection
                     std::cout << "New connection\n";
-                    this->clients.push_back(Client(this->serverSockets[it]));
 
-                    
+                    this->clients.push_back(Client(this->serverSockets[it]));
                     this->clients.back().core = this; //****** gettin the core
+
+                    this->map_clients.insert(std::pair<int , Client> (this->clients.back().fd , this->clients.back()));
+
 
                     pollFds.push_back(this->clients.back().pollfd_);
                     // buffers[this->clients.back().get_sockfd()] = "";
@@ -184,9 +145,7 @@ void Core::handleConnections()
                 } 
                 else {
 
-                    
-                    // handlerequest(lookforclient(pollfds[i].fd));
-                    // lookupClient(pollFds[i].fd).handleRequest();
+                    this->map_clients[pollFds[i].fd].handleRequest();
 
 
                     // Client request

@@ -21,6 +21,7 @@ Client::~Client()
 
 Client::Client(SocketWrapper &sock)
 {
+        this->socket = &sock;
         addr = new sockaddr_in;
         fd = sock.accept(*addr);
         if (fd == -1) {
@@ -42,6 +43,7 @@ std::string	Request::checkType(std::string	path)
 	} else {
     	std::string extension = path.substr(dot + 1);
 		std::map<std::string, std::string>::iterator iter;
+        
 		// for (iter = this->mimeTypes.begin(); iter != this->mimeTypes.end(); ++iter) {
         // 	if (iter->first == extension)
         //     	return (iter->second);
@@ -57,6 +59,16 @@ std::string	Request::checkType(std::string	path)
 		return ("");
     }
 }
+
+
+void Client::handleRequest()
+{
+    std::cout << "handling request !!!" << std::endl;
+
+
+}
+
+
 
 
 // void client::handleRequest()
