@@ -20,12 +20,11 @@ void Core::parseMimeTypes()
     	std::string buffer;
 	// std::ifstream file("/Users/yabtaour/Desktop/webserv-42/mime.types");
 	std::ifstream file("/Users/ahouari/triz_work/serveme/mime.types");
-
-    if (!file.is_open())
-    {
-        std::cout << RED << "Error opening mime.types file" << RESET << std::endl;
-        exit(1);
-    }
+    // if (!file.is_open())
+    // {
+    //     std::cout << RED << "Error opening mime.types file" << RESET << std::endl;
+    //     exit(1);
+    // }
 	while (std::getline(file, buffer))
 	{
 		if (buffer.size() > 0 && buffer[0] != '#')
