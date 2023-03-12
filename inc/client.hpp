@@ -15,7 +15,7 @@ enum Stat
     DONE
 };
 
-
+class Server;
 class Request
 {
     public:
