@@ -3,6 +3,13 @@
 Request::Request()
 {
     this->state = FIRSTLINE;
+    this->host = "";
+    this->connection = "";
+    this->contentLength = 0;
+    this->transferEncoding = "";
+    this->method = "";
+    this->url = "";
+    this->version = "";
 
 }
 
@@ -56,7 +63,7 @@ void Request::selectServer()
     std::vector<Server> candidates;
     for (it = this->core->get_http()->servers.begin(); it != this->core->get_http()->servers.end(); it++)
     {
-        if (it->ipPort.second == this->client->socket->get_listenPair().second && it->ipPort.first == this->client->socket->get_listenPair().first)
+        if (it->ipPort.second == this->client->socket->get_listenPair().second)
             candidates.push_back(*it);
     }
     if (candidates.size() == 0)
@@ -78,37 +85,40 @@ void Request::selectServer()
 
 void Request::ParseFirstLine(std::string &line)
 {
-    // std::cout << CYAN << "state :" << this->state << RESET << std::endl;
     std::cout << CYAN << "STATE: " << (this->state == FIRSTLINE ? "FIRSTLINE" : "weird") << RESET << std::endl;
     std::string knownMethods = "GET HEAD POST PUT DELETE CONNECT OPTIONS TRACE";
 
     Parser::lex()->set_input(line);
+
     this->method = Parser::lex()->next_token(true);
     this->url = Parser::lex()->next_token(true);
     this->version = Parser::lex()->next_token(true);
     if (Parser::lex()->next_token(true) != "EOF")
-        throw std::runtime_error("Error: Invalid request line.");
+        std::cout << "Error: Invalid request line." << std::endl;
+        // throw std::runtime_error("Error: Invalid request line.");
 
     if (knownMethods.find(this->method) == std::string::npos)
-        throw std::runtime_error("Error: Invalid method.");
+        std::cout << "Error: Invalid method." << std::endl;
+        // throw std::runtime_error("Error: Invalid method.");
     if (this->url.size() > 2048 || checkValidChars(this->url) == 0)
-        throw std::runtime_error("Error: Invalid URL.");
+        std::cout << "Error: Invalid URL." << std::endl;
+        // throw std::runtime_error("Error: Invalid URL.");
     if (this->version != "HTTP/1.1")
-        throw std::runtime_error("Error: Invalid HTTP version.");
+        std::cout << "Error: Invalid HTTP version." << std::endl;
+        // throw std::runtime_error("Error: Invalid HTTP version.");
 
     this->state = HEADERS;
 }
 
 void Request::ParseHeaders(std::string &line)
 {
-    std::cout << CYAN << "state :" << this->state << RESET << std::endl;
+    std::cout << CYAN << "STATE: " << (this->state == HEADERS ? "HEADERS" : "weird") << RESET << std::endl;
 
     std::pair<std::string, std::vector<std::string>> pair;
     std::string key;
     std::vector<std::string> values;
     Parser::lex()->set_input(line);
 
-    std::cout << line << std::endl;
     key = Parser::lex()->next_token(true);
 
     if (line.find("\r\n") != std::string::npos)
@@ -118,15 +128,19 @@ void Request::ParseHeaders(std::string &line)
     }
 
     if (key.back() != ':')
-        throw std::runtime_error("Error: Invalid header line.");
+        std::cout << "Error: Invalid header line." << std::endl;
 
-    while (Parser::lex()->next_token(true) != "EOF")
-        values.push_back(Parser::lex()->next_token(true));
+    // while (Parser::lex()->next_token(true) != "EOF")
+    //     values.push_back(Parser::lex()->next_token(true));
+    values.push_back(Parser::lex()->next_token(true));
+
+    std::cout << "key: " << key << std::endl;
+    std::cout << "values: " << values[0] << std::endl;
 
     if (key == "host:")
     {
         this->host = values[0];
-        this->selectServer();
+        // this->selectServer();
     }
     if (key == "content-length:")
     {
@@ -146,9 +160,6 @@ void Request::ParseHeaders(std::string &line)
 
 void Request::ParseBody()
 {
-
-    std::cout << CYAN << "state :" << this->state << RESET << std::endl;
-
     std::cout << YELLOW << "method : " << RESET << this->method << std::endl;
     std::cout << YELLOW << "url : " << RESET << this->url << std::endl;
     std::cout << YELLOW << "version : " << RESET << this->version << std::endl;
@@ -157,4 +168,7 @@ void Request::ParseBody()
     std::cout << YELLOW << "contentLength : " << RESET << this->contentLength << std::endl;
     std::cout << YELLOW << "transferEncoding : " << RESET << this->transferEncoding << std::endl;
     std::cout << YELLOW << "connection : " << RESET << this->connection << std::endl;
+
+    std::cout << CYAN << "STATE: " << (this->state == BODY ? "BODY" : "weird") << RESET << std::endl;
+
 }
