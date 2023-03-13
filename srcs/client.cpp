@@ -52,109 +52,62 @@ std::string Request::checkType(std::string path)
     }
 }
 
+
+
 void Client::handleRequest()
 {
-    std::cout << "handling request ..." << std::endl;
+    // std::cout << "handling request ..." << std::endl;
     if (this->request.state == FIRSTLINE || this->request.state == HEADERS)
     {
 
+        static std::string line = "";
         char buffer[1];
         int ret;
-        static std::string line = "";
-
-        while (buffer[0] && buffer[0] != '\n')
+        ret = recv(this->fd, buffer, 1, 0);
+        if (ret == -1)
         {
-            if (ret = recv(this->fd, buffer, 1, 0); ret == -1)
-            {
-                // handle error
-                std::cerr << "Error: recv() failed" << std::endl;
-                return;
-            }
-            else if (ret == 0)
-            {
-                // disconnection
-                std::cout << "disconnection" << std::endl;
-                return;
-            }
-
-            line += buffer[0];
-            // this->request->buffer += buffer[0];
-            this->request.buffer += buffer[0];
+            // handle error
+            std::cerr << "Error: recv() failed" << std::endl;
+            return;
         }
-       
+        else if (ret == 0)
+        {
+            // disconnection
+            std::cout << "disconnection" << std::endl;
+            
+
+            return;
+        }
+
         line += buffer[0];
         this->request.buffer += buffer[0];
-        // this->request->buffer += buffer[0];
-
-
-        std::cout << "we are in clinet::handlerequest !!"  <<  line << std::endl;
+        if (line.find("\n") != std::string::npos)
+        {
             if (this->request.state == FIRSTLINE)
                 this->request.ParseFirstLine(line);
             else if (this->request.state == HEADERS)
                 this->request.ParseHeaders(line);
-        // 
-        else if (this->request.state == BODY)
-        {
-            char buffer[1024];
-            if (recv(this->fd, buffer, 1024, 0) == -1)
-            {
-                // handle error
-                std::cerr << "Error: recv() failed" << std::endl;
-            }
-            else if (recv(this->fd, buffer, 1024, 0) == 0)
-            {
-                // disconnection
-                std::cout << "disconnection" << std::endl;
-            }
-
-            this->request.buffer += buffer;
-            this->request.body << buffer;
-            this->request.ParseBody();
-            // generateResponse();
-            // writeResponse();
+            line = "";
         }
     }
+    else if (this->request.state == BODY)
+    {
+        char buffer[1024];
+        if (recv(this->fd, buffer, 1024, 0) == -1)
+        {
+            // handle error
+            std::cerr << "Error: recv() failed" << std::endl;
+        }
+        else if (recv(this->fd, buffer, 1024, 0) == 0)
+        {
+            // disconnection
+            std::cout << "disconnection" << std::endl;
+        }
+
+        this->request.buffer += buffer;
+        this->request.body << buffer;
+        this->request.ParseBody();
+        // generateResponse();
+        // writeResponse();
+    }
 }
-
-// void client::handleRequest()
-// {
-
-//     int ret = 0;
-
-//     if (this->status == FIRSTLINE || this->status == HEADERS)
-//     {
-//             char buffer[1];
-//         while(buffer[0] != '\n')
-//         {
-//             if (ret = recv(this->client.fd, buffer, 1, 0) == 0 ; ret == -1)
-//             {
-//                 // handle error
-//                 std::cerr << "Error: recv() failed" << std::endl;
-
-//             }
-//             else if (ret == 0)
-//             {
-//                 // disconnection
-//             }
-
-//             this->buffer += buffer[0];
-//         }
-//         if (this->state == FIRSTLINE)
-//             this->ParseFirstLine();
-//         else if (this->state == HEADERS)
-//             this->ParseHeaders();
-//     }
-//     else if (this->state == BODY)
-//     {
-//         this->ParseBody();
-//         // generateResponse();
-//         // writeResponse();
-
-//     }
-
-// }
-
-// void Request::ParseFirstLine()
-// {
-
-// }

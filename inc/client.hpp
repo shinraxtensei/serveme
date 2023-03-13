@@ -36,7 +36,7 @@ class Request
         Server *server;
         std::string buffer; 
 
-        std::stringstream ss; 
+        std::stringstream ss;
         std::map<std::string, std::vector<std::string> > headers;
         std::ofstream body;
 
@@ -85,7 +85,6 @@ class Client
         Request request;
         Response *response;
         SocketWrapper *socket;
-
     Client();
     ~Client();
 
