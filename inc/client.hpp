@@ -4,6 +4,8 @@
 
 
 
+
+
 class Core;
 class SocketWrapper;
 
@@ -16,21 +18,26 @@ enum Stat
 };
 
 class Server;
+class Client;
 class Request
 {
     public:
-        Request() {
-            this->state = FIRSTLINE;
-        };
-        ~Request() {};
+        Request();
+        // copy constructor
+        Request(const Request &other);
+        // assignment operator
+        Request &operator=(const Request &other);
+        ~Request();
 
         // Http *http;
         Stat state;
         Core *core;
+        Client *client; // this is a pointer to its parent client
         Server *server;
         std::string buffer; 
+
         std::stringstream ss; 
-        std::map<std::string, std::string> headers;
+        std::map<std::string, std::vector<std::string> > headers;
         std::ofstream body;
 
 
@@ -39,7 +46,7 @@ class Request
         std::string url;
         std::string version;
 
-        std::string contentLength;
+        int contentLength;
         std::string transferEncoding;
         std::string host;
         std::string connection;
@@ -54,7 +61,7 @@ class Request
         void ParseFirstLine(std::string &line);
         void ParseHeaders(std::string &line);
         void ParseBody();
-        void ParseBodyChunked();
+        // void ParseBodyChunked();
 
         void selectServer();
         
@@ -75,7 +82,7 @@ class Client
         Core *core;
         pollfd pollfd_;
         sockaddr_in *addr; 
-        Request *request;
+        Request request;
         Response *response;
         SocketWrapper *socket;
 
@@ -86,7 +93,6 @@ class Client
 
 
         //**  methods
-    
     void handleRequest();
     // void generateResponse();
     // void writeResponse();

@@ -133,8 +133,8 @@ void Core::handleConnections()
 
                     this->clients.push_back(Client(this->serverSockets[it]));
                     this->clients.back().core = this; //****** gettin the core
-
-                    this->map_clients.insert(std::pair<int , Client> (this->clients.back().fd , this->clients.back()));
+                    this->map_clients.insert(std::make_pair(this->clients.back().fd , this->clients.back()));
+                    // this->map_clients.insert(std::pair<int , Client> (this->clients.back().fd , this->clients.back()));
 
 
                     pollFds.push_back(this->clients.back().pollfd_);
@@ -144,10 +144,10 @@ void Core::handleConnections()
                 } 
                 else {
 
+                    // std::cout << this->map_clients[pollFds[i].fd].fd << std::endl;
                     this->map_clients[pollFds[i].fd].handleRequest();
 
-
-                    // Client request
+                    // Client request;
                     // std::cout << "Client request\n";
                     // char buf[1024];
                     // int bytes_received = recv(pollFds[i].fd, buf, 1024, 0); //!
