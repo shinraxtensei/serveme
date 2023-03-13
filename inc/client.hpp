@@ -16,6 +16,7 @@ enum Stat
 };
 
 class Server;
+class Client;
 class Request
 {
     public:
@@ -27,10 +28,11 @@ class Request
         // Http *http;
         Stat state;
         Core *core;
+        Client *client; // this is a pointer to its parent client
         Server *server;
         std::string buffer; 
         std::stringstream ss; 
-        std::map<std::string, std::string> headers;
+        std::map<std::string, std::vector<std::string> > headers;
         std::ofstream body;
 
 
@@ -39,7 +41,7 @@ class Request
         std::string url;
         std::string version;
 
-        std::string contentLength;
+        int contentLength;
         std::string transferEncoding;
         std::string host;
         std::string connection;
@@ -86,7 +88,6 @@ class Client
 
 
         //**  methods
-    
     void handleRequest();
     // void generateResponse();
     // void writeResponse();

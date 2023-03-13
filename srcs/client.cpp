@@ -7,6 +7,7 @@ Client::Client()
     this->request = new Request();
     this->response = new Response();
     this->request->core = this->core;
+    this->request->client = this;
     // this->response->core = this->core;
     this->pollfd_.fd = -1;
 }
@@ -31,6 +32,9 @@ Client::Client(SocketWrapper &sock)
         pollfd_.fd = fd;
         pollfd_.events = POLLIN; 
 }
+
+
+
 
 
 

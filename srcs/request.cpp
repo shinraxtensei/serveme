@@ -14,11 +14,28 @@ int checkValidChars(std::string &str)
 
 void Request::selectServer()
 {
-    // TODO  :select the server which has the same port and ip from where the request came from, and the same server_name as the host header
-    // std::vector<Server>::iterator it;
-    // for (it  = this->core->get_http()->servers.begin(); it != this->core->get_http()->servers.end(); it++)
-    // {
-    // }
+    std::vector<Server>::iterator it;
+    std::vector<Server> candidates;
+    for (it  = this->core->get_http()->servers.begin(); it != this->core->get_http()->servers.end(); it++)
+    {
+        if (it->ipPort.second == this->client->socket->get_listenPair().second && it->ipPort.first == this->client->socket->get_listenPair().first)
+            candidates.push_back(*it);
+    }
+    if (candidates.size() == 0)
+        throw std::runtime_error("Error: No server found for this request.");
+    else
+    {
+        for (it = candidates.begin(); it != candidates.end(); it++)
+        {
+            if (it->server_name == this->host)
+            {
+                this->server = &(*it);
+                break;
+            }
+            else
+                this->server = &candidates[0];
+        }
+    }
 
 }
 
@@ -57,22 +74,42 @@ void Request::ParseHeaders(std::string &line)
 
     key = Parser::lex()->next_token(true);
 
+
+    if (line.find("\r\n") != std::string::npos)
+    {
+        this->state = BODY;
+        return;
+    }
+
     if (key.back() != ':')
         throw std::runtime_error("Error: Invalid header line.");
 
     while (Parser::lex()->next_token(true) != "EOF")
         values.push_back(Parser::lex()->next_token(true));
 
+
+
     if (key == "host:")
     {
         this->host = values[0];
         this->selectServer();
     }
+    if (key == "content-length:")
+    {
+        this->contentLength = std::stoi(values[0]);
+        if (this->contentLength > this->server->client_max_body_size)
+            throw std::runtime_error("Error: Content-Length is too big.");
+    }
+    if (key == "transfer-encoding:")
+        this->transferEncoding = values[0];
+    
+    if (key == "connection:")
+        this->connection = values[0];
 
-
+    
 
     pair = std::make_pair(key, values);
-
+    this->headers.insert(pair);
 
 }
 
