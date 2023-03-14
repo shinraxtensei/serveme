@@ -64,7 +64,7 @@ void Core::startup()
         listens.insert(listen);
     }
 
-    for (std::set<std::pair<std::string, int>>::iterator it = listens.begin(); it != listens.end(); it++)
+    for (std::set<std::pair<std::string, int> >::iterator it = listens.begin(); it != listens.end(); it++)
     {
         SocketWrapper *sock = new SocketWrapper(AF_INET, SOCK_STREAM, 0);
         if (it->first == "NONE")
@@ -110,6 +110,7 @@ void Core::handleConnections()
 
                     this->clients.push_back(Client(this->serverSockets[it]));
                     this->clients.back().core = this; //****** gettin the core
+                    
                     this->map_clients.insert(std::make_pair(this->clients.back().fd, this->clients.back()));
 
                     this->pollFds.push_back(this->clients.back().pollfd_);
