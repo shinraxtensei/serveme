@@ -52,6 +52,26 @@ std::string Request::checkType(std::string path)
     }
 }
 
+std::string checkForEnd(char c)
+{
+    static int count = 0;
+    if (c == '\r')
+        count++;
+    else if (c == '\n' && count == 2)
+        count++;
+    else if (c == '\r' && count == 3)
+        count++;
+    else if (c == '\n' && count == 4)
+    {
+        count = 0;
+        return "\r\n\r\n";
+    }
+    else
+        count = 0;
+    return "";
+}
+
+
 
 
 void Client::handleRequest()
@@ -68,20 +88,39 @@ void Client::handleRequest()
         {
             // handle error
             std::cerr << "Error: recv() failed" << std::endl;
+            // for(auto i : this->core->pollFds)
+            // {
+            //     if (i.fd == this->fd)
+            //     {
+            //         i.fd = -1;
+            //         break;
+            //     }
+            // }
+
             return;
         }
         else if (ret == 0)
         {
             // disconnection
             std::cout << "disconnection" << std::endl;
-            
-
+           for(auto i : this->core->pollFds)
+            {
+                if (i.fd == this->fd)
+                {
+                    i.fd = -1;
+                    break;
+                }
+            }
             return;
         }
 
         line += buffer[0];
         this->request.buffer += buffer[0];
-        if (line.find("\n") != std::string::npos)
+
+        if (checkForEnd(buffer[0]) == "\r\n\r\n" && this->request.state == HEADERS)
+            this->request.state = BODY;
+
+        if (  line.find("\r\n") != std::string::npos || line.find("\n") != std::string::npos)
         {
             if (this->request.state == FIRSTLINE)
                 this->request.ParseFirstLine(line);
@@ -92,20 +131,20 @@ void Client::handleRequest()
     }
     else if (this->request.state == BODY)
     {
-        char buffer[1024];
-        if (recv(this->fd, buffer, 1024, 0) == -1)
-        {
-            // handle error
-            std::cerr << "Error: recv() failed" << std::endl;
-        }
-        else if (recv(this->fd, buffer, 1024, 0) == 0)
-        {
-            // disconnection
-            std::cout << "disconnection" << std::endl;
-        }
+        // char buffer[1024];
+        // if (recv(this->fd, buffer, 1024, 0) == -1)
+        // {
+        //     // handle error
+        //     std::cerr << "Error: recv() failed" << std::endl;
+        // }
+        // else if (recv(this->fd, buffer, 1024, 0) == 0)
+        // {
+        //     // disconnection
+        //     std::cout << "disconnection" << std::endl;
+        // }
 
-        this->request.buffer += buffer;
-        this->request.body << buffer;
+        // this->request.buffer += buffer;
+        // this->request.body << buffer;
         this->request.ParseBody();
         // generateResponse();
         // writeResponse();

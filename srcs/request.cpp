@@ -83,21 +83,51 @@ void Request::selectServer()
     }
 }
 
+
+std::vector<std::string> getStringTokens(std::string const &str)
+{
+    Parser::lex()->set_input(str);
+    std::vector<std::string> tokens;
+    while(true)
+    {
+        std::string token = Parser::lex()->next_token(true);
+        if (token == "EOF")
+            break;
+        tokens.push_back(token);
+    }
+    return tokens;
+}
+
+
+
 void Request::ParseFirstLine(std::string &line)
 {
     std::cout << CYAN << "STATE: " << (this->state == FIRSTLINE ? "FIRSTLINE" : "weird") << RESET << std::endl;
-    std::string knownMethods = "GET HEAD POST PUT DELETE CONNECT OPTIONS TRACE";
+
+
+    // std::cout << "last char: " << line.back() << std::endl;
+    
+    std::vector<std::string> knownMethods;
+    knownMethods = getStringTokens("GET HEAD POST PUT DELETE CONNECT OPTIONS TRACE");
+    
 
     Parser::lex()->set_input(line);
 
     this->method = Parser::lex()->next_token(true);
     this->url = Parser::lex()->next_token(true);
     this->version = Parser::lex()->next_token(true);
+
+
+
+
+
+
     if (Parser::lex()->next_token(true) != "EOF")
         std::cout << "Error: Invalid request line." << std::endl;
         // throw std::runtime_error("Error: Invalid request line.");
 
-    if (knownMethods.find(this->method) == std::string::npos)
+    if (std::find(knownMethods.begin(), knownMethods.end(), this->method) == knownMethods.end())
+    // if (knownMethods.find(this->method) == std::string::npos)
         std::cout << "Error: Invalid method." << std::endl;
         // throw std::runtime_error("Error: Invalid method.");
     if (this->url.size() > 2048 || checkValidChars(this->url) == 0)
@@ -120,22 +150,17 @@ void Request::ParseHeaders(std::string &line)
     Parser::lex()->set_input(line);
 
     key = Parser::lex()->next_token(true);
+    values = getStringTokens(line.substr(key.size() + 1));
 
-    if (line.find("\r\n") != std::string::npos)
-    {
-        this->state = BODY;
-        return;
-    }
+    // if (line.find("\r\n\r\n") != std::string::npos)
+    // {
+    //     this->state = BODY;
+    //     return;
+    // }
 
     if (key.back() != ':')
         std::cout << "Error: Invalid header line." << std::endl;
 
-    // while (Parser::lex()->next_token(true) != "EOF")
-    //     values.push_back(Parser::lex()->next_token(true));
-    values.push_back(Parser::lex()->next_token(true));
-
-    std::cout << "key: " << key << std::endl;
-    std::cout << "values: " << values[0] << std::endl;
 
     if (key == "host:")
     {
@@ -156,19 +181,32 @@ void Request::ParseHeaders(std::string &line)
 
     pair = std::make_pair(key, values);
     this->headers.insert(pair);
+
+
+    std::cout << "in map:" << std::endl;
+    std::map<std::string, std::vector<std::string>>::iterator it;
+    for (it = this->headers.begin(); it != this->headers.end(); it++)
+    {
+        std::cout << RED << it->first << " ";
+        for (size_t i = 0; i < it->second.size(); i++)
+            std::cout << it->second[i] << " ";
+        std::cout << RESET << std::endl;
+    }
+
+
+
 }
 
 void Request::ParseBody()
 {
-    std::cout << YELLOW << "method : " << RESET << this->method << std::endl;
-    std::cout << YELLOW << "url : " << RESET << this->url << std::endl;
-    std::cout << YELLOW << "version : " << RESET << this->version << std::endl;
+    // std::cout << YELLOW << "method : " << RESET << this->method << std::endl;
+    // std::cout << YELLOW << "url : " << RESET << this->url << std::endl;
+    // std::cout << YELLOW << "version : " << RESET << this->version << std::endl;
 
-    std::cout << YELLOW << "host : " << RESET << this->host << std::endl;
-    std::cout << YELLOW << "contentLength : " << RESET << this->contentLength << std::endl;
-    std::cout << YELLOW << "transferEncoding : " << RESET << this->transferEncoding << std::endl;
-    std::cout << YELLOW << "connection : " << RESET << this->connection << std::endl;
-
+    // std::cout << YELLOW << "host : " << RESET << this->host << std::endl;
+    // std::cout << YELLOW << "contentLength : " << RESET << this->contentLength << std::endl;
+    // std::cout << YELLOW << "transferEncoding : " << RESET << this->transferEncoding << std::endl;
+    // std::cout << YELLOW << "connection : " << RESET << this->connection << std::endl;
     std::cout << CYAN << "STATE: " << (this->state == BODY ? "BODY" : "weird") << RESET << std::endl;
 
 }

@@ -39,6 +39,7 @@ class Request
         std::stringstream ss;
         std::map<std::string, std::vector<std::string> > headers;
         std::ofstream body;
+        // std::string bodyString;
 
 
 
