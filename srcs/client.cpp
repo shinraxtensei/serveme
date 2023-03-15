@@ -3,11 +3,15 @@
 Client::Client()
 {
     this->addr = new sockaddr_in;
-    // this->response = new Response();
 
-    this->request.core = this->core;
-    this->request.client = this;
-    // this->response->core = this->core;
+    this->request = new Request();
+    this->request->core = this->core;
+    this->request->client = this;
+
+//   this->response = new Response();
+//   this->response->core = this->core;
+//   this->response->client = this;
+   
     this->pollfd_.fd = -1;
 }
 
@@ -21,6 +25,15 @@ Client::~Client()
 
 Client::Client(SocketWrapper &sock)
 {
+    this->request = new Request();
+    this->request->core = this->core;
+    this->request->client = this;
+
+//   this->response = new Response();
+//   this->response->core = this->core;
+//   this->response->client = this;
+
+
     this->socket = &sock;
     addr = new sockaddr_in;
     fd = sock.accept(*addr);
@@ -91,7 +104,10 @@ std::string checkForEnd(char c , int type)
 
 void Client::handleRequest()
 {
-    if (this->request.state == FIRSTLINE || this->request.state == HEADERS)
+
+
+
+    if (this->request->state == FIRSTLINE || this->request->state == HEADERS)
     {
         static std::string line = "";
         char buffer[1];
@@ -101,14 +117,6 @@ void Client::handleRequest()
         {
             // handle error
             std::cerr << "Error: recv() failed" << std::endl;
-            // for(auto i : this->core->pollFds)
-            // {
-            //     if (i.fd == this->fd)
-            //     {
-            //         i.fd = -1;
-            //         break;
-            //     }
-            // }
 
             return;
         }
@@ -116,40 +124,32 @@ void Client::handleRequest()
         {
             // disconnection
             std::cout << "disconnection" << std::endl;
-            for(auto i : this->core->pollFds)
-            {
-                if (i.fd == this->fd)
-                {
-                    i.fd = -1;
-                    break;
-                }
-            }
             return;
         }
 
         line += buffer[0];
-        this->request.buffer += buffer[0];
+        this->request->buffer += buffer[0];
 
         if (line.find("\r\n") != std::string::npos || line.find("\n") != std::string::npos)
         {
-            if (this->request.state == FIRSTLINE)
+            if (this->request->state == FIRSTLINE)
             {
-                this->request.ParseFirstLine(line);
-                this->request.state = HEADERS;
+                this->request->ParseFirstLine(line);
+                this->request->state = HEADERS;
             }
-            else if (this->request.state == HEADERS)
+            else if (this->request->state == HEADERS)
             {
-                this->request.ParseHeaders(line);
+                this->request->ParseHeaders(line);
                 if (line == "\r\n" || line == "\n")
-                    this->request.state = BODY;
+                    this->request->state = BODY;
             }
             line = "";
         }
 
-        if (this->request.buffer.find("\r\n\r\n") != std::string::npos)
-            this->request.state = BODY;
+        if (this->request->buffer.find("\r\n\r\n") != std::string::npos)
+            this->request->state = BODY;
     }
-    else if (this->request.state == BODY)
+    else if (this->request->state == BODY)
     {
         char buffer[1024];
         int ret;
@@ -164,99 +164,13 @@ void Client::handleRequest()
         {
             // disconnection
             std::cout << "disconnection" << std::endl;
-            for(auto i : this->core->pollFds)
-            {
-                if (i.fd == this->fd)
-                {
-                    i.fd = -1;
-                    break;
-                }
-            }
+
             return;
         }
-        this->request.buffer += std::string(buffer, ret);
-        this->request.ParseBody();
+        this->request->bodyString += std::string(buffer, ret);
+        this->request->buffer += std::string(buffer, ret);
+        this->request->ParseBody();
         // generateResponse();
         // writeResponse();
     }
 }
-
-
-
-
-// void Client::handleRequest()
-// {
-//     // std::cout << "handling request ..." << std::endl;
-//     if (this->request.state == FIRSTLINE || this->request.state == HEADERS)
-//     {
-
-//         static std::string line = "";
-//         char buffer[1];
-//         int ret;
-//         ret = recv(this->fd, buffer, 1, 0);
-//         if (ret == -1)
-//         {
-//             // handle error
-//             std::cerr << "Error: recv() failed" << std::endl;
-//             // for(auto i : this->core->pollFds)
-//             // {
-//             //     if (i.fd == this->fd)
-//             //     {
-//             //         i.fd = -1;
-//             //         break;
-//             //     }
-//             // }
-
-//             return;
-//         }
-//         else if (ret == 0)
-//         {
-//             // disconnection
-//             std::cout << "disconnection" << std::endl;
-//            for(auto i : this->core->pollFds)
-//             {
-//                 if (i.fd == this->fd)
-//                 {
-//                     i.fd = -1;
-//                     break;
-//                 }
-//             }
-//             return;
-//         }
-
-
-//         if (checkForEnd(buffer[0] , 1) == "\r\n\r\n" && this->request.state == HEADERS)
-//             this->request.state = BODY;
-//         // if (line.find("\r\n") != std::string::npos || line.find("\n") != std::string::npos)
-//         if (buffer[0] == '\n' || checkForEnd(buffer[0] , 0) == "\r\n")
-//         {
-//             if (this->request.state == FIRSTLINE)
-//                 this->request.ParseFirstLine(line);
-//             else if (this->request.state == HEADERS)
-//                 this->request.ParseHeaders(line);
-//             line = "";
-//         }
-//         line += buffer[0];
-//         this->request.buffer += buffer[0];
-//     }
-//     else if (this->request.state == BODY)
-//     {
-//         // char buffer[1024];
-//         // if (recv(this->fd, buffer, 1024, 0) == -1)
-//         // {
-//         //     // handle error
-//         //     std::cerr << "Error: recv() failed" << std::endl;
-//         // }
-//         // else if (recv(this->fd, buffer, 1024, 0) == 0)
-//         // {
-//         //     // disconnection
-//         //     std::cout << "disconnection" << std::endl;
-//         // }
-
-//         // this->request.buffer += buffer;
-//         // this->request.body << buffer;
-//         this->request.ParseBody();
-//         // generateResponse();
-//         // writeResponse();
-//     }
-// }

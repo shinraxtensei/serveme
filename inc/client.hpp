@@ -39,7 +39,7 @@ class Request
         std::stringstream ss;
         std::multimap<std::string, std::string > headers;
         std::ofstream body;
-        // std::string bodyString;
+        std::string bodyString;
 
 
 
@@ -83,8 +83,9 @@ class Client
         Core *core;
         pollfd pollfd_;
         sockaddr_in *addr; 
-        Request request;
-        Response *response;
+
+        Request *request;
+        // Response *response;
         SocketWrapper *socket;
     Client();
     ~Client();

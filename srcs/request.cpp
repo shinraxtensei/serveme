@@ -10,6 +10,7 @@ Request::Request()
     this->method = "";
     this->url = "";
     this->version = "";
+    this->bodyString = "";
 
 }
 
@@ -122,8 +123,8 @@ void Request::ParseFirstLine(std::string &line)
 
 
 
-    if (Parser::lex()->next_token(true) != "EOF")
-        std::cout << "Error: Invalid request line." << std::endl;
+    // if (Parser::lex()->next_token(true) != "EOF")
+    //     std::cout << "Error: Invalid request line." << std::endl;
         // throw std::runtime_error("Error: Invalid request line.");
 
     if (std::find(knownMethods.begin(), knownMethods.end(), this->method) == knownMethods.end())
@@ -133,7 +134,8 @@ void Request::ParseFirstLine(std::string &line)
     if (this->url.size() > 2048 || checkValidChars(this->url) == 0)
         std::cout << "Error: Invalid URL." << std::endl;
         // throw std::runtime_error("Error: Invalid URL.");
-    if (this->version != "HTTP/1.1")
+    // if (this->version != "HTTP/1.1")
+    if (this->version.find("HTTP/1.1") == std::string::npos && this->version.find("HTTP/1.0") == std::string::npos)
         std::cout << "Error: Invalid HTTP version." << std::endl;
         // throw std::runtime_error("Error: Invalid HTTP version.");
 
@@ -151,14 +153,6 @@ void Request::ParseHeaders(std::string &line)
 
     key = Parser::lex()->next_token(true);
     value = &line[key.size() + 1];
-
-    // values = getStringTokens(line.substr(key.size() + 1));
-
-    // if (line.find("\r\n\r\n") != std::string::npos)
-    // {
-    //     this->state = BODY;
-    //     return;
-    // }
 
     if (key.back() != ':')
         std::cout << "Error: Invalid header line." << std::endl;
@@ -184,13 +178,13 @@ void Request::ParseHeaders(std::string &line)
     this->headers.insert(std::make_pair(key, value));
 
 
-    std::cout << "in map:" << std::endl;
-    std::multimap<std::string, std::string>::iterator it;
-    for (it = this->headers.begin(); it != this->headers.end(); it++)
-    {
-        std::cout << RED << it->first << " ";
-        std::cout << GREEN << it->second << RESET << std::endl;
-    }
+    // std::cout << "in map:" << std::endl;
+    // std::multimap<std::string, std::string>::iterator it;
+    // for (it = this->headers.begin(); it != this->headers.end(); it++)
+    // {
+    //     std::cout << RED << it->first << " ";
+    //     std::cout << GREEN << it->second << RESET << std::endl;
+    // }
 
 
 
@@ -198,21 +192,24 @@ void Request::ParseHeaders(std::string &line)
 
 void Request::ParseBody()
 {
-    // std::cout << YELLOW << "method : " << RESET << this->method << std::endl;
-    // std::cout << YELLOW << "url : " << RESET << this->url << std::endl;
-    // std::cout << YELLOW << "version : " << RESET << this->version << std::endl;
+    std::cout << YELLOW << "method : " << RESET << this->method << std::endl;
+    std::cout << YELLOW << "url : " << RESET << this->url << std::endl;
+    std::cout << YELLOW << "version : " << RESET << this->version << std::endl;
 
-    // std::cout << YELLOW << "host : " << RESET << this->host << std::endl;
-    // std::cout << YELLOW << "contentLength : " << RESET << this->contentLength << std::endl;
-    // std::cout << YELLOW << "transferEncoding : " << RESET << this->transferEncoding << std::endl;
-    // std::cout << YELLOW << "connection : " << RESET << this->connection << std::endl;
+    std::cout << YELLOW << "host : " << RESET << this->host << std::endl;
+    std::cout << YELLOW << "contentLength : " << RESET << this->contentLength << std::endl;
+    std::cout << YELLOW << "transferEncoding : " << RESET << this->transferEncoding << std::endl;
+    std::cout << YELLOW << "connection : " << RESET << this->connection << std::endl;
+
+
     std::cout << CYAN << "STATE: " << (this->state == BODY ? "BODY" : "weird") << RESET << std::endl;
     // write the body inside a file 
     // this->body.open("body.txt");
 
     // this->body << this->buffer;
     // this->body.close();
-    std::cout << this->buffer  << std::endl;
+    std::cout << this->bodyString << std::endl;
+    // std::cout << this->buffer  << std::endl;
 
 
 }
