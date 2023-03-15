@@ -82,21 +82,21 @@ int SocketWrapper::accept(sockaddr_in &client_addr)
     return clientfd;
 }
 
-void SocketWrapper::connect(const char *ip_address, int port)
-{
-    sockaddr_in addr;
-    addr.sin_family = AF_INET;
-    addr.sin_port = htons(port);
-    if (inet_pton(AF_INET, ip_address, &addr.sin_addr) <= 0)
-    {
-        throw std::runtime_error("Invalid IP address");
-    }
-    int res = ::connect(sockfd_, (struct sockaddr *)&addr, sizeof(addr));
-    if (res == -1)
-    {
-        throw std::runtime_error("Failed to connect to server");
-    }
-}
+// void SocketWrapper::connect(const char *ip_address, int port)
+// {
+//     sockaddr_in addr;
+//     addr.sin_family = AF_INET;
+//     addr.sin_port = htons(port);
+//     if (inet_pton(AF_INET, ip_address, &addr.sin_addr) <= 0)
+//     {
+//         throw std::runtime_error("Invalid IP address");
+//     }
+//     int res = ::connect(sockfd_, (struct sockaddr *)&addr, sizeof(addr));
+//     if (res == -1)
+//     {
+//         throw std::runtime_error("Failed to connect to server");
+//     }
+// }
 
 int SocketWrapper::get_sockfd() const
 {

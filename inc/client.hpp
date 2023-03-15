@@ -37,7 +37,7 @@ class Request
         std::string buffer; 
 
         std::stringstream ss;
-        std::map<std::string, std::vector<std::string> > headers;
+        std::multimap<std::string, std::string > headers;
         std::ofstream body;
         // std::string bodyString;
 
@@ -70,7 +70,7 @@ class Request
 };
 
 class Response
-{};
+{ };
 
 
 

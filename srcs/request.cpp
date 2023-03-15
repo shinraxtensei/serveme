@@ -146,11 +146,13 @@ void Request::ParseHeaders(std::string &line)
 
     std::pair<std::string, std::vector<std::string>> pair;
     std::string key;
-    std::vector<std::string> values;
+    std::string value;
     Parser::lex()->set_input(line);
 
     key = Parser::lex()->next_token(true);
-    values = getStringTokens(line.substr(key.size() + 1));
+    value = &line[key.size() + 1];
+
+    // values = getStringTokens(line.substr(key.size() + 1));
 
     // if (line.find("\r\n\r\n") != std::string::npos)
     // {
@@ -164,33 +166,30 @@ void Request::ParseHeaders(std::string &line)
 
     if (key == "host:")
     {
-        this->host = values[0];
-        // this->selectServer();
+        this->host = value;
+        this->selectServer();
     }
     if (key == "content-length:")
     {
-        this->contentLength = std::stoi(values[0]);
+        this->contentLength = std::stoi(value);
         // if (this->contentLength > this->server->client_max_body_size)
         //     throw std::runtime_error("Error: Content-Length is too big.");
     }
     if (key == "transfer-encoding:")
-        this->transferEncoding = values[0];
+        this->transferEncoding = value;
 
     if (key == "connection:")
-        this->connection = values[0];
+        this->connection = value;
 
-    pair = std::make_pair(key, values);
-    this->headers.insert(pair);
+    this->headers.insert(std::make_pair(key, value));
 
 
     std::cout << "in map:" << std::endl;
-    std::map<std::string, std::vector<std::string>>::iterator it;
+    std::multimap<std::string, std::string>::iterator it;
     for (it = this->headers.begin(); it != this->headers.end(); it++)
     {
         std::cout << RED << it->first << " ";
-        for (size_t i = 0; i < it->second.size(); i++)
-            std::cout << it->second[i] << " ";
-        std::cout << RESET << std::endl;
+        std::cout << GREEN << it->second << RESET << std::endl;
     }
 
 
@@ -208,5 +207,12 @@ void Request::ParseBody()
     // std::cout << YELLOW << "transferEncoding : " << RESET << this->transferEncoding << std::endl;
     // std::cout << YELLOW << "connection : " << RESET << this->connection << std::endl;
     std::cout << CYAN << "STATE: " << (this->state == BODY ? "BODY" : "weird") << RESET << std::endl;
+    // write the body inside a file 
+    // this->body.open("body.txt");
+
+    // this->body << this->buffer;
+    // this->body.close();
+    std::cout << this->buffer  << std::endl;
+
 
 }

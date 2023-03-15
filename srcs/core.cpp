@@ -86,6 +86,7 @@ void Core::handleConnections()
     for (std::vector<SocketWrapper>::iterator it = this->serverSockets.begin(); it != this->serverSockets.end(); it++)
     {
         pollfd fd;
+
         fd.fd = it->get_sockfd();
         fd.events = POLLIN;
         setsockopt(fd.fd, SOL_SOCKET, SO_REUSEADDR, NULL, 0);
