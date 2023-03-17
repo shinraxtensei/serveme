@@ -22,7 +22,10 @@ class SocketWrapper;
 
 class Http
 {
+	
 	public:
+		Http();
+		~Http();
 		std::map<std::string, std::vector<std::string> > http_directives;
 		std::vector<Server> servers;
 
@@ -39,8 +42,8 @@ class Http
 class Server : public Http
 {
 	public:
-		Server(){};
-		~Server(){};
+		Server();
+		~Server();
 
 		std::map<std::string, std::vector<std::string> > server_directives;
 		std::vector<Location> locations;
@@ -68,7 +71,7 @@ class Location : public Server
 		std::pair<int, std::string> Return;
 
 		std::string path;
-		std::string root;
+		// std::string root;
 };
 
 class Parser
