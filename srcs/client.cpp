@@ -42,6 +42,7 @@ Client::Client(SocketWrapper &sock)
         throw std::runtime_error("Failed to accept connection");
     }
     this->request->client_fd = fd;
+	this->response->client_fd = fd;
     // this->request->core = Servme::getCore();
     // this->request->client = &Servme::getCore()->map_clients[fd];
 
@@ -169,12 +170,26 @@ void Client::handleRequest()
 
 void	Client::generateResponse()
 {
-	// this->selectServer();
+	this->selectServer();
+	this->server->server_name = "localhost";
 	std::cout << "selected server" << this->server->server_name << std::endl;
-	this->response->checkAllowedMethods();
-	this->response->matchLocation();
-	path = this->location->root + this->request->url;
+	this->response->checkCgi();
+	if (this->cgiFlag == 1)
+	{
+		// handlecgi;
+	}
+	else
+	{
+		this->response->checkAllowedMethods();
+		// this->path = this->location->root + this->request->url;
+		// std::cout << "path: " << this->path << std::endl;
+		this->response->matchLocation();
+		//handle manual;
+	}
+	std::cout << "cgi ? " << this->cgiFlag << std::endl;	
 }
+
+
 
 void	Client::selectServer()
 {
@@ -195,10 +210,11 @@ void	Client::selectServer()
 		{
 			if (it->server_name == this->request->host)
 			{
-				this->server = &(*it);
+				// this->server = &(*it);
+				this->server = new  Server(*it);
 				return ;
 			}
 		}
-		this->server = &candidates[0];
+		this->server = new  Server(candidates[0]);
 	}
 }
