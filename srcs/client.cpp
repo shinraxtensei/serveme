@@ -8,9 +8,9 @@ Client::Client()
     this->request->core = this->core;
     this->request->client = this;
 
-//   this->response = new Response();
-//   this->response->core = this->core;
-//   this->response->client = this;
+	this->response = new Response();
+  	this->response->http = this->core->get_http();
+  	this->response->client = this;
    
     this->pollfd_.fd = -1;
 }
@@ -29,9 +29,9 @@ Client::Client(SocketWrapper &sock)
     this->request->core = this->core;
     this->request->client = this;
 
-//   this->response = new Response();
-//   this->response->core = this->core;
-//   this->response->client = this;
+	this->response = new Response();
+  	this->response->http = this->core->get_http();
+  	this->response->client = this;
 
 
     this->socket = &sock;
@@ -104,9 +104,6 @@ std::string checkForEnd(char c , int type)
 
 void Client::handleRequest()
 {
-
-
-
     if (this->request->state == FIRSTLINE || this->request->state == HEADERS)
     {
         static std::string line = "";
@@ -115,21 +112,16 @@ void Client::handleRequest()
         ret = recv(this->fd, buffer, 1, 0);
         if (ret == -1)
         {
-            // handle error
             std::cerr << "Error: recv() failed" << std::endl;
-
             return;
         }
         else if (ret == 0)
         {
-            // disconnection
             std::cout << "disconnection" << std::endl;
             return;
         }
-
         line += buffer[0];
         this->request->buffer += buffer[0];
-
         if (line.find("\r\n") != std::string::npos || line.find("\n") != std::string::npos)
         {
             if (this->request->state == FIRSTLINE)
@@ -141,11 +133,10 @@ void Client::handleRequest()
             {
                 this->request->ParseHeaders(line);
                 if (line == "\r\n" || line == "\n")
-                    this->request->state = BODY;
+                    this->request->state = BODY; // wtf is this
             }
             line = "";
         }
-
         if (this->request->buffer.find("\r\n\r\n") != std::string::npos)
             this->request->state = BODY;
     }
@@ -156,21 +147,54 @@ void Client::handleRequest()
         ret = recv(this->fd, buffer, 1024, 0);
         if (ret == -1)
         {
-            // handle error
             std::cerr << "Error: recv() failed" << std::endl;
             return;
         }
         else if (ret == 0)
         {
-            // disconnection
             std::cout << "disconnection" << std::endl;
-
             return;
         }
         this->request->bodyString += std::string(buffer, ret);
         this->request->buffer += std::string(buffer, ret);
         this->request->ParseBody();
-        // generateResponse();
+        this->generateResponse();
         // writeResponse();
     }
+}
+
+void	Client::generateResponse()
+{
+	this->selectServer();
+	std::cout << "selected server" << this->server->server_name << std::endl;
+	this->response->checkAllowedMethods();
+	this->response->matchLocation();
+	path = this->location->root + this->request->url;
+}
+
+void	Client::selectServer()
+{
+	std::vector<Server>::iterator it;
+	std::vector<Server> candidates;
+
+	it = this->core->get_http()->servers.begin();
+    for (it = this->core->get_http()->servers.begin(); it != this->core->get_http()->servers.end(); it++)
+    {
+        if (it->ipPort.second == this->socket->get_listenPair().second)
+            candidates.push_back(*it);
+    }
+	if (candidates.size() == 0)
+		throw std::runtime_error("Error: No server found for this request.");
+	else
+	{
+		for (it = candidates.begin(); it != candidates.end(); it++)
+		{
+			if (it->server_name == this->request->host)
+			{
+				this->server = &(*it);
+				return ;
+			}
+		}
+		this->server = &candidates[0];
+	}
 }

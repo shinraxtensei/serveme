@@ -19,7 +19,6 @@ Request &Request::operator=(const Request &other)
     this->state = other.state;
     this->core = other.core;
     this->client = other.client;
-    this->server = other.server;
     this->buffer = other.buffer;
     // this->ss = other.ss;
     this->headers = other.headers;
@@ -58,31 +57,31 @@ int checkValidChars(std::string &str)
     return 1;
 }
 
-void Request::selectServer()
-{
-    std::vector<Server>::iterator it;
-    std::vector<Server> candidates;
-    for (it = this->core->get_http()->servers.begin(); it != this->core->get_http()->servers.end(); it++)
-    {
-        if (it->ipPort.second == this->client->socket->get_listenPair().second)
-            candidates.push_back(*it);
-    }
-    if (candidates.size() == 0)
-        throw std::runtime_error("Error: No server found for this request.");
-    else
-    {
-        for (it = candidates.begin(); it != candidates.end(); it++)
-        {
-            if (it->server_name == this->host)
-            {
-                this->server = &(*it);
-                break;
-            }
-            else
-                this->server = &candidates[0];
-        }
-    }
-}
+// void Request::selectServer()
+// {
+//     std::vector<Server>::iterator it;
+//     std::vector<Server> candidates;
+//     for (it = this->core->get_http()->servers.begin(); it != this->core->get_http()->servers.end(); it++)
+//     {
+//         if (it->ipPort.second == this->client->socket->get_listenPair().second)
+//             candidates.push_back(*it);
+//     }
+//     if (candidates.size() == 0)
+//         throw std::runtime_error("Error: No server found for this request.");
+//     else
+//     {
+//         for (it = candidates.begin(); it != candidates.end(); it++)
+//         {
+//             if (it->server_name == this->host)
+//             {
+//                 this->server = &(*it);
+//                 break;
+//             }
+//             else
+//                 this->server = &candidates[0];
+//         }
+//     }
+// }
 
 
 std::vector<std::string> getStringTokens(std::string const &str)
@@ -110,7 +109,6 @@ void Request::ParseFirstLine(std::string &line)
     
     std::vector<std::string> knownMethods;
     knownMethods = getStringTokens("GET HEAD POST PUT DELETE CONNECT OPTIONS TRACE");
-    
 
     Parser::lex()->set_input(line);
 
@@ -118,19 +116,12 @@ void Request::ParseFirstLine(std::string &line)
     this->url = Parser::lex()->next_token(true);
     this->version = Parser::lex()->next_token(true);
 
-
-
-
-
-
     // if (Parser::lex()->next_token(true) != "EOF")
     //     std::cout << "Error: Invalid request line." << std::endl;
         // throw std::runtime_error("Error: Invalid request line.");
 
     if (std::find(knownMethods.begin(), knownMethods.end(), this->method) == knownMethods.end())
-    // if (knownMethods.find(this->method) == std::string::npos)
         std::cout << "Error: Invalid method." << std::endl;
-        // throw std::runtime_error("Error: Invalid method.");
     if (this->url.size() > 2048 || checkValidChars(this->url) == 0)
         std::cout << "Error: Invalid URL." << std::endl;
         // throw std::runtime_error("Error: Invalid URL.");
@@ -138,8 +129,6 @@ void Request::ParseFirstLine(std::string &line)
     if (this->version.find("HTTP/1.1") == std::string::npos && this->version.find("HTTP/1.0") == std::string::npos)
         std::cout << "Error: Invalid HTTP version." << std::endl;
         // throw std::runtime_error("Error: Invalid HTTP version.");
-
-    this->state = HEADERS;
 }
 
 void Request::ParseHeaders(std::string &line)
@@ -157,11 +146,10 @@ void Request::ParseHeaders(std::string &line)
     if (key.back() != ':')
         std::cout << "Error: Invalid header line." << std::endl;
 
-
     if (key == "host:")
     {
         this->host = value;
-        this->selectServer();
+        // this->client->selectServer();
     }
     if (key == "content-length:")
     {
@@ -176,17 +164,6 @@ void Request::ParseHeaders(std::string &line)
         this->connection = value;
 
     this->headers.insert(std::make_pair(key, value));
-
-
-    // std::cout << "in map:" << std::endl;
-    // std::multimap<std::string, std::string>::iterator it;
-    // for (it = this->headers.begin(); it != this->headers.end(); it++)
-    // {
-    //     std::cout << RED << it->first << " ";
-    //     std::cout << GREEN << it->second << RESET << std::endl;
-    // }
-
-
 
 }
 
