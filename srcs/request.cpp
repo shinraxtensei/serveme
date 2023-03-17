@@ -11,7 +11,6 @@ Request::Request()
     this->url = "";
     this->version = "";
     this->bodyString = "";
-
 }
 
 Request &Request::operator=(const Request &other)
@@ -57,31 +56,6 @@ int checkValidChars(std::string &str)
     return 1;
 }
 
-// void Request::selectServer()
-// {
-//     std::vector<Server>::iterator it;
-//     std::vector<Server> candidates;
-//     for (it = this->core->get_http()->servers.begin(); it != this->core->get_http()->servers.end(); it++)
-//     {
-//         if (it->ipPort.second == this->client->socket->get_listenPair().second)
-//             candidates.push_back(*it);
-//     }
-//     if (candidates.size() == 0)
-//         throw std::runtime_error("Error: No server found for this request.");
-//     else
-//     {
-//         for (it = candidates.begin(); it != candidates.end(); it++)
-//         {
-//             if (it->server_name == this->host)
-//             {
-//                 this->server = &(*it);
-//                 break;
-//             }
-//             else
-//                 this->server = &candidates[0];
-//         }
-//     }
-// }
 
 
 std::vector<std::string> getStringTokens(std::string const &str)
@@ -149,7 +123,8 @@ void Request::ParseHeaders(std::string &line)
     if (key == "host:")
     {
         this->host = value;
-        // this->client->selectServer();
+        this->client = &Servme::getCore()->map_clients[this->client_fd]; //TODO: change this to be in the constructor 
+        this->client->selectServer();
     }
     if (key == "content-length:")
     {

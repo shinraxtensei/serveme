@@ -25,6 +25,7 @@ class Request
         Request &operator=(const Request &other);
         ~Request();
 
+        int client_fd;
         Stat state;
         Core *core;
         Client *client; // this is a pointer to its parent client

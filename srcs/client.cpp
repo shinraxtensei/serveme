@@ -27,11 +27,11 @@ Client::Client(SocketWrapper &sock)
 {
     this->request = new Request();
     this->request->core = this->core;
-    this->request->client = this;
+    // this->request->client = this;
 
 	this->response = new Response();
-  	this->response->http = this->core->get_http();
-  	this->response->client = this;
+  	// this->response->http = this->core->get_http();
+  	// this->response->client = this;
 
 
     this->socket = &sock;
@@ -41,6 +41,10 @@ Client::Client(SocketWrapper &sock)
     {
         throw std::runtime_error("Failed to accept connection");
     }
+    this->request->client_fd = fd;
+    // this->request->core = Servme::getCore();
+    // this->request->client = &Servme::getCore()->map_clients[fd];
+
     fcntl(fd, F_SETFL, O_NONBLOCK);
     pollfd_.fd = fd;
     pollfd_.events = POLLIN;
@@ -165,7 +169,7 @@ void Client::handleRequest()
 
 void	Client::generateResponse()
 {
-	this->selectServer();
+	// this->selectServer();
 	std::cout << "selected server" << this->server->server_name << std::endl;
 	this->response->checkAllowedMethods();
 	this->response->matchLocation();
