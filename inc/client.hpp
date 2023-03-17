@@ -1,5 +1,6 @@
 #pragma once
 
+#include "cgi.hpp"
 #include "servme.hpp"
 
 
@@ -8,6 +9,7 @@
 
 class Core;
 class SocketWrapper;
+class Cgi;
 
 enum Stat
 {
@@ -85,6 +87,7 @@ class Client
         sockaddr_in *addr; 
 
         Request *request;
+        Cgi *cgi;
         // Response *response;
         SocketWrapper *socket;
     Client();
