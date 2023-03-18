@@ -57,6 +57,7 @@ class Request
 class Response
 {
 		public:
+			int client_fd;
 			Client	*client; // this is a pointer to its parent client
 			Http	*http;
 
@@ -65,6 +66,7 @@ class Response
 
 			void	checkAllowedMethods();
 			void	matchLocation();
+			void	checkCgi();
 };
 
 class Client
@@ -81,6 +83,8 @@ class Client
 		Server			*server;
 		Location		*location; // need to get the location path in config parsing
 
+		int				cgiFlag;
+
 		std::string		path;
 
     	Client();
@@ -92,8 +96,8 @@ class Client
 		void	selectServer();
     	void	handleRequest();
     	void	generateResponse();
-    // void writeResponse();
-    // void checkInactivity();
+    	// void writeResponse();
+    	// void checkInactivity();
 
 
 };

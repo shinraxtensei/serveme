@@ -49,8 +49,27 @@ void	Response::matchLocation()
 		}
 		else
 		{
-			std::cout << "location found " << *iter << std::endl;
+			std::cout << "loation found " << *iter << std::endl;
 			break ;
 		}
+	}
+}
+
+void	Response::checkCgi()
+{
+	std::string	cgiPath = "/cgi-bin/";
+	std::string	imaginaryPath = "/home/cgi-bin/script.php";
+	this->client = &Servme::getCore()->map_clients[this->client_fd];
+
+	if (imaginaryPath.find(cgiPath) != std::string::npos)
+	{
+		std::cout << "cgi request" << std::endl;
+		this->client->cgiFlag = 1;
+		return ;
+	}
+	else
+	{
+		std::cout << "not a cgi request" << std::endl;
+		this->client->cgiFlag = 0;
 	}
 }
