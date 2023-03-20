@@ -98,6 +98,7 @@ class Client
 
         //**  methods
     void handleRequest();
+    void cgi_handler();
     // void generateResponse();
     // void writeResponse();
     // void checkInactivity();

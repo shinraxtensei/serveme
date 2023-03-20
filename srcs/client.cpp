@@ -174,3 +174,34 @@ void Client::handleRequest()
         // writeResponse();
     }
 }
+
+void Client::cgi_handler(){
+
+    
+    this->cgi->REQUEST_METHOD   = this->request->method;
+    this->cgi->CONTENT_LENGTH   = this->request->contentLength;
+    this->cgi->PATH_INFO        = this->cgi->parseUrl(this->request->url);
+    this->cgi->querymap         = this->cgi->parseQuery(this->request->url);
+    this->cgi->BODY             = this->request->bodyString;
+
+    std::cout << "REQUEST_METHOD: " << this->cgi->REQUEST_METHOD << std::endl;
+    std::cout << "CONTENT_LENGTH: " << this->cgi->CONTENT_LENGTH << std::endl;
+    std::cout << "PATH_INFO: " << this->cgi->PATH_INFO << std::endl;
+    std::cout << "BODY: " << this->cgi->BODY << std::endl;
+    for (std::map<std::string, std::string>::iterator it = this->cgi->querymap.begin(); it != this->cgi->querymap.end(); ++it)
+        std::cout << it->first << " => " << it->second << '\n';
+
+    // set env [ REQ ]
+
+    // setenv("REQUEST_METHOD", REQUEST_METHOD.c_str(), 1);
+    // setenv("CONTENT_LENGTH", CONTENT_LENGTH.c_str(), 1);
+    // setenv("PATH_INFO", PATH_INFO.c_str(), 1);
+    // setenv("SCRIPT_FILENAME", SCRIPT_FILENAME.c_str(), 1);
+    // // setenv("REDIRECT_STATUS", REDIRECT_STATUS.c_str(), 1);
+    // setenv("CONTENT_TYPE", CONTENT_TYPE.c_str(), 1);
+
+
+    char *env = getenv("PATH_INFO");
+    std::cout << env << std::endl;
+
+}
