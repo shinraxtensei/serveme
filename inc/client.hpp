@@ -3,13 +3,13 @@
 #include "cgi.hpp"
 #include "servme.hpp"
 
-
-
-
-
 class Core;
 class SocketWrapper;
 class Cgi;
+class Http;
+class Server;
+class Client;
+class Location;
 
 enum Stat
 {
@@ -19,23 +19,18 @@ enum Stat
     DONE
 };
 
-class Server;
-class Client;
 class Request
 {
     public:
         Request();
-        // copy constructor
         Request(const Request &other);
-        // assignment operator
         Request &operator=(const Request &other);
         ~Request();
 
-        // Http *http;
+        int client_fd;
         Stat state;
         Core *core;
         Client *client; // this is a pointer to its parent client
-        Server *server;
         std::string buffer; 
 
         std::stringstream ss;
@@ -43,57 +38,62 @@ class Request
         std::ofstream body;
         std::string bodyString;
 
-
-
         std::string method;
         std::string url;
         std::string version;
 
-        int contentLength;
+        int 		contentLength;
         std::string transferEncoding;
         std::string host;
         std::string connection;
 
-
-        // std::map<std::string, std::string> mimeTypes;
-
-
         //** methods
-        // void ParseRequest();
         std::string	checkType(std::string path);
         void ParseFirstLine(std::string &line);
         void ParseHeaders(std::string &line);
         void ParseBody();
         // void ParseBodyChunked();
-
-        void selectServer();
-        
-    // int handle error();
+		// int handle error();
 };
 
 class Response
-{ };
+{
+		public:
+			int client_fd;
+			Client	*client; // this is a pointer to its parent client
+			Http	*http;
 
+			Response() {};
+			~Response() {};
 
-
-
+			void	checkAllowedMethods();
+			void	matchLocation();
+			void	checkCgi();
+};
 
 class Client
 {
     public:
-        int fd;
-        Core *core;
-        pollfd pollfd_;
-        sockaddr_in *addr; 
+        int				fd;
+        Core			*core;
+        pollfd			pollfd_;
+        sockaddr_in		*addr; 
 
-        Request *request;
+        Request			*request;
+        Response		*response;
+        SocketWrapper	*socket;
+		Server			*server;
+		Location		*location; // need to get the location path in config parsing
+
+		int				cgiFlag;
+
         Cgi *cgi;
         // Response *response;
-        SocketWrapper *socket;
-    Client();
-    ~Client();
-
-    Client(SocketWrapper &socket);
+        // SocketWrapper *socket;
+        Client();
+        ~Client();
+		std::string		path;
+		Client(SocketWrapper &socket);
 
 
         //**  methods
@@ -102,6 +102,10 @@ class Client
     // void generateResponse();
     // void writeResponse();
     // void checkInactivity();
+		void	selectServer();
+    	void	generateResponse();
+    	// void writeResponse();
+    	// void checkInactivity();
 
 
 };
