@@ -1,4 +1,7 @@
 #include "../inc/client.hpp"
+#include <cstring>
+#include <string>
+#include <sys/_types/_pid_t.h>
 
 Client::Client()
 {
@@ -170,6 +173,7 @@ void Client::handleRequest()
 
 void Client::cgi_handler(){
 
+     std::vector<std::string>::iterator it;
     
     this->cgi->REQUEST_METHOD   = this->request->method;
     this->cgi->CONTENT_LENGTH   = this->request->contentLength;
@@ -177,6 +181,43 @@ void Client::cgi_handler(){
     this->cgi->querymap         = this->cgi->parseQuery(this->request->url);
     this->cgi->BODY             = this->request->bodyString;
 
+    it = find (this->server->allowed_methods.begin(), this->server->allowed_methods.end(), this->server->allowed_methods.size());
+    if (strcmp(it->c_str(), "GET") || strcmp(it->c_str(), "GET"))
+        generateResponse(); // wrong function jut to avoid error xD
+        // return ERROR METHID NOT ALLOWD
+    if (this->cgi->REQUEST_METHOD == "GET")
+    {
+        int piepfd[2];
+        this->cgi->querymap = this->cgi->parseQuery(this->request->url);
+        this->cgi->PATH_INFO = this->cgi->parseUrl(this->request->url);
+        if (pipe(piepfd) == -1)
+            std::cout << "Return 503 ERROR" << std::endl;
+        pid_t pid = fork();
+        if (pid == -1)
+            std::cout << "Return 503 ERROR" << std::endl;
+        if (pid == 0){
+            exit (1);
+        }
+    }
+    else if (this->cgi->REQUEST_METHOD == "POST")
+    {
+        int piepfd[2];
+        this->cgi->querymap = this->cgi->parseQuery(this->request->bodyString);
+        this->cgi->PATH_INFO = this->cgi->parseUrl(this->request->bodyString);
+        if (pipe(piepfd) == -1)
+            std::cout << "Return 503 ERROR" << std::endl;
+        pid_t pid = fork();
+        if (pid == -1)
+            std::cout << "Return 503 ERROR" << std::endl;
+        if (pid == 0){
+            exit (1);
+        }
+    }
+    else
+    {
+        this->cgi->querymap = this->cgi->parseQuery(this->request->url);
+        this->cgi->PATH_INFO = this->cgi->parseUrl(this->request->url);
+    }
     std::cout << "REQUEST_METHOD: " << this->cgi->REQUEST_METHOD << std::endl;
     std::cout << "CONTENT_LENGTH: " << this->cgi->CONTENT_LENGTH << std::endl;
     std::cout << "PATH_INFO: " << this->cgi->PATH_INFO << std::endl;
