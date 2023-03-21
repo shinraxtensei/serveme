@@ -25,3 +25,7 @@ upstream
 return
 ~
 /
+CGI_INSERT
+client_max_body_size
+allowed_methods
+error_page
