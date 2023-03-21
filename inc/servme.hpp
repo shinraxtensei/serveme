@@ -38,9 +38,12 @@ class Core;
 
 class Servme
 {
+
 private:
 	static Core *core;
 
 public:
 	static Core *getCore();
 };
+
+

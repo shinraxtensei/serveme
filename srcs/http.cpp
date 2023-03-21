@@ -9,25 +9,80 @@
 
 Http::Http()
 {
+    // std::cout << "Http constructor called : " << this << std::endl;
+    this->http_directives.insert(std::pair<std::string, std::vector<std::string> >("root", std::vector<std::string> (1 , "/html")));
+    this->http_directives.insert(std::pair<std::string, std::vector<std::string> >("index", std::vector<std::string> (1, "index.html")));
+    this->http_directives.insert(std::pair<std::string, std::vector<std::string> >("error_page", std::vector<std::string> (1 , "404")));
+    this->http_directives.insert(std::pair<std::string, std::vector<std::string> >("autoindex", std::vector<std::string> (1 , "off")));
+    this->http_directives.insert(std::pair<std::string, std::vector<std::string> >("client_max_body_size", std::vector<std::string> (1 , "1")));
+    this->http_directives.insert(std::pair<std::string, std::vector<std::string> >("allowed_methods", std::vector<std::string> ( 1 , "GET")));
+
+    this->allowed_methods.push_back("GET");
+    this->allowed_methods.push_back("POST");
+    this->allowed_methods.push_back("DELETE");
+
+    this->autoindex = false;
+    this->client_max_body_size = 1;
+    this->error_page = std::pair<int, std::vector<std::string> > (404, std::vector<std::string> (1, "404.html"));
+    this->index.push_back("index.html");
+    this->root = "/html";
+
+
+    // this->http_directives["root"] = std::vector<std::string> (1 , "/html") ;
+    // this->http_directives["index"] = std::vector<std::string> (1, "index.html");
+    // this->http_directives["error_page"] = std::vector<std::string> (1 , "404");
+    // this->http_directives["autoindex"] = std::vector<std::string> (1 , "off");
+    // this->http_directives["client_max_body_size"] = std::vector<std::string> (1 , "1");
+    // this->http_directives["allowed_methods"] = std::vector<std::string> ( 1 , "GET");
 }
 
 
 Http::~Http()
 {
+    // std::cout << "Http destructor" << std::endl;
 }
 
 Server::Server()
 {
-    
+    // std::cout << "Server constructor called" << std::endl;
+    this->server_directives.insert(std::pair<std::string, std::vector<std::string> >("listen", std::vector<std::string> (1 , "8080")));
+    this->server_directives.insert(std::pair<std::string, std::vector<std::string> >("server_name", std::vector<std::string> (1 , "localhost")));
 
+    this->ipPort.first = "NONE";
+    this->ipPort.second = 80;
 
+    this->server_name = "localhost";
+    // this->server_directives["listen"] = std::vector<std::string> (1 , "8080");
+    // this->server_directives["server_name"] = std::vector<std::string> (1 , "localhost");
 }
+
+
 
 Server::~Server()
 {
     // std::cout << "Server destructor" << std::endl;
 }
 
+
+
+Location::Location()
+{
+    // std::cout << "Location constructor called" << std::endl;
+    this->location_directives.insert(std::pair<std::string, std::vector<std::string> >("path", std::vector<std::string> (1 , "/html")));
+    this->location_directives.insert(std::pair<std::string, std::vector<std::string> >("return", std::vector<std::string> (1 , "200")));
+
+    this->path = "/";
+    this->Return.first = 200;
+    this->Return.second = "OK";
+    
+    // this->location_directives["path"] = std::vector<std::string> (1 , "/html");
+    // this->location_directives["return"] = std::vector<std::string> (1 , "200");
+}
+
+Location::~Location()
+{
+    // std::cout << "Location destructor" << std::endl;
+}
 // SocketWrapper *Server::Socket()
 // {
 //     if (this->sock == nullptr)

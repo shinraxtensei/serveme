@@ -9,6 +9,7 @@ class Server;
 class Client;
 class Location;
 
+
 enum Stat
 {
     FIRSTLINE,
