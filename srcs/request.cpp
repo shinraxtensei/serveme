@@ -2,7 +2,7 @@
 
 Request::Request()
 {
-    this->state = FIRSTLINE;
+    this->state = Stat::START;
     this->host = "";
     this->connection = "";
     this->contentLength = 0;
@@ -109,6 +109,9 @@ void Request::ParseHeaders(std::string &line)
 {
     std::cout << CYAN << "STATE: " << (this->state == HEADERS ? "HEADERS" : "weird") << RESET << std::endl;
 
+    if (line == "\r\n" || line == "\n")
+        return;
+
     std::pair<std::string, std::vector<std::string>> pair;
     std::string key;
     std::string value;
@@ -144,14 +147,14 @@ void Request::ParseHeaders(std::string &line)
 
 void Request::ParseBody()
 {
-    std::cout << YELLOW << "method : " << RESET << this->method << std::endl;
-    std::cout << YELLOW << "url : " << RESET << this->url << std::endl;
-    std::cout << YELLOW << "version : " << RESET << this->version << std::endl;
+    // std::cout << YELLOW << "method : " << RESET << this->method << std::endl;
+    // std::cout << YELLOW << "url : " << RESET << this->url << std::endl;
+    // std::cout << YELLOW << "version : " << RESET << this->version << std::endl;
 
-    std::cout << YELLOW << "host : " << RESET << this->host << std::endl;
-    std::cout << YELLOW << "contentLength : " << RESET << this->contentLength << std::endl;
-    std::cout << YELLOW << "transferEncoding : " << RESET << this->transferEncoding << std::endl;
-    std::cout << YELLOW << "connection : " << RESET << this->connection << std::endl;
+    // std::cout << YELLOW << "host : " << RESET << this->host << std::endl;
+    // std::cout << YELLOW << "contentLength : " << RESET << this->contentLength << std::endl;
+    // std::cout << YELLOW << "transferEncoding : " << RESET << this->transferEncoding << std::endl;
+    // std::cout << YELLOW << "connection : " << RESET << this->connection << std::endl;
 
 
     std::cout << CYAN << "STATE: " << (this->state == BODY ? "BODY" : "weird") << RESET << std::endl;

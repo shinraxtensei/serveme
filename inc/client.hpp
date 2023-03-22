@@ -12,11 +12,29 @@ class Location;
 
 enum Stat
 {
+    // these are the state of the request
+    START,
     FIRSTLINE,
     HEADERS,
     BODY,
-    DONE
+    DONE,
+    // this is for chunked encoding
+    
+    SIZE,
+    DATA, // for both chunked and multipart
+
+    // this is for multipart
+    BOUNDARY,
+    MULTI_PART_HEADERS,
+    
+    END // for both chunked and multipart
+
+    
 };
+
+
+
+
 
 class Request
 {

@@ -8,10 +8,10 @@ Client::Client()
     this->request->core = this->core;
     this->request->client = this;
 
-	this->response = new Response();
-  	this->response->http = this->core->get_http();
-  	this->response->client = this;
-   
+    this->response = new Response();
+    this->response->http = this->core->get_http();
+    this->response->client = this;
+
     this->pollfd_.fd = -1;
 }
 
@@ -29,10 +29,9 @@ Client::Client(SocketWrapper &sock)
     this->request->core = this->core;
     // this->request->client = this;
 
-	this->response = new Response();
-  	// this->response->http = this->core->get_http();
-  	// this->response->client = this;
-
+    this->response = new Response();
+    // this->response->http = this->core->get_http();
+    // this->response->client = this;
 
     this->socket = &sock;
     addr = new sockaddr_in;
@@ -42,7 +41,7 @@ Client::Client(SocketWrapper &sock)
         throw std::runtime_error("Failed to accept connection");
     }
     this->request->client_fd = fd;
-	this->response->client_fd = fd;
+    this->response->client_fd = fd;
     // this->request->core = Servme::getCore();
     // this->request->client = &Servme::getCore()->map_clients[fd];
 
@@ -70,7 +69,7 @@ std::string Request::checkType(std::string path)
     }
 }
 
-std::string checkForEnd(char c , int type)
+std::string checkForEnd(char c, int type)
 {
     static int count = 0;
     if (type == 1)
@@ -90,7 +89,7 @@ std::string checkForEnd(char c , int type)
             count = 0;
         return "";
     }
-    else 
+    else
     {
         if (c == '\r')
             count++;
@@ -105,11 +104,9 @@ std::string checkForEnd(char c , int type)
     }
 }
 
-
-
 void Client::handleRequest()
 {
-    if (this->request->state == FIRSTLINE || this->request->state == HEADERS)
+    if (this->request->state == START || this->request->state == Stat::FIRSTLINE || this->request->state == Stat::HEADERS)
     {
         static std::string line = "";
         char buffer[1];
@@ -127,25 +124,34 @@ void Client::handleRequest()
         }
         line += buffer[0];
         this->request->buffer += buffer[0];
+        if ((line.find("\n") != std::string::npos || line.find("\r\n") != std::string::npos) && this->request->state == Stat::START)
+        {
+            line = "";
+            return;
+        }
+        if (this->request->state == Stat::START)
+            this->request->state = Stat::FIRSTLINE;
         if (line.find("\r\n") != std::string::npos || line.find("\n") != std::string::npos)
         {
-            if (this->request->state == FIRSTLINE)
+            if (line == "\r\n" || line == "\n")
+                this->request->state = Stat::BODY;
+            if (this->request->state == Stat::FIRSTLINE)
             {
                 this->request->ParseFirstLine(line);
-                this->request->state = HEADERS;
+                this->request->state = Stat::HEADERS;
             }
-            else if (this->request->state == HEADERS)
+            else if (this->request->state == Stat::HEADERS)
             {
                 this->request->ParseHeaders(line);
-                if (line == "\r\n" || line == "\n")
-                    this->request->state = BODY; // wtf is this
+
             }
             line = "";
         }
-        if (this->request->buffer.find("\r\n\r\n") != std::string::npos)
-            this->request->state = BODY;
+        // if (this->request->buffer.find("\r\n\r\n") != std::string::npos)
+        //     this->request->state = Stat::BODY;
     }
-    else if (this->request->state == BODY)
+
+    else if (this->request->state == Stat::BODY)
     {
         char buffer[1024];
         int ret;
@@ -163,58 +169,56 @@ void Client::handleRequest()
         this->request->bodyString += std::string(buffer, ret);
         this->request->buffer += std::string(buffer, ret);
         this->request->ParseBody();
-        this->generateResponse();
+        // this->generateResponse();
         // writeResponse();
     }
 }
 
-void	Client::generateResponse()
+void Client::generateResponse()
 {
-	this->selectServer();
-	this->server->server_name = "localhost";
-	std::cout << "selected server" << this->server->server_name << std::endl;
-	this->response->checkCgi();
-	if (this->cgiFlag == 1)
-	{
-		// handlecgi;
-	}
-	else
-	{
-		this->response->checkAllowedMethods();
-		// this->path = this->location->root + this->request->url;
-		// std::cout << "path: " << this->path << std::endl;
-		this->response->matchLocation();
-		//handle manual;
-	}
-	std::cout << "cgi ? " << this->cgiFlag << std::endl;	
+    this->selectServer();
+    this->server->server_name = "localhost";
+    std::cout << "selected server" << this->server->server_name << std::endl;
+    this->response->checkCgi();
+    if (this->cgiFlag == 1)
+    {
+        // handlecgi;
+    }
+    else
+    {
+        this->response->checkAllowedMethods();
+        // this->path = this->location->root + this->request->url;
+        // std::cout << "path: " << this->path << std::endl;
+        this->response->matchLocation();
+        // handle manual;
+    }
+    std::cout << "cgi ? " << this->cgiFlag << std::endl;
 }
 
-
-
-void	Client::selectServer()
+void Client::selectServer()
 {
-	std::vector<Server>::iterator it;
-	std::vector<Server> candidates;
+    std::vector<Server>::iterator it;
+    std::vector<Server> candidates;
 
-	it = this->core->get_http()->servers.begin();
+    it = this->core->get_http()->servers.begin();
     for (it = this->core->get_http()->servers.begin(); it != this->core->get_http()->servers.end(); it++)
     {
         if (it->ipPort.second == this->socket->get_listenPair().second)
             candidates.push_back(*it);
     }
-	if (candidates.size() == 0)
-		throw std::runtime_error("Error: No server found for this request.");
-	else
-	{
-		for (it = candidates.begin(); it != candidates.end(); it++)
-		{
-			if (it->server_name == this->request->host)
-			{
-				// this->server = &(*it);
-				this->server = new  Server(*it);
-				return ;
-			}
-		}
-		this->server = new  Server(candidates[0]);
-	}
+    if (candidates.size() == 0)
+        throw std::runtime_error("Error: No server found for this request.");
+    else
+    {
+        for (it = candidates.begin(); it != candidates.end(); it++)
+        {
+            if (it->server_name == this->request->host)
+            {
+                // this->server = &(*it);
+                this->server = new Server(*it);
+                return;
+            }
+        }
+        this->server = new Server(candidates[0]);
+    }
 }
