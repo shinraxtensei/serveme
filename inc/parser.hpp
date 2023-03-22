@@ -93,5 +93,6 @@ class Parser
 		static void parse_directives(int type);
 		static void parse_server();
 		static void parse_location(int sublocation);
+		static void init_http();
 		static void init_servers();
 };
