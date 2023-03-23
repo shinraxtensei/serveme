@@ -106,7 +106,8 @@ std::string checkForEnd(char c, int type)
 
 void Client::handleRequest()
 {
-    if (this->request->state == START || this->request->state == Stat::FIRSTLINE || this->request->state == Stat::HEADERS)
+    // if (this->request->state == START || this->request->state == Stat::FIRSTLINE || this->request->state == Stat::HEADERS)
+    if (this->request->state & (Stat::START | Stat::FIRSTLINE | Stat::HEADERS))
     {
         static std::string line = "";
         char buffer[1];
@@ -124,26 +125,25 @@ void Client::handleRequest()
         }
         line += buffer[0];
         this->request->buffer += buffer[0];
-        if ((line.find("\n") != std::string::npos || line.find("\r\n") != std::string::npos) && this->request->state == Stat::START)
+        if ((line.find("\r") != std::string::npos || line.find("\n") != std::string::npos || line.find("\r\n") != std::string::npos ) && this->request->state & Stat::START)
         {
             line = "";
             return;
         }
-        if (this->request->state == Stat::START)
+        if (this->request->state & Stat::START)
             this->request->state = Stat::FIRSTLINE;
         if (line.find("\r\n") != std::string::npos || line.find("\n") != std::string::npos)
         {
             if (line == "\r\n" || line == "\n")
                 this->request->state = Stat::BODY;
-            if (this->request->state == Stat::FIRSTLINE)
+            if (this->request->state & Stat::FIRSTLINE)
             {
                 this->request->ParseFirstLine(line);
                 this->request->state = Stat::HEADERS;
             }
-            else if (this->request->state == Stat::HEADERS)
+            else if (this->request->state & Stat::HEADERS)
             {
                 this->request->ParseHeaders(line);
-
             }
             line = "";
         }
@@ -151,24 +151,22 @@ void Client::handleRequest()
         //     this->request->state = Stat::BODY;
     }
 
-    else if (this->request->state == Stat::BODY)
+    else if (this->request->state & Stat::BODY)
     {
-        char buffer[1024];
-        int ret;
-        ret = recv(this->fd, buffer, 1024, 0);
-        if (ret == -1)
+
+
+        if (this->request->bodyType == BodyType::CHUNKED)
         {
-            std::cerr << "Error: recv() failed" << std::endl;
-            return;
+            if (this->request->bodyString.empty())
+                this->request->state = Stat::CHUNKED_SIZE;
+            this->request->ParseChunkedBody(); // ! : this function is not working ,still working on ti
         }
-        else if (ret == 0)
-        {
-            std::cout << "disconnection" << std::endl;
-            return;
-        }
-        this->request->bodyString += std::string(buffer, ret);
-        this->request->buffer += std::string(buffer, ret);
-        this->request->ParseBody();
+        else if (this->request->bodyType == BodyType::MULTIPART)
+            this->request->ParseMultiPartBody(); // ! : this function is not working ,still working on ti
+        else
+            this->request->ParseBody();
+
+
         // this->generateResponse();
         // writeResponse();
     }
@@ -176,7 +174,7 @@ void Client::handleRequest()
 
 void Client::generateResponse()
 {
-    this->selectServer();
+    // this->selectServer();
     this->server->server_name = "localhost";
     std::cout << "selected server" << this->server->server_name << std::endl;
     this->response->checkCgi();

@@ -191,16 +191,23 @@ void Parser::parse()
 
     // for (auto server  : Parser::getHttp()->servers)
     // {
-        // std::cout << "---------------------------------" << std::endl;
-        // std::cout << "server_name : " << server.server_name << std::endl;
-        // std::cout << "root : " << server.root << std::endl;
-        // std::cout << "index : " << server.index[0] << std::endl;
-        // std::cout << "error_page : "<< server.error_page.first << " " << server.error_page.second[0]  << std::endl;
-        // std::cout << "autoindex : " << server.autoindex << std::endl;
-        // std::cout << "client_max_body_size : " << server.client_max_body_size << std::endl;
-        // std::cout << "allowed_methods : " << server.allowed_methods[0] << std::endl;
-        // std::cout << "ip : " << server.ipPort.first << std::endl;
-        // std::cout << "port : " << server.ipPort.second << std::endl;
-        // std::cout << "---------------------------------" << std::endl;
+    //     std::cout << "---------------------------------" << std::endl;
+    //     std::cout << "server_name : " << server.server_name << std::endl;
+    //     std::cout << "root : " << server.root << std::endl;
+    //     std::cout << "index : " << server.index[0] << std::endl;
+    //     std::cout << "error_page : "<< server.error_page.first << " " << server.error_page.second[0]  << std::endl;
+    //     std::cout << "autoindex : " << server.autoindex << std::endl;
+    //     std::cout << "client_max_body_size : " << server.client_max_body_size << std::endl;
+    //     std::cout << "allowed_methods : " << server.allowed_methods[0] << std::endl;
+    //     std::cout << "ip : " << server.ipPort.first << std::endl;
+    //     std::cout << "port : " << server.ipPort.second << std::endl;
+    //     std::cout << "---------------------------------" << std::endl;
+
+    //     for (auto location : server.locations)
+    //     {
+    //         std::cout  << "location " <<std::endl; 
+    //         std::cout<< BLUE << "location path :"<< RESET <<  location.path << std::endl;
+    //         std::cout << BLUE<< "return :" << RESET <<  location.Return.first << " " << location.Return.second << std::endl;
+    //     }
     // }
 }
