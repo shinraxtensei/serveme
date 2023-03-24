@@ -34,7 +34,8 @@ class Http
 		std::string root;
 		std::vector<std::string> index;
 		std::vector<std::string> allowed_methods;
-		std::vector<std::string> error_page;
+		// std::vector<std::string> error_page;
+		std::pair<int, std::vector<std::string> > error_page;
 		bool autoindex;
 		int client_max_body_size;
 };
@@ -64,6 +65,9 @@ class Server : public Http
 class Location : public Server
 {
 	public:
+
+		Location();
+		~Location();
 		std::map<std::string, std::vector<std::string> > location_directives;
 		std::vector<Location> locations;
 		// **** mandatory directives ****
@@ -88,6 +92,7 @@ class Parser
 		static bool match(std::string token);
 		static void parse_directives(int type);
 		static void parse_server();
-		static void parse_location();
+		static void parse_location(int sublocation);
+		static void init_http();
 		static void init_servers();
 };

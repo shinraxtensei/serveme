@@ -1,8 +1,6 @@
 
 #include "inc/servme.hpp"
 
-
-
 Lexer *Parser::ptr = nullptr;
 Http *Parser::http = nullptr;
 Core *Servme::core = nullptr;
@@ -17,6 +15,7 @@ void generate_dot(Http &http)
     Parse_tree << "http [shape=box3d ,style=filled];\n";
     int i = 0;
     int j = 0;
+    int k = 0;
     for (auto server : http.servers)
     {
         Parse_tree << "http -> server" << i << ";\n";
@@ -43,6 +42,21 @@ void generate_dot(Http &http)
                 Parse_tree << "\\n-----------------------------------------------\\n";
             }
             Parse_tree << "\"];\n";
+            for (auto sublocation : location.locations)
+            {
+                Parse_tree << "location" << j << " -> sublocation" << k << ";\n";
+                Parse_tree << "sublocation" << k << ""
+                     << " [shape=box , style=filled, label=\"";
+                for (auto subdirective : sublocation.location_directives)
+                {
+                    Parse_tree << subdirective.first << " : ";
+                    for (auto value : subdirective.second)
+                        Parse_tree << value << " ";
+                    Parse_tree << "\\n-----------------------------------------------\\n";
+                }
+                Parse_tree << "\"];\n";
+                k++;
+            }
             j++;
         }
         i++;
@@ -76,8 +90,10 @@ int main(int argc, char **argv)
         }
         else if (std::string av(argv[1]) ; av == "-t")
         {
+
             Parser::lex("nginx.conf");
             Parser::parse();
+
             std::cout << GREEN << "Syntax OK" << RESET << std::endl;
         }
         else if (std::string av(argv[1]) ; av == "-d")
@@ -94,3 +110,5 @@ int main(int argc, char **argv)
         std::cout << RED << "Usage: ./serverme -h" << RESET << std::endl;
     return 0;
 }
+
+

@@ -1,5 +1,6 @@
 #include "../inc/parser.hpp"
 
+
 bool Parser::match(std::string token)
 {
     if (token == Parser::lex()->next_token(false))
@@ -44,87 +45,76 @@ void Parser::parse_directives(int type)
 
     if (type == 0)
     {
-        ret = Parser::getHttp()->http_directives.insert(pair);
-        if (ret.second == false)
-        {
-            std::cout << "Error: directive already exists" << std::endl;
-            exit(1);
-        }
+        Parser::getHttp()->http_directives[directive] = values;
+
     }
 
     else if (type == 1)
     {
-        if (pair.first == "listen" )
-        {
-            if (pair.second.size() > 1  && pair.second[1] == ";")
-            {
-                std::cout << "Error: listen directive can only have one value" << std::endl;
-                exit(1);
-            }
-            else if (pair.second[0].find(":") != std::string::npos)
-            {
-                Parser::getHttp()->servers.back().ipPort.first = pair.second[0].substr(0, pair.second[0].find(":"));
-                Parser::getHttp()->servers.back().ipPort.second = std::stoi(pair.second[0].substr(pair.second[0].find(":") + 1));
-            }
-            else
-            {
-                Parser::getHttp()->servers.back().ipPort.first = "NONE";
-                Parser::getHttp()->servers.back().ipPort.second = std::stoi(pair.second[0]);
-            }
-
-        }
-        else if (pair.first == "server_name" )
-        {
-            if (pair.second.size() > 1 && pair.second[1] == ";")
-            {
-                std::cout << "Error: server_name directive can only have one value" << std::endl;
-                exit(1);
-            }
-            else
-                Parser::getHttp()->servers.back().server_name = pair.second[0];
-        }
-        
-
-        ret = Parser::getHttp()->servers.back().server_directives.insert(pair);
-        if (ret.second == false)
-        {
-            std::cout << "Error: directive already exists" << std::endl;
-            exit(1);
-        }
+        Parser::getHttp()->servers.back().server_directives[directive] = values;
     }
-    else if (2)
+    else if (type == 2)
     {
+        Parser::getHttp()->servers.back().locations.back().location_directives[directive] = values;
         if (pair.first == "return")
         {
                 Parser::getHttp()->servers.back().locations.back().Return.first = std::stoi(pair.second[0]);
                 Parser::getHttp()->servers.back().locations.back().Return.second = pair.second[1];
         }
-
-        ret = Parser::getHttp()->servers.back().locations.back().location_directives.insert(pair);
-        if (ret.second == false)
+    }
+    else if (type == 3)
+    {
+        Parser::getHttp()->servers.back().locations.back().locations.back().location_directives[directive] = values;
+        if (pair.first == "return")
         {
-            std::cout << "Error: directive already exists" << std::endl;
-            exit(1);
+                Parser::getHttp()->servers.back().locations.back().locations.back().Return.first = std::stoi(pair.second[0]);
+                Parser::getHttp()->servers.back().locations.back().locations.back().Return.second = pair.second[1];
         }
     }
     else
         std::cout << "Error: type not found" << std::endl;
 }
 
-void Parser::parse_location()
+void Parser::parse_location(int sublocation)
 {
-
-    Parser::getHttp()->servers.back().locations.push_back(Location());
-    while(!Parser::match("{"))
-        Parser::lex()->next_token(true);
-    while (1)
+    std::vector<std::string> values;
+    if (sublocation == 0)
     {
-        if (Parser::match("location"))
-            Parser::parse_location();
-        else if (Parser::match("}"))
-            return;
-        else
-            Parser::parse_directives(2);
+        Parser::getHttp()->servers.back().locations.push_back(Location());
+        Parser::getHttp()->servers.back().locations.back().path = Parser::lex()->next_token(true);
+        values.push_back(Parser::getHttp()->servers.back().locations.back().path);
+        Parser::getHttp()->servers.back().locations.back().location_directives.insert(std::pair<std::string, std::vector<std::string> > ("path" , values ));
+
+    }
+    else if (sublocation == 1)
+    {
+        Parser::getHttp()->servers.back().locations.back().locations.push_back(Location());
+        Parser::getHttp()->servers.back().locations.back().locations.back().path = Parser::lex()->next_token(true);
+        values.push_back(Parser::getHttp()->servers.back().locations.back().locations.back().path);
+        Parser::getHttp()->servers.back().locations.back().locations.back().location_directives.insert(std::pair<std::string, std::vector<std::string> > ("path" , values ));
+
+    }
+    if (Parser::match("{"))
+    {
+        while (1)
+        {
+            if (Parser::match("location"))
+                parse_location(1);
+            else if (Parser::match("}"))
+                break;
+            else
+            {
+                if (sublocation == 0)
+                    parse_directives(2);
+                else if (sublocation == 1)
+                    parse_directives(3);
+            }
+        }
+    }
+    else
+    {
+        std::cout << "Error: location must be followed by a block" << std::endl;
+        exit(1);
     }
 }
 
@@ -136,7 +126,7 @@ void Parser::parse_server()
         while (1)
         {
             if (Parser::match("location"))
-                parse_location();
+                parse_location(0);
             else if (Parser::match("}"))
                 break;
             else
@@ -147,74 +137,9 @@ void Parser::parse_server()
 
 
 
-void Parser::init_servers()
-{
-    for (size_t i = 0; i < Parser::getHttp()->servers.size(); i++)
-    {
-        // root
-        if (Parser::getHttp()->servers[i].server_directives.find("root") != Parser::getHttp()->servers[i].server_directives.end())
-            Parser::getHttp()->servers[i].root = Parser::getHttp()->servers[i].server_directives["root"][0];
-        else if (Parser::getHttp()->http_directives.find("root") != Parser::getHttp()->http_directives.end())
-            Parser::getHttp()->servers[i].root = Parser::getHttp()->http_directives["root"][0];
-        else
-            Parser::getHttp()->servers[i].root = "../html"; // default value
-        
-        // index
-        if (Parser::getHttp()->servers[i].server_directives.find("index") != Parser::getHttp()->servers[i].server_directives.end())
-            Parser::getHttp()->servers[i].index = Parser::getHttp()->servers[i].server_directives["index"];
-        else if  (Parser::getHttp()->http_directives.find("index") != Parser::getHttp()->servers[i].server_directives.end())
-            Parser::getHttp()->servers[i].index = Parser::getHttp()->http_directives["index"];
-        else
-            Parser::getHttp()->servers[i].index[0] = "index.html"; // default value
-
-        // error_page
-        if (Parser::getHttp()->servers[i].server_directives.find("error_page") != Parser::getHttp()->servers[i].server_directives.end())
-            Parser::getHttp()->servers[i].error_page = Parser::getHttp()->servers[i].server_directives["error_page"];
-        else if (Parser::getHttp()->http_directives.find("error_page") != Parser::getHttp()->servers[i].server_directives.end())
-            Parser::getHttp()->servers[i].error_page = Parser::getHttp()->http_directives["error_page"];
-        else
-            Parser::getHttp()->servers[i].error_page[0] = "error.html"; // default value
-
-        // autoindex
-        if (Parser::getHttp()->servers[i].server_directives.find("autoindex") != Parser::getHttp()->servers[i].server_directives.end())
-        {
-            if (Parser::getHttp()->servers[i].server_directives["autoindex"][0] == "on")
-                Parser::getHttp()->servers[i].autoindex = true;
-            else
-                Parser::getHttp()->servers[i].autoindex = false;
-        }
-        else if (Parser::getHttp()->http_directives.find("autoindex") != Parser::getHttp()->http_directives.end())
-        {
-            if (Parser::getHttp()->http_directives["autoindex"][0] == "on")
-                Parser::getHttp()->servers[i].autoindex = true;
-            else
-                Parser::getHttp()->servers[i].autoindex = false;
-        }
-        else
-            Parser::getHttp()->servers[i].autoindex = false; // default value
 
 
 
-        // client_max_body_size
-        if (Parser::getHttp()->servers[i].server_directives.find("client_max_body_size") != Parser::getHttp()->servers[i].server_directives.end())
-            Parser::getHttp()->servers[i].client_max_body_size = std::stoi(Parser::getHttp()->servers[i].server_directives["client_max_body_size"][0]);
-        else if (Parser::getHttp()->http_directives.find("client_max_body_size") != Parser::getHttp()->http_directives.end())
-            Parser::getHttp()->servers[i].client_max_body_size = std::stoi(Parser::getHttp()->http_directives["client_max_body_size"][0]);
-        else
-            Parser::getHttp()->servers[i].client_max_body_size = 1000000; // default value
-
-
-        // allowed_methods
-        if  (Parser::getHttp()->servers[i].server_directives.find("allowed_methods") != Parser::getHttp()->servers[i].server_directives.end())
-            Parser::getHttp()->servers[i].allowed_methods = Parser::getHttp()->servers[i].server_directives["allowed_methods"];
-        else if ((Parser::getHttp()->http_directives.find("allowed_methods") != Parser::getHttp()->http_directives.end()))
-            Parser::getHttp()->servers[i].allowed_methods = Parser::getHttp()->http_directives["allowed_methods"];
-        else
-            Parser::getHttp()->servers[i].allowed_methods = {"GET", "HEAD", "POST", "PUT", "DELETE", "OPTIONS", "TRACE", "CONNECT", "PATCH"}; // default value
-    }
-
-
-}
 
 
 
@@ -250,7 +175,7 @@ void Parser::parse()
                 while (1)
                 {
                     if (Parser::match("location"))
-                        parse_location();
+                        parse_location(0);
                     else if (Parser::match("}"))
                         break;
                     else
@@ -261,6 +186,28 @@ void Parser::parse()
         else
             parse_directives(0);
     }
-
+    Parser::init_http();
     Parser::init_servers();
+
+    // for (auto server  : Parser::getHttp()->servers)
+    // {
+    //     std::cout << "---------------------------------" << std::endl;
+    //     std::cout << "server_name : " << server.server_name << std::endl;
+    //     std::cout << "root : " << server.root << std::endl;
+    //     std::cout << "index : " << server.index[0] << std::endl;
+    //     std::cout << "error_page : "<< server.error_page.first << " " << server.error_page.second[0]  << std::endl;
+    //     std::cout << "autoindex : " << server.autoindex << std::endl;
+    //     std::cout << "client_max_body_size : " << server.client_max_body_size << std::endl;
+    //     std::cout << "allowed_methods : " << server.allowed_methods[0] << std::endl;
+    //     std::cout << "ip : " << server.ipPort.first << std::endl;
+    //     std::cout << "port : " << server.ipPort.second << std::endl;
+    //     std::cout << "---------------------------------" << std::endl;
+
+    //     for (auto location : server.locations)
+    //     {
+    //         std::cout  << "location " <<std::endl; 
+    //         std::cout<< BLUE << "location path :"<< RESET <<  location.path << std::endl;
+    //         std::cout << BLUE<< "return :" << RESET <<  location.Return.first << " " << location.Return.second << std::endl;
+    //     }
+    // }
 }
