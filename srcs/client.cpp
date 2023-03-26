@@ -125,6 +125,7 @@ void Client::handleRequest()
         }
         line += buffer[0];
         this->request->buffer += buffer[0];
+
         if ((line.find("\r") != std::string::npos || line.find("\n") != std::string::npos || line.find("\r\n") != std::string::npos ) && this->request->state & Stat::START)
         {
             line = "";
@@ -161,6 +162,7 @@ void Client::handleRequest()
                 this->request->state = Stat::CHUNKED_SIZE;
             this->request->ParseChunkedBody(); // ! : this function is not working ,still working on ti
         }
+
         else if (this->request->bodyType == BodyType::MULTIPART)
             this->request->ParseMultiPartBody(); // ! : this function is not working ,still working on ti
         else
@@ -174,23 +176,16 @@ void Client::handleRequest()
 
 void Client::generateResponse()
 {
-    // this->selectServer();
-    this->server->server_name = "localhost";
-    std::cout << "selected server" << this->server->server_name << std::endl;
-    this->response->checkCgi();
-    if (this->cgiFlag == 1)
-    {
-        // handlecgi;
-    }
-    else
-    {
-        this->response->checkAllowedMethods();
-        // this->path = this->location->root + this->request->url;
-        // std::cout << "path: " << this->path << std::endl;
-        this->response->matchLocation();
-        // handle manual;
-    }
-    std::cout << "cgi ? " << this->cgiFlag << std::endl;
+	this->response->client = &Servme::getCore()->map_clients[this->response->client_fd];
+	this->response->checkAllowedMethods();
+	this->response->checkCgi();
+	if (this->cgiFlag == 1)
+	{
+		// cgi matching
+	}
+	else
+		this->response->matchLocation(this->server->locations);
+	this->path = this->location->root + this->request->url;
 }
 
 void Client::selectServer()
@@ -204,19 +199,18 @@ void Client::selectServer()
         if (it->ipPort.second == this->socket->get_listenPair().second)
             candidates.push_back(*it);
     }
-    if (candidates.size() == 0)
-        throw std::runtime_error("Error: No server found for this request.");
-    else
-    {
-        for (it = candidates.begin(); it != candidates.end(); it++)
-        {
-            if (it->server_name == this->request->host)
-            {
-                // this->server = &(*it);
-                this->server = new Server(*it);
-                return;
-            }
-        }
-        this->server = new Server(candidates[0]);
-    }
+	if (candidates.size() == 0)
+		throw std::runtime_error("Error: No server found for this request.");
+	else
+	{
+		for (it = candidates.begin(); it != candidates.end(); it++)
+		{
+			if (it->server_name == this->request->host)
+			{
+				this->server = new  Server(*it);
+				return ;
+			}
+		}
+		this->server = new  Server(candidates[0]);
+  }
 }
