@@ -5,13 +5,12 @@
 
 
 Cgi::Cgi(){
-    this->REQUEST_METHOD = "";
     this->CONTENT_LENGTH = "";
     this->PATH_INFO = "";
     this->SCRIPT_FILENAME = "";
     this->CONTENT_TYPE = "";
     this->BODY = "";
-    this->querymap = std::map<std::string, std::string>();
+    this->QUERY_MAP = std::map<std::string, std::string>();
 
 }
 // void Cgi::cgi_handler(){
@@ -41,6 +40,26 @@ Cgi::Cgi(){
 
 // }
 
+void Cgi::setEnv(std::string &Method){
+
+    std::map<std::string, std::string>::iterator it;
+
+    setenv("REQUEST_METHOD", Method.c_str(), 1);
+    setenv("CONTENT_LENGTH", this->CONTENT_LENGTH.c_str(), 1);
+    setenv("PATH_INFO", this->PATH_INFO.c_str(), 1);
+    setenv("SCRIPT_FILENAME", this->SCRIPT_FILENAME.c_str(), 1);
+    setenv("CONTENT_TYPE", this->CONTENT_TYPE.c_str(), 1);
+    setenv("CONTENT_BODY", this->BODY.c_str(), 1);
+
+    // this loop seting the env vars from the query map
+    setenv("QUERY_STRING", this->QUERY_STRING.c_str(), 1);
+    for (it = this->QUERY_MAP.begin(); it != this->QUERY_MAP.end(); ++it)
+         setenv(it->first.c_str(), it->second.c_str(), 1);
+
+}
+
+
+// this function parse the url and return the path
 std::string Cgi::parseUrl(std::string url){
     std::string parsedUrl = url;
     std::string::size_type pos = parsedUrl.find("?");
@@ -49,7 +68,7 @@ std::string Cgi::parseUrl(std::string url){
     return parsedUrl;
 }
 
-
+// this function parse the query and return a map of key value
 std::map<std::string, std::string> Cgi::parseQuery(std::string query){
 
 
@@ -58,6 +77,7 @@ std::map<std::string, std::string> Cgi::parseQuery(std::string query){
     std::string::size_type pos = query.find("?");
     if (pos != std::string::npos) {
         query = query.substr(pos + 1);
+        this->QUERY_STRING = query;
         while (!query.empty()) {
             std::string::size_type pos2 = query.find("&");
             std::string keyvalue = query.substr(0, pos2);
