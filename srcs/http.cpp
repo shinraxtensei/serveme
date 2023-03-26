@@ -22,7 +22,7 @@ Http::Http()
     this->allowed_methods.push_back("DELETE");
 
     this->autoindex = false;
-    this->client_max_body_size = 1;
+    this->client_max_body_size = 1024;
     this->error_page = std::pair<int, std::vector<std::string> > (404, std::vector<std::string> (1, "404.html"));
     this->index.push_back("index.html");
     this->root = "/html";

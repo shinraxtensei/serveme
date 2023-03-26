@@ -10,13 +10,44 @@ class Client;
 class Location;
 
 
+enum BodyType
+{
+    NONE,
+    CHUNKED,
+    MULTIPART
+};
+
+
+
+
 enum Stat
 {
-    FIRSTLINE,
-    HEADERS,
-    BODY,
-    DONE
+    // these are the state of the request
+    START = 1 << 0,
+    FIRSTLINE = 1 << 1,
+    HEADERS = 1 << 2,
+    // BODY = 1 << 3, this move to be a combined state
+    DONE = 1 << 4,
+    // this is for chunked encoding
+    
+    CHUNKED_SIZE = 1 << 5,
+    CHUNKED_DATA = 1 << 6, // for both chunked and multipart
+
+    // this is for multipart
+    BOUNDARY = 1 << 7,
+    MULTI_PART_HEADERS = 1 << 8,
+    MULTI_PART_DATA = 1 << 9,
+    END = 1 << 10 ,// for both chunked and multipart
+
+    // combined states
+    BODY =  CHUNKED_SIZE | CHUNKED_DATA | BOUNDARY | MULTI_PART_HEADERS | END
 };
+
+
+
+
+
+
 
 class Request
 {
@@ -28,6 +59,7 @@ class Request
 
         int client_fd;
         Stat state;
+        BodyType bodyType;
         Core *core;
         Client *client; // this is a pointer to its parent client
         std::string buffer; 
@@ -51,6 +83,8 @@ class Request
         void ParseFirstLine(std::string &line);
         void ParseHeaders(std::string &line);
         void ParseBody();
+        void ParseChunkedBody();
+        void ParseMultiPartBody();
         // void ParseBodyChunked();
 		// int handle error();
 };
@@ -98,6 +132,7 @@ class Client
 		void	selectServer();
     	void	handleRequest();
     	void	generateResponse();
+        
     	// void writeResponse();
     	// void checkInactivity();
 

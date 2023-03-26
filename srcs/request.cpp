@@ -2,7 +2,8 @@
 
 Request::Request()
 {
-    this->state = FIRSTLINE;
+    this->state = Stat::START;
+    this->bodyType = BodyType::NONE;
     this->host = "";
     this->connection = "";
     this->contentLength = 0;
@@ -109,6 +110,9 @@ void Request::ParseHeaders(std::string &line)
 {
     std::cout << CYAN << "STATE: " << (this->state == HEADERS ? "HEADERS" : "weird") << RESET << std::endl;
 
+    if (line == "\r\n" || line == "\n")
+        return;
+
     std::pair<std::string, std::vector<std::string>> pair;
     std::string key;
     std::string value;
@@ -125,15 +129,38 @@ void Request::ParseHeaders(std::string &line)
         this->host = value;
         this->client = &Servme::getCore()->map_clients[this->client_fd]; //TODO: change this to be in the constructor 
         this->client->selectServer();
+
     }
+
+
     if (key == "content-length:")
     {
-        this->contentLength = std::stoi(value);
-        // if (this->contentLength > this->server->client_max_body_size)
-        //     throw std::runtime_error("Error: Content-Length is too big.");
+        this->bodyType = BodyType::NONE;
+        Parser::lex()->set_input(value);
+        if (Parser::lex()->next_token(false).find_first_not_of("0123456789") != std::string::npos)
+            std::cout << "Error: Invalid content-length." << std::endl;
+        value = Parser::lex()->next_token(false);
+        this->contentLength = atoi(value.c_str());
+        if (this->contentLength > this->client->server->client_max_body_size)
+            throw std::runtime_error("Error: Content-Length is too big.");
     }
+
     if (key == "transfer-encoding:")
+    {
+        if (value.find("chunked") != std::string::npos)
+        {
+            this->bodyType = BodyType::CHUNKED;
+        }
+        
+        // TODO : if it has chunked, then it should be chunked
         this->transferEncoding = value;
+    }
+    if (key == "content-type:")
+    {
+        // TODO : if it has multipart, then it should be multipart
+        if (value.find("multipart") != std::string::npos)
+            this->bodyType = BodyType::MULTIPART;       
+    }
 
     if (key == "connection:")
         this->connection = value;
@@ -144,24 +171,74 @@ void Request::ParseHeaders(std::string &line)
 
 void Request::ParseBody()
 {
-    std::cout << YELLOW << "method : " << RESET << this->method << std::endl;
-    std::cout << YELLOW << "url : " << RESET << this->url << std::endl;
-    std::cout << YELLOW << "version : " << RESET << this->version << std::endl;
+    std::cout << CYAN << "STATE: " << (this->state == BODY ? "BODY normal" : "weird") << RESET << std::endl;
+    if (this->state == Stat::END)
+        return;
+    static int bodySize = 0;
+    char buffer[1024];
 
-    std::cout << YELLOW << "host : " << RESET << this->host << std::endl;
-    std::cout << YELLOW << "contentLength : " << RESET << this->contentLength << std::endl;
-    std::cout << YELLOW << "transferEncoding : " << RESET << this->transferEncoding << std::endl;
-    std::cout << YELLOW << "connection : " << RESET << this->connection << std::endl;
+    int bytesRead = read(this->client_fd, buffer, std::min((this->contentLength - bodySize), 1024));
+    if (bytesRead == -1)
+        throw std::runtime_error("Error: read() failed.");
+    if (bytesRead == 0)
+        throw std::runtime_error("Error: read() returned 0.");
+    bodySize += bytesRead;
+    this->bodyString += std::string(buffer, bytesRead);
+    if ((int)this->bodyString.size() == this->contentLength)
+        this->state = Stat::END;
 
-
-    std::cout << CYAN << "STATE: " << (this->state == BODY ? "BODY" : "weird") << RESET << std::endl;
-    // write the body inside a file 
-    // this->body.open("body.txt");
-
-    // this->body << this->buffer;
-    // this->body.close();
     std::cout << this->bodyString << std::endl;
-    // std::cout << this->buffer  << std::endl;
+}
 
+
+
+
+// TODO :  remake this shit
+void Request::ParseChunkedBody()
+{
+    std::cout << CYAN << "STATE: " << (this->state == BODY ? "BODY chunked" : "weird") << RESET << std::endl;
+    if (this->state == Stat::END)
+        return;
+    std::string stringSize;
+    if (this->state & Stat::CHUNKED_SIZE)
+    {
+        std::cout << "CHUNKED SIZE" << std::endl;
+       
+        int bytesRead = read(this->client_fd, &stringSize, 1024);
+        if (bytesRead == -1)
+            throw std::runtime_error("Error: read() failed.");
+        if (bytesRead == 0)
+            throw std::runtime_error("Error: read() returned 0.");
+        if (stringSize == "\r\n" || stringSize == "\n")        
+            return;
+
+        if (stringSize.find("\r\n") != std::string::npos)
+            stringSize = stringSize.substr(0, stringSize.find("\r\n"));
+        else if (stringSize.find("\n") != std::string::npos)
+            stringSize = stringSize.substr(0, stringSize.find("\n"));
+
+        if (stringSize.find_first_not_of("0123456789") != std::string::npos)
+            throw std::runtime_error("Error: Invalid chunk size.");
+
+        std::cout << "stringSize: " << stringSize << std::endl;
+        this->state = Stat::CHUNKED_DATA;
+    }
+    if (this->state & Stat::CHUNKED_DATA)
+    {
+        std::cout << "CHUNKED DATA" << std::endl;
+        char buffer[atoi(stringSize.c_str())];
+        int bytesRead = read(this->client_fd, buffer, atoi(stringSize.c_str()));
+        if (bytesRead == -1)
+            throw std::runtime_error("Error: read() failed.");
+        if (bytesRead == 0)
+            throw std::runtime_error("Error: read() returned 0.");
+        this->bodyString += std::string(buffer, bytesRead);
+        this->state = Stat::CHUNKED_SIZE;
+    }
+    std::cout << this->bodyString << std::endl;
+}
+
+void Request::ParseMultiPartBody()
+{
 
 }
