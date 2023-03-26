@@ -127,6 +127,7 @@ void Client::handleRequest()
         }
         line += buffer[0];
         this->request->buffer += buffer[0];
+
         if (line.find("\r\n") != std::string::npos || line.find("\n") != std::string::npos)
         {
             if (this->request->state == FIRSTLINE)
@@ -162,7 +163,7 @@ void Client::handleRequest()
         }
         this->request->bodyString += std::string(buffer, ret);
         this->request->buffer += std::string(buffer, ret);
-        this->request->ParseBody();
+        // this->request->ParseBody();
         this->generateResponse();
         // writeResponse();
     }
@@ -170,26 +171,17 @@ void Client::handleRequest()
 
 void	Client::generateResponse()
 {
-	this->selectServer();
-	this->server->server_name = "localhost";
-	std::cout << "selected server" << this->server->server_name << std::endl;
+	this->response->client = &Servme::getCore()->map_clients[this->response->client_fd];
+	this->response->checkAllowedMethods();
 	this->response->checkCgi();
 	if (this->cgiFlag == 1)
 	{
-		// handlecgi;
+		// cgi matching
 	}
 	else
-	{
-		this->response->checkAllowedMethods();
-		// this->path = this->location->root + this->request->url;
-		// std::cout << "path: " << this->path << std::endl;
-		this->response->matchLocation();
-		//handle manual;
-	}
-	std::cout << "cgi ? " << this->cgiFlag << std::endl;	
+		this->response->matchLocation(this->server->locations);
+	this->path = this->location->root + this->request->url;
 }
-
-
 
 void	Client::selectServer()
 {
@@ -210,7 +202,6 @@ void	Client::selectServer()
 		{
 			if (it->server_name == this->request->host)
 			{
-				// this->server = &(*it);
 				this->server = new  Server(*it);
 				return ;
 			}

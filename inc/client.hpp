@@ -61,12 +61,13 @@ class Response
 			int client_fd;
 			Client	*client; // this is a pointer to its parent client
 			Http	*http;
+			Location	*location;
 
 			Response() {};
 			~Response() {};
 
 			void	checkAllowedMethods();
-			void	matchLocation();
+			void	matchLocation(std::vector<Location> locations);
 			void	checkCgi();
 };
 
