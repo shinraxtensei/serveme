@@ -1,11 +1,16 @@
 #pragma once
 
 #include "servme.hpp"
+#include <map>
 #include <string>
 
 class Cgi{
 
     public:
+        Cgi();
+        // Cgi(const Cgi &other);
+        // Cgi &operator=(const Cgi &other);
+        // ~Cgi();
         std::string REQUEST_METHOD;
         std::string CONTENT_LENGTH;
         std::string PATH_INFO;

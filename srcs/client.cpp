@@ -1,5 +1,8 @@
 #include "../inc/client.hpp"
+#include <cstdlib>
 #include <cstring>
+#include <iostream>
+#include <ostream>
 #include <string>
 #include <sys/_types/_pid_t.h>
 
@@ -28,6 +31,7 @@ Client::~Client()
 
 Client::Client(SocketWrapper &sock)
 {
+    this->cgi = new Cgi();
     this->request = new Request();
     this->request->core = this->core;
     // this->request->client = this;
@@ -170,7 +174,7 @@ void Client::handleRequest()
             this->request->ParseBody();
 
 
-        // this->generateResponse();
+        this->generateResponse();
         // writeResponse();
     }
 }
@@ -179,65 +183,96 @@ void Client::cgi_handler(){
 
      std::vector<std::string>::iterator it;
     
+    std::cout << "cgi_handler" << std::endl;
+
     this->cgi->REQUEST_METHOD   = this->request->method;
     this->cgi->CONTENT_LENGTH   = this->request->contentLength;
     this->cgi->PATH_INFO        = this->cgi->parseUrl(this->request->url);
     this->cgi->querymap         = this->cgi->parseQuery(this->request->url);
     this->cgi->BODY             = this->request->bodyString;
 
-    it = find (this->server->allowed_methods.begin(), this->server->allowed_methods.end(), this->server->allowed_methods.size());
-    if (strcmp(it->c_str(), "GET") || strcmp(it->c_str(), "GET"))
-        generateResponse(); // wrong function jut to avoid error xD
-        // return ERROR METHID NOT ALLOWD
-    if (this->cgi->REQUEST_METHOD == "GET")
-    {
-        int piepfd[2];
-        this->cgi->querymap = this->cgi->parseQuery(this->request->url);
-        this->cgi->PATH_INFO = this->cgi->parseUrl(this->request->url);
-        if (pipe(piepfd) == -1)
-            std::cout << "Return 503 ERROR" << std::endl;
-        pid_t pid = fork();
-        if (pid == -1)
-            std::cout << "Return 503 ERROR" << std::endl;
-        if (pid == 0){
-            exit (1);
-        }
-    }
-    else if (this->cgi->REQUEST_METHOD == "POST")
-    {
-        // random string file name;
-        int piepfd[2];
-        this->cgi->querymap = this->cgi->parseQuery(this->request->bodyString);
-        this->cgi->PATH_INFO = this->cgi->parseUrl(this->request->bodyString);
-        if (pipe(piepfd) == -1)
-            std::cout << "Return 503 ERROR" << std::endl;
-        pid_t pid = fork();
-        if (pid < 0)
-            std::cout << "Return 503 ERROR" << std::endl;
-        if (pid == 0){
-            // handle signales
+    // std::cout << "REQUEST_METHOD : " << this->cgi->REQUEST_METHOD << std::endl;
+    // std::cout << "CONTENT_LENGTH : " << this->cgi->CONTENT_LENGTH << std::endl;
+    // std::cout << "PATH_INFO : " << this->cgi->PATH_INFO << std::endl;
+    // std::cout << "BODY : " << this->cgi->BODY << std::endl;
 
-            // set env variables: REQ METH ; CONTENT LEN ; PATH INFO ;  SCRUPT FILE ; CONTENT TYPE;
-            // open output file stream with the random file name
-            // trim the body in the file
-            // open fd on the random file with read permisson
-            // dup the stander input to therandom file
-            // run the script
+    // for (const auto& [key, value] : this->cgi->querymap) {
+    //     std::cout << key << ": " << value << std::endl;
 
-            exit (1);
-        }
+    // }
+    it = find (this->server->allowed_methods.begin(), this->server->allowed_methods.end(), this->request->method);
+    if (it == this->server->allowed_methods.end())
+        std::cout << "Return 405 ERROR" << std::endl;
+    //     generateResponse(); // wrong function jut to avoid error xD
+    //     // return ERROR METHID NOT ALLOWD
+    // if (this->cgi->REQUEST_METHOD == "GET")
+    // {
+    //     int piepfd[2];
+    //     this->cgi->querymap = this->cgi->parseQuery(this->request->url);
+    //     this->cgi->PATH_INFO = this->cgi->parseUrl(this->request->url);
+    //     if (pipe(piepfd) == -1)
+    //         std::cout << "Return 503 ERROR" << std::endl;
+    //     pid_t pid = fork();
+    //     if (pid == -1)
+    //         std::cout << "Return 503 ERROR" << std::endl;
+    //     if (pid == 0){
+    //         exit (1);
+    //     }
+    // }
+    // else if (this->cgi->REQUEST_METHOD == "POST")
+    // {
+    //     // random string file_name;
+    //     std::string file_name = "tmp_file";
+    //     int piepfd[2];
+    //     // this->cgi->querymap = this->cgi->parseQuery(this->request->bodyString);
+    //     // this->cgi->PATH_INFO = this->cgi->parseUrl(this->request->bodyString);
+
+
+
+    //     // std::cout << this->cgi->querymap << std::endl;
+    //     std::cout << this->cgi->PATH_INFO << std::endl;
+    //     std::cout << this->cgi->BODY << std::endl;
+    //     if (pipe(piepfd) == -1)
+    //         std::cout << "Return 503 ERROR" << std::endl;
+    //     pid_t pid = fork();
+    //     if (pid < 0)
+    //         std::cout << "Return 503 ERROR" << std::endl;
+    //     if (pid == 0){
+    //         // handle signales
+    //         setenv("REQUEST_METHOD", this->request->method.c_str(), 1);
+    //         setenv("PATH_INFO", this->cgi->PATH_INFO.c_str(), 1);
+    //         // setenv("CONTENT_LENGTH", this->request->contentLength.c_str(), 1);
+    //         // setenv("CONTENT_TYPE", this->request->contentType.c_str(), 1);
+    //         // setenv("SCRIPT_FILENAME", this->server->cgi_path.c_str(), 1);
+    //         // setenv("QUERY_STRING", this->cgi->querymap.c_str(), 1);
+    //         // // set env variables: REQ METH ; CONTENT LEN ; PATH INFO ;  SCRUPT FILE ; CONTENT TYPE; //////////////
+
+    //         // open output file stream with the random file name
+    //         std::ofstream tmpfile(file_name);
+    //         // trim the body in the file
+    //         // open fd on the random file with read permisson
+    //         // dup the stander input to therandom file
+    //         // run the script
+
+    //         exit (1);
+    //     }
+    // }
+    // else
+    // {
+    //     this->cgi->querymap = this->cgi->parseQuery(this->request->url);
+    //     this->cgi->PATH_INFO = this->cgi->parseUrl(this->request->url);
+    // }
+    try {
+        std::cout << "REQUEST_METHOD: " << this->cgi->REQUEST_METHOD << std::endl;
+        std::cout << "CONTENT_LENGTH: " << this->cgi->CONTENT_LENGTH << std::endl;
+        std::cout << "PATH_INFO: " << this->cgi->PATH_INFO << std::endl;
+        std::cout << "BODY: " << this->cgi->BODY << std::endl;
+        for (std::map<std::string, std::string>::iterator it = this->cgi->querymap.begin(); it != this->cgi->querymap.end(); ++it)
+            std::cout << it->first << " => " << it->second << '\n';
+        exit(0);
+    } catch (...) {
+        std::cout << "Error" << std::endl;
     }
-    else
-    {
-        this->cgi->querymap = this->cgi->parseQuery(this->request->url);
-        this->cgi->PATH_INFO = this->cgi->parseUrl(this->request->url);
-    }
-    std::cout << "REQUEST_METHOD: " << this->cgi->REQUEST_METHOD << std::endl;
-    std::cout << "CONTENT_LENGTH: " << this->cgi->CONTENT_LENGTH << std::endl;
-    std::cout << "PATH_INFO: " << this->cgi->PATH_INFO << std::endl;
-    std::cout << "BODY: " << this->cgi->BODY << std::endl;
-    for (std::map<std::string, std::string>::iterator it = this->cgi->querymap.begin(); it != this->cgi->querymap.end(); ++it)
-        std::cout << it->first << " => " << it->second << '\n';
 
     // set env [ REQ ]
 
@@ -249,30 +284,32 @@ void Client::cgi_handler(){
     // setenv("CONTENT_TYPE", CONTENT_TYPE.c_str(), 1);
 
 
-    char *env = getenv("PATH_INFO");
-    std::cout << env << std::endl;
+    // char *env = getenv("PATH_INFO");
+    // std::cout << env << std::endl;
 }
 
-void	Client::generateResponse()
+// void	Client::generateResponse()
 void Client::generateResponse()
 {
+    std::cout << "generate response" << std::endl;
     // this->selectServer();
-    this->server->server_name = "localhost";
-    std::cout << "selected server" << this->server->server_name << std::endl;
-    this->response->checkCgi();
-    if (this->cgiFlag == 1)
-    {
-        // handlecgi;
-    }
-    else
-    {
-        this->response->checkAllowedMethods();
-        // this->path = this->location->root + this->request->url;
-        // std::cout << "path: " << this->path << std::endl;
-        this->response->matchLocation();
-        // handle manual;
-    }
-    std::cout << "cgi ? " << this->cgiFlag << std::endl;
+    // this->server->server_name = "localhost";
+    // std::cout << "selected server" << this->server->server_name << std::endl;
+    // this->response->checkCgi();
+    cgi_handler();
+    // if (this->cgiFlag == 1)
+    // {
+    //     // handlecgi;
+    // }
+    // else
+    // {
+    //     this->response->checkAllowedMethods();
+    //     // this->path = this->location->root + this->request->url;
+    //     // std::cout << "path: " << this->path << std::endl;
+    //     this->response->matchLocation();
+    //     // handle manual;
+    // }
+    // std::cout << "cgi ? " << this->cgiFlag << std::endl;
 }
 
 void Client::selectServer()
@@ -302,3 +339,8 @@ void Client::selectServer()
         this->server = new Server(candidates[0]);
     }
 }
+
+
+// GET /cgi-bin/file.py?name=John&age=30 HTTP/1.1
+// Host: reqbin.com
+// Accept: */*

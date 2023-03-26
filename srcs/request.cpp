@@ -171,6 +171,8 @@ void Request::ParseHeaders(std::string &line)
 
 void Request::ParseBody()
 {
+    if (this->state == Stat::END)
+        return;
     std::cout << CYAN << "STATE: " << (this->state == BODY ? "BODY normal" : "weird") << RESET << std::endl;
     if (this->state == Stat::END)
         return;
@@ -181,7 +183,11 @@ void Request::ParseBody()
     if (bytesRead == -1)
         throw std::runtime_error("Error: read() failed.");
     if (bytesRead == 0)
-        throw std::runtime_error("Error: read() returned 0.");
+    {
+        this->state = Stat::END;
+        return;
+    }
+        // throw std::runtime_error("Error: read() returned 0.");
     bodySize += bytesRead;
     this->bodyString += std::string(buffer, bytesRead);
     if ((int)this->bodyString.size() == this->contentLength)

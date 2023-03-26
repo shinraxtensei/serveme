@@ -4,8 +4,16 @@
 #include <string>
 
 
+Cgi::Cgi(){
+    this->REQUEST_METHOD = "";
+    this->CONTENT_LENGTH = "";
+    this->PATH_INFO = "";
+    this->SCRIPT_FILENAME = "";
+    this->CONTENT_TYPE = "";
+    this->BODY = "";
+    this->querymap = std::map<std::string, std::string>();
 
-
+}
 // void Cgi::cgi_handler(){
 
     
@@ -43,6 +51,8 @@ std::string Cgi::parseUrl(std::string url){
 
 
 std::map<std::string, std::string> Cgi::parseQuery(std::string query){
+
+
     std::map<std::string, std::string> querymap;
 
     std::string::size_type pos = query.find("?");
@@ -61,7 +71,6 @@ std::map<std::string, std::string> Cgi::parseQuery(std::string query){
             query = query.substr(pos2 + 1);
         }
     }
-
     return querymap;
 }
 // int main()
