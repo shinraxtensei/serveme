@@ -21,6 +21,7 @@ class Cgi{
 		std::string							CONTENT_TYPE;
 		std::string							BODY;
 		std::string							QUERY_STRING;
+		std::string							CGI_PATH;
 		std::map<std::string, std::string>	QUERY_MAP;
 
 		//*********        functions        *********//

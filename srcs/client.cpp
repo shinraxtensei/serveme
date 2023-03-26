@@ -194,6 +194,7 @@ void Client::cgi_handler(){
     this->cgi->PATH_INFO        = this->cgi->parseUrl(this->request->url);
     this->cgi->QUERY_MAP        = this->cgi->parseQuery(this->request->url);
     this->cgi->BODY             = this->request->bodyString;
+    this->cgi->CGI_PATH         = "/usr/bin/python3";
 
 
     // }
