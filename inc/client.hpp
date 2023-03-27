@@ -30,17 +30,18 @@ enum Stat
     DONE = 1 << 4,
     // this is for chunked encoding
     
-    CHUNKED_SIZE = 1 << 5,
-    CHUNKED_DATA = 1 << 6, // for both chunked and multipart
+    CHUNKED_START = 1 << 5,
+    CHUNKED_SIZE = 1 << 6,
+    CHUNKED_DATA = 1 << 7, // for both chunked and multipart
 
     // this is for multipart
-    BOUNDARY = 1 << 7,
-    MULTI_PART_HEADERS = 1 << 8,
-    MULTI_PART_DATA = 1 << 9,
-    END = 1 << 10 ,// for both chunked and multipart
+    BOUNDARY = 1 << 8,
+    MULTI_PART_HEADERS = 1 << 9,
+    MULTI_PART_DATA = 1 << 10,
+    END = 1 << 11 ,// for both chunked and multipart
 
     // combined states
-    BODY =  CHUNKED_SIZE | CHUNKED_DATA | BOUNDARY | MULTI_PART_HEADERS | END
+    BODY = CHUNKED_START | CHUNKED_SIZE | CHUNKED_DATA | BOUNDARY | MULTI_PART_HEADERS | END
 };
 
 

@@ -69,40 +69,6 @@ std::string Request::checkType(std::string path)
     }
 }
 
-std::string checkForEnd(char c, int type)
-{
-    static int count = 0;
-    if (type == 1)
-    {
-        if (c == '\r')
-            count++;
-        else if (c == '\n' && count == 2)
-            count++;
-        else if (c == '\r' && count == 3)
-            count++;
-        else if (c == '\n' && count == 4)
-        {
-            count = 0;
-            return "\r\n\r\n";
-        }
-        else
-            count = 0;
-        return "";
-    }
-    else
-    {
-        if (c == '\r')
-            count++;
-        else if (c == '\n' && count == 1)
-        {
-            count = 0;
-            return "\r\n";
-        }
-        else
-            count = 0;
-        return "";
-    }
-}
 
 void Client::handleRequest()
 {
@@ -158,7 +124,7 @@ void Client::handleRequest()
 
         if (this->request->bodyType == BodyType::CHUNKED)
         {
-            if (this->request->bodyString.empty())
+            if (!(this->request->state & (Stat::CHUNKED_SIZE | Stat::CHUNKED_DATA)))
                 this->request->state = Stat::CHUNKED_SIZE;
             this->request->ParseChunkedBody(); // ! : this function is not working ,still working on ti
         }
