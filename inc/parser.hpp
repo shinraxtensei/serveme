@@ -76,6 +76,7 @@ class Location : public Server
 
 		std::string path;
 		// std::string root;
+
 };
 
 class Parser
@@ -95,4 +96,5 @@ class Parser
 		static void parse_location(int sublocation);
 		static void init_http();
 		static void init_servers();
+		static void init_locations(int index);
 };

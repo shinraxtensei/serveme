@@ -14,7 +14,7 @@ Http::Http()
     this->http_directives.insert(std::pair<std::string, std::vector<std::string> >("index", std::vector<std::string> (1, "index.html")));
     this->http_directives.insert(std::pair<std::string, std::vector<std::string> >("error_page", std::vector<std::string> (1 , "404")));
     this->http_directives.insert(std::pair<std::string, std::vector<std::string> >("autoindex", std::vector<std::string> (1 , "off")));
-    this->http_directives.insert(std::pair<std::string, std::vector<std::string> >("client_max_body_size", std::vector<std::string> (1 , "1")));
+    this->http_directives.insert(std::pair<std::string, std::vector<std::string> >("client_max_body_size", std::vector<std::string> (1 , "1024")));
     this->http_directives.insert(std::pair<std::string, std::vector<std::string> >("allowed_methods", std::vector<std::string> ( 1 , "GET")));
 
     this->allowed_methods.push_back("GET");
@@ -171,6 +171,8 @@ void Parser::init_servers()
             Parser::getHttp()->servers[i].allowed_methods = Parser::getHttp()->servers[i].server_directives["allowed_methods"];
         else
             Parser::getHttp()->servers[i].allowed_methods = Parser::getHttp()->allowed_methods;
+
+        init_locations(i);
     }
 }
 
@@ -201,6 +203,61 @@ Location::Location()
     // this->location_directives["path"] = std::vector<std::string> (1 , "/html");
     // this->location_directives["return"] = std::vector<std::string> (1 , "200");
 }
+
+void Parser::init_locations(int index)
+{
+    Server *server = &Parser::getHttp()->servers[index];
+
+
+    for (size_t i = 0; i < server->locations.size(); i++)
+    {
+        // //return
+        // if (server->locations[i].location_directives.find("return") != server->locations[i].location_directives.end())
+        // {
+        //     server->locations[i].Return.first = atoi(server->locations[i].location_directives["return"][0].c_str());
+        //     server->locations[i].Return.second = server->locations[i].location_directives["return"][1];
+        // }
+        // else
+        // {
+        //     server->locations[i].Return.first = server->Return.first;
+        //     server->locations[i].Return.second = server.RReturn.second;
+        // }
+        //root
+        if (server->locations[i].location_directives.find("root") != server->locations[i].location_directives.end())
+            server->locations[i].root = server->locations[i].location_directives["root"][0];
+        else
+            server->locations[i].root = server->root;
+        //index
+        if (server->locations[i].location_directives.find("index") != server->locations[i].location_directives.end())
+            server->locations[i].index = server->locations[i].location_directives["index"];
+        else
+            server->locations[i].index = server->index;
+        //autoindex
+        if (server->locations[i].location_directives.find("autoindex") != server->locations[i].location_directives.end())
+        {
+            if (server->locations[i].location_directives["autoindex"][0] == "on")
+                server->locations[i].autoindex = true;
+            else
+                server->locations[i].autoindex = false;
+        }
+        else
+            server->locations[i].autoindex = server->autoindex;
+        //client_max_body_size
+        if (server->locations[i].location_directives.find("client_max_body_size") != server->locations[i].location_directives.end())
+            server->locations[i].client_max_body_size = std::stoi(server->locations[i].location_directives["client_max_body_size"][0]);
+        else
+            server->locations[i].client_max_body_size = server->client_max_body_size;
+        //allowed_methods
+        if  (server->locations[i].location_directives.find("allowed_methods") != server->locations[i].location_directives.end())
+            server->locations[i].allowed_methods = server->locations[i].location_directives["allowed_methods"];
+        else
+            server->locations[i].allowed_methods = server->allowed_methods;
+        
+    }
+
+
+}
+
 
 Location::~Location()
 {
