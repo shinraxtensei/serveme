@@ -69,40 +69,6 @@ std::string Request::checkType(std::string path)
     }
 }
 
-std::string checkForEnd(char c, int type)
-{
-    static int count = 0;
-    if (type == 1)
-    {
-        if (c == '\r')
-            count++;
-        else if (c == '\n' && count == 2)
-            count++;
-        else if (c == '\r' && count == 3)
-            count++;
-        else if (c == '\n' && count == 4)
-        {
-            count = 0;
-            return "\r\n\r\n";
-        }
-        else
-            count = 0;
-        return "";
-    }
-    else
-    {
-        if (c == '\r')
-            count++;
-        else if (c == '\n' && count == 1)
-        {
-            count = 0;
-            return "\r\n";
-        }
-        else
-            count = 0;
-        return "";
-    }
-}
 
 void Client::handleRequest()
 {
@@ -158,8 +124,11 @@ void Client::handleRequest()
 
         if (this->request->bodyType == BodyType::CHUNKED)
         {
-            if (this->request->bodyString.empty())
-                this->request->state = Stat::CHUNKED_SIZE;
+            // if (!(this->request->state & (Stat::CHUNKED_SIZE | Stat::CHUNKED_DATA)))
+            // {
+            //     std::cout << RED << "this should be printed only once" << RESET << std::endl;
+            //     this->request->state = Stat::CHUNKED_SIZE;
+            // }
             this->request->ParseChunkedBody(); // ! : this function is not working ,still working on ti
         }
 
@@ -169,7 +138,7 @@ void Client::handleRequest()
             this->request->ParseBody();
 
 
-        // this->generateResponse();
+        this->generateResponse();
         // writeResponse();
     }
 }
@@ -184,8 +153,7 @@ void Client::generateResponse()
 		// cgi matching
 	}
 	else
-		this->response->matchLocation(this->server->locations);
-	this->path = this->location->root + this->request->url;
+		this->response->handleNormalReq();
 }
 
 void Client::selectServer()
