@@ -217,6 +217,8 @@ void Client::cgi_handler(){
         int piepfd[2];
         this->cgi->QUERY_MAP = this->cgi->parseQuery(this->request->url);
         this->cgi->PATH_INFO = this->cgi->parseUrl(this->request->url);
+        std::cout << "URL: " << this->request->url << std::endl;
+        std::cout << "PATH INFO: " << this->cgi->PATH_INFO << std::endl;
         if (pipe(piepfd) == -1)
             std::cout << "Return 503 ERROR" << std::endl;
         pid_t pid = fork();
@@ -230,14 +232,14 @@ void Client::cgi_handler(){
             std::cout << "CHILD PROCESS BEGIN" << std::endl;
             // dup2(int(piepfd[1]), 1);
             dup2(toDelFD, 1);
-            std::cout << toDelFD << std::endl;
+            // std::cout << toDelFD << std::endl;
             close(int(piepfd[0]));
             close(int(piepfd[1]));
             close(toDelFD);
 
             try {
                 this->cgi->setEnv(this->request->method);
-                std::cout << "QUERY_STRING " << getenv("QUERY_STRING") << std::endl;
+                // std::cout << "QUERY_STRING " << getenv("QUERY_STRING") << std::endl;
                 extern char** environ;
                 char** env = environ;
                 char* arg[] = {strdup(this->cgi->CGI_PATH.c_str()), strdup("cgi-bin/script.py"), NULL};
