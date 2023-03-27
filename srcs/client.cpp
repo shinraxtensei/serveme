@@ -138,7 +138,7 @@ void Client::handleRequest()
             this->request->ParseBody();
 
 
-        // this->generateResponse();
+        this->generateResponse();
         // writeResponse();
     }
 }
@@ -153,8 +153,7 @@ void Client::generateResponse()
 		// cgi matching
 	}
 	else
-		this->response->matchLocation(this->server->locations);
-	this->path = this->location->root + this->request->url;
+		this->response->handleNormalReq();
 }
 
 void Client::selectServer()

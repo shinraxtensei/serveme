@@ -104,6 +104,12 @@ class Response
 			void	checkAllowedMethods();
 			void	matchLocation(std::vector<Location> locations);
 			void	checkCgi();
+			void	checkPath();
+			std::vector<Location>	getLocations(std::vector<Location> locations);
+			void	handleNormalReq();
+			// void	handleGet();
+			// void	handlePost();
+			void	handleDelete();
 };
 
 class Client
