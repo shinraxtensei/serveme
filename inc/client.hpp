@@ -2,6 +2,8 @@
 
 #include "cgi.hpp"
 #include "servme.hpp"
+#include <fcntl.h>
+#include <unistd.h>
 
 class Core;
 class SocketWrapper;

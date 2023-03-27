@@ -1,11 +1,13 @@
 #include "../inc/client.hpp"
 #include <cstdlib>
 #include <cstring>
+#include <fstream>
 #include <ios>
 #include <iostream>
 #include <ostream>
 #include <string>
 #include <sys/_types/_pid_t.h>
+#include <sys/fcntl.h>
 #include <sys/wait.h>
 #include <unistd.h>
 #include <vector>
@@ -194,7 +196,7 @@ void Client::cgi_handler(){
     this->cgi->PATH_INFO        = this->cgi->parseUrl(this->request->url);
     this->cgi->QUERY_MAP        = this->cgi->parseQuery(this->request->url);
     this->cgi->BODY             = this->request->bodyString;
-    this->cgi->CGI_PATH         = "/usr/bin/python3";
+    this->cgi->CGI_PATH         = "/usr/bin/python";
 
 
     // }
@@ -209,6 +211,8 @@ void Client::cgi_handler(){
     }
     if (this->request->method == "GET")
     {
+        // here just teating the file output
+
         std::cout << "********* CGI FOR GET IS CALLEEDDDD **********" << std::endl;
         int piepfd[2];
         this->cgi->QUERY_MAP = this->cgi->parseQuery(this->request->url);
@@ -219,22 +223,33 @@ void Client::cgi_handler(){
         if (pid == -1)
             std::cout << "Return 503 ERROR" << std::endl;
         if (pid == 0){
+            // std::fstream tmp;
+
+            // tmp.open("log.txt", std::fstream::out | std::fstream::trunc);
+            int toDelFD = open("cgipage.html", O_RDWR | O_CREAT, 0666);
             std::cout << "CHILD PROCESS BEGIN" << std::endl;
             // dup2(int(piepfd[1]), 1);
+            dup2(toDelFD, 1);
+            std::cout << toDelFD << std::endl;
             close(int(piepfd[0]));
             close(int(piepfd[1]));
+            close(toDelFD);
 
             try {
                 this->cgi->setEnv(this->request->method);
                 std::cout << "QUERY_STRING " << getenv("QUERY_STRING") << std::endl;
+                extern char** environ;
+                char** env = environ;
+                char* arg[] = {strdup(this->cgi->CGI_PATH.c_str()), strdup("cgi-bin/script.py"), NULL};
+                char* path = strdup(this->cgi->CGI_PATH.c_str());
+                if (execve(path, arg, env) == -1)
+                    std::cout << "Return 503 ERROR" << std::endl;
                 exit(0);
             } catch (...) {
                 std::cout << "Error" << std::endl;
             }
             exit (1);
         }
-
-        waitpid(-1, 0, 0);
         close(int(piepfd[0]));
         close(int(piepfd[1]));
     }
