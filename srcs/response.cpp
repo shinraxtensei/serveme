@@ -5,6 +5,7 @@ void	Response::checkAllowedMethods()
 	std::vector<std::string>			methods;
 	std::vector<std::string>::iterator	iter;
 
+	this->client = &Servme::getCore()->map_clients[this->client_fd];
 	methods = this->client->server->allowed_methods;
 	if (methods.size() == 0 && this->client->request->method == "GET")
 		return ;
@@ -17,50 +18,69 @@ void	Response::checkAllowedMethods()
 		std::cout << "method not allowed" << std::endl;
 }
 
-void	Response::matchLocation()
+int		LocationFound(std::string locationPaths, std::string	path)
 {
-	std::vector<std::string>::iterator	iter;
-	std::vector<std::string>			imaginaryLocations;
-	std::string							path = "/home/etc/youness";
-
-	imaginaryLocations.push_back("/home/etc");
-	imaginaryLocations.push_back("/home/etc/youness/file.txt");
-	imaginaryLocations.push_back("/");
-
-	if (path.back() == '/')
-		path = path.substr(0, path.size() - 1);
-
-	// std::cout << "trying to match : " << path << std::endl;
-
-	// path = this->client->request->url;
-	// locations = this->client->server->locations;
+	if (locationPaths == path)
+			return (1) ;
 	while (path != "/")
 	{
-		std::cout << "trying to match : " << path << std::endl;
-		for (iter = imaginaryLocations.begin(); iter < imaginaryLocations.end(); iter++)
-		{
-			if (*iter == path)
-				break ;
-		}
-		if (iter == imaginaryLocations.end())
-		{
-			path = path.substr(0, path.find_last_of("/"));
-			std::cout << path << std::endl;
-		}
+		if (locationPaths == path)
+			return (1) ;
+		path = path.substr(0, path.find_last_of("/"));
+		if (locationPaths == path)
+			return (1) ;
+	}
+	return (0);
+}
+
+std::vector<Location>	getNested(std::vector<Location>	candidates, Location location)
+{
+	std::vector<Location>::iterator	iter;
+
+	iter = location.locations.begin();
+	for (iter = location.locations.begin(); iter < location.locations.end(); iter++)
+	{
+		if (location.locations.empty())
+			candidates.push_back(*iter);
 		else
 		{
-			std::cout << "loation found " << *iter << std::endl;
-			break ;
+			std::cout << "hna" << std::endl;
+			candidates.push_back(*iter);
+			getNested(candidates, *iter);
 		}
 	}
+	return (candidates);	
+}
+
+void	Response::matchLocation(std::vector<Location> locations)
+{
+	std::vector<Location>	candidates;
+	std::vector<Location>::iterator	iter;
+
+	this->client = &Servme::getCore()->map_clients[this->client_fd];
+	iter = locations.begin();
+	for (iter = this->client->server->locations.begin(); iter < this->client->server->locations.end(); iter++)
+	{
+		candidates.push_back(*iter);
+		candidates = getNested(candidates, *iter);
+	}
+	for (iter = candidates.begin(); iter < candidates.end(); iter++)
+	{
+		if (LocationFound(iter->path, this->client->request->url))
+		{
+			this->client->location = &(*iter);
+			std::cout << "location found" << std::endl;
+			return ;
+		}
+	}
+	std::cout << "No location found" << std::endl;
 }
 
 void	Response::checkCgi()
 {
 	std::string	cgiPath = "/cgi-bin/";
-	std::string	imaginaryPath = "/home/cgi-bin/script.php";
 	this->client = &Servme::getCore()->map_clients[this->client_fd];
-
+	std::string	imaginaryPath = this->client->request->url;
 	if (imaginaryPath.find(cgiPath) != std::string::npos)
 	{
 		std::cout << "cgi request" << std::endl;
