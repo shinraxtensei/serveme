@@ -199,8 +199,13 @@ void Client::cgi_handler(){
     this->cgi->PATH_INFO        = this->cgi->parseUrl(this->request->url);
     this->cgi->QUERY_MAP        = this->cgi->parseQuery(this->request->url);
     this->cgi->BODY             = this->request->bodyString;
-    this->cgi->CGI_PATH         = this->cgi->CompilerPathsByLanguage["py"];
 
+    std::string surfix = this->cgi->parseSurfix(this->cgi->PATH_INFO);
+    this->cgi->CGI_PATH         = this->cgi->CompilerPathsByLanguage[surfix];
+    if (this->cgi->CGI_PATH == "")
+        std::cout << "CGI PATH IS EMPTY" << std::endl;
+    else
+        std::cout << "CGI PATH IS NOT EMPTY" << std::endl;
 
     std::cout << "[PY : " << this->cgi->CompilerPathsByLanguage["py"] << "]" << std::endl;
     // }
@@ -226,14 +231,15 @@ void Client::cgi_handler(){
         pid_t pid = fork();
         if (pid == -1)
             std::cout << "Return 503 ERROR" << std::endl;
+        /* child process */
         if (pid == 0){
             // std::fstream tmp;
 
             // tmp.open("log.txt", std::fstream::out | std::fstream::trunc);
             int toDelFD = open("cgipage.html", O_RDWR | O_CREAT, 0666);
             std::cout << "CHILD PROCESS BEGIN" << std::endl;
-            // dup2(int(piepfd[1]), 1);
-            dup2(toDelFD, 1);
+            dup2(int(piepfd[1]), 1);
+            // dup2(toDelFD, 1);
             // std::cout << toDelFD << std::endl;
             close(int(piepfd[0]));
             close(int(piepfd[1]));
@@ -244,7 +250,8 @@ void Client::cgi_handler(){
                 // std::cout << "QUERY_STRING " << getenv("QUERY_STRING") << std::endl;
                 extern char** environ;
                 char** env = environ;
-                char* arg[] = {strdup(this->cgi->CGI_PATH.c_str()), strdup("cgi-bin/script.py"), NULL};
+                char* arg[] = {strdup(this->cgi->CGI_PATH.c_str()), strdup(this->cgi->PATH_INFO.c_str()), NULL};
+                std::cout << "pppppppth " << arg[1] << std::endl;
                 char* path = strdup(this->cgi->CGI_PATH.c_str());
                 if (execve(path, arg, env) == -1)
                     std::cout << "Return 503 ERROR" << std::endl;
@@ -254,8 +261,13 @@ void Client::cgi_handler(){
             }
             exit (1);
         }
+        char *buff = NULL;
+        std::string body;
+        while (read(piepfd[0], buff, strlen(buff)) > 0)
+            body.push_back(*buff);
+        std::cout << "BODY: " << body << std::endl;
         close(int(piepfd[0]));
-        close(int(piepfd[1])); 
+        close(int(piepfd[1]));
     }
 
     // else if (this->request->method == "POST")
@@ -308,7 +320,7 @@ void Client::generateResponse()
         cgi_handler();
 	// }
 	// else
-		this->response->matchLocation(this->server->locations);
+		// this->response->matchLocation(this->server->locations);
 	// this->path = this->location->root + this->request->url;
 }
 

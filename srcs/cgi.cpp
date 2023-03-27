@@ -1,4 +1,6 @@
 # include "../inc/cgi.hpp"
+#include <atomic>
+#include <cstddef>
 #include <cstdlib>
 #include <stdlib.h>
 #include <string>
@@ -97,6 +99,13 @@ std::map<std::string, std::string> Cgi::parseQuery(std::string query){
         }
     }
     return querymap;
+}
+
+std::string Cgi::parseSurfix(std::string path_info){
+    std::string surfix;
+    std::size_t found = path_info.find_last_of(".");
+    surfix = path_info.substr(found + 1);
+    return surfix;
 }
 // int main()
 // {

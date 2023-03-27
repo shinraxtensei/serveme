@@ -28,5 +28,6 @@ class Cgi{
 		//*********        functions        *********//
 		void								setEnv(std::string &Method);
 		std::string							parseUrl(std::string url);
+		std::string							parseSurfix(std::string path_info);
 		std::map<std::string, std::string>	parseQuery(std::string query);
 };
