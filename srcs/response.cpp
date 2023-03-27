@@ -59,6 +59,7 @@ void	Response::matchLocation(std::vector<Location> locations)
 
 	this->client = &Servme::getCore()->map_clients[this->client_fd];
 	iter = locations.begin();
+	
 	for (iter = this->client->server->locations.begin(); iter < this->client->server->locations.end(); iter++)
 	{
 		candidates.push_back(*iter);

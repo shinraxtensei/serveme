@@ -23,6 +23,7 @@ class Cgi{
 		std::string							QUERY_STRING;
 		std::string							CGI_PATH;
 		std::map<std::string, std::string>	QUERY_MAP;
+		std::map<std::string, std::string> 	CompilerPathsByLanguage;
 
 		//*********        functions        *********//
 		void								setEnv(std::string &Method);

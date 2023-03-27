@@ -12,6 +12,11 @@ Cgi::Cgi(){
     this->BODY = "";
     this->QUERY_MAP = std::map<std::string, std::string>();
 
+    this->CompilerPathsByLanguage = std::map<std::string, std::string>{
+        {"py", "/usr/bin/python"},
+        {"php", "/usr/bin/php"}
+    };    
+
 }
 // void Cgi::cgi_handler(){
 

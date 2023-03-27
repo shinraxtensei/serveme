@@ -189,18 +189,20 @@ void Client::handleRequest()
 
 void Client::cgi_handler(){
 
-    std::vector<std::string>::iterator it;
+    std::cout << "******************** cgi_handler **********************" << std::endl;
+
     // there's a problem in the allowed methods from request
     std::vector<std::string> allowed_methods = {"GET", "POST",  "DELETE"};
-    std::cout << "cgi_handler" << std::endl;
+    std::vector<std::string>::iterator it;
 
     this->cgi->CONTENT_LENGTH   = this->request->contentLength;
     this->cgi->PATH_INFO        = this->cgi->parseUrl(this->request->url);
     this->cgi->QUERY_MAP        = this->cgi->parseQuery(this->request->url);
     this->cgi->BODY             = this->request->bodyString;
-    this->cgi->CGI_PATH         = "/usr/bin/python";
+    this->cgi->CGI_PATH         = this->cgi->CompilerPathsByLanguage["py"];
 
 
+    std::cout << "[PY : " << this->cgi->CompilerPathsByLanguage["py"] << "]" << std::endl;
     // }
     // for (std::vector<std::string>::iterator it = allowed_methods.begin(); it != allowed_methods.end(); ++it)
     //     std::cout << *it << std::endl;
@@ -217,8 +219,6 @@ void Client::cgi_handler(){
 
         std::cout << "********* CGI FOR GET IS CALLEEDDDD **********" << std::endl;
         int piepfd[2];
-        this->cgi->QUERY_MAP = this->cgi->parseQuery(this->request->url);
-        this->cgi->PATH_INFO = this->cgi->parseUrl(this->request->url);
         std::cout << "URL: " << this->request->url << std::endl;
         std::cout << "PATH INFO: " << this->cgi->PATH_INFO << std::endl;
         if (pipe(piepfd) == -1)
@@ -255,7 +255,7 @@ void Client::cgi_handler(){
             exit (1);
         }
         close(int(piepfd[0]));
-        close(int(piepfd[1]));
+        close(int(piepfd[1])); 
     }
 
     // else if (this->request->method == "POST")
@@ -263,8 +263,6 @@ void Client::cgi_handler(){
     //     // random string file_name;
     //     std::string file_name = "tmp_file";
     //     int piepfd[2];
-    //     // this->cgi->querymap = this->cgi->parseQuery(this->request->bodyString);
-    //     // this->cgi->PATH_INFO = this->cgi->parseUrl(this->request->bodyString);
 
  
 
@@ -302,16 +300,16 @@ void Client::cgi_handler(){
 void Client::generateResponse()
 {
 	this->response->client = &Servme::getCore()->map_clients[this->response->client_fd];
-	this->response->checkAllowedMethods();
-	this->response->checkCgi();
-	if (this->cgiFlag == 1)
-	{
-		// cgi matching
+	// this->response->checkAllowedMethods(); // error here aborted
+	// this->response->checkCgi();
+	// if (this->cgiFlag == 1)
+	// {
+	// 	// cgi matching
         cgi_handler();
-	}
-	else
+	// }
+	// else
 		this->response->matchLocation(this->server->locations);
-	this->path = this->location->root + this->request->url;
+	// this->path = this->location->root + this->request->url;
 }
 
 void Client::selectServer()
