@@ -97,6 +97,7 @@ class Response
 			Client	*client; // this is a pointer to its parent client
 			Http	*http;
 			Location	*location;
+            bool GENERATE_RES = false;
 
 			Response() {};
 			~Response() {};
