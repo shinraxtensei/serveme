@@ -110,24 +110,3 @@ int main(int argc, char **argv)
         std::cout << RED << "Usage: ./serverme -h" << RESET << std::endl;
     return 0;
 }
-
-
-
-
-// int main ()
-// {
-//     Request req;
-//     req.state  = Stat::BODY;
-//     if (req.state & Stat::CHUNKED_START)
-//     {
-//         std::cout << "CHUNKED_START" << std::endl;
-//         req.state = Stat::CHUNKED_SIZE;
-//     }
-
-//     if (req.state & Stat::CHUNKED_SIZE)
-//     {
-//         std::cout << "CHUNKED_SIZE" << std::endl;
-//         req.state = Stat::CHUNKED_DATA;
-//     }
-
-// }

@@ -129,6 +129,13 @@ void Client::handleRequest()
             //     std::cout << RED << "this should be printed only once" << RESET << std::endl;
             //     this->request->state = Stat::CHUNKED_SIZE;
             // }
+            static int flag = 0;
+            if (flag == 0)
+            {
+                flag = 1;
+                std::cout << BLUE <<"this is the start of chunked body" << RESET << std::endl;
+                this->request->state = Stat::CHUNKED_START;
+            }
             this->request->ParseChunkedBody(); // ! : this function is not working ,still working on ti
         }
 
