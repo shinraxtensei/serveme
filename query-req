@@ -1,4 +1,4 @@
-GET cgi-bin/script.py?name=Amine&nick=rsaf HTTP/1.1
+GET /cgi-bin/script.py?name=Amine&nick=rsaf HTTP/1.1
 Host: reqbin.com
 Accept: */*
 

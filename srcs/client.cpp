@@ -1,4 +1,5 @@
 #include "../inc/client.hpp"
+#include <algorithm>
 #include <cstdlib>
 #include <cstring>
 #include <fstream>
@@ -8,6 +9,7 @@
 #include <string>
 #include <sys/_types/_pid_t.h>
 #include <sys/fcntl.h>
+#include <sys/socket.h>
 #include <sys/wait.h>
 #include <unistd.h>
 #include <vector>
@@ -250,9 +252,10 @@ void Client::cgi_handler(){
                 // std::cout << "QUERY_STRING " << getenv("QUERY_STRING") << std::endl;
                 extern char** environ;
                 char** env = environ;
+                this->cgi->PATH_INFO.erase(0, 1);
                 char* arg[] = {strdup(this->cgi->CGI_PATH.c_str()), strdup(this->cgi->PATH_INFO.c_str()), NULL};
-                std::cout << "pppppppth " << arg[1] << std::endl;
                 char* path = strdup(this->cgi->CGI_PATH.c_str());
+                
                 if (execve(path, arg, env) == -1)
                     std::cout << "Return 503 ERROR" << std::endl;
                 exit(0);
@@ -261,13 +264,20 @@ void Client::cgi_handler(){
             }
             exit (1);
         }
-        char *buff = NULL;
+        char buff;
         std::string body;
-        while (read(piepfd[0], buff, strlen(buff)) > 0)
-            body.push_back(*buff);
-        std::cout << "BODY: " << body << std::endl;
-        close(int(piepfd[0]));
+        waitpid(-1, 0, 0);
         close(int(piepfd[1]));
+        while (read(piepfd[0], &buff, 1) > 0){
+            // std::cout << "BODY: " << buff << std::endl;
+            body.push_back(buff);
+        }
+        close(int(piepfd[0]));
+
+        send(this->fd, body.c_str(), body.size(), 0);
+        close(this->fd);
+        exit(1);
+        // std::cout << "BODY: " << body << std::endl;
     }
 
     // else if (this->request->method == "POST")
