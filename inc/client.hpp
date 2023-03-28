@@ -41,7 +41,7 @@ enum Stat
     END = 1 << 11 ,// for both chunked and multipart
 
     // combined states
-    BODY = CHUNKED_START | CHUNKED_SIZE | CHUNKED_DATA | BOUNDARY | MULTI_PART_HEADERS | END
+    BODY = (CHUNKED_START | CHUNKED_SIZE | CHUNKED_DATA | BOUNDARY | MULTI_PART_HEADERS | END)
 };
 
 
