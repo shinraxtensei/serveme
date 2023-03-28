@@ -12,6 +12,7 @@ Request::Request()
     this->url = "";
     this->version = "";
     this->bodyString = "";
+
 }
 
 Request &Request::operator=(const Request &other)
@@ -124,7 +125,7 @@ void Request::ParseHeaders(std::string &line)
     if (key.back() != ':')
         std::cout << "Error: Invalid header line." << std::endl;
 
-    if (key == "host:")
+    if (key == "host:" )
     {
         this->host = value;
         this->client = &Servme::getCore()->map_clients[this->client_fd]; //TODO: change this to be in the constructor 
@@ -190,7 +191,7 @@ void Request::ParseBody()
         // throw std::runtime_error("Error: read() returned 0.");
     bodySize += bytesRead;
     this->bodyString += std::string(buffer, bytesRead);
-    if ((int)this->bodyString.size() == this->contentLength)
+    if ((int)this->bodyString.size() >= this->contentLength)
         this->state = Stat::END;
 
     std::cout << this->bodyString << std::endl;

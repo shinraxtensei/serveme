@@ -1,5 +1,6 @@
 #include "../inc/client.hpp"
 #include <algorithm>
+#include <cstddef>
 #include <cstdlib>
 #include <cstring>
 #include <fstream>
@@ -39,9 +40,12 @@ Client::~Client()
 
 Client::Client(SocketWrapper &sock)
 {
+
     this->cgi = new Cgi();
     this->request = new Request();
+
     this->request->core = this->core;
+    this->server = nullptr;
     // this->request->client = this;
 
     this->response = new Response();
@@ -84,40 +88,6 @@ std::string Request::checkType(std::string path)
     }
 }
 
-std::string checkForEnd(char c, int type)
-{
-    static int count = 0;
-    if (type == 1)
-    {
-        if (c == '\r')
-            count++;
-        else if (c == '\n' && count == 2)
-            count++;
-        else if (c == '\r' && count == 3)
-            count++;
-        else if (c == '\n' && count == 4)
-        {
-            count = 0;
-            return "\r\n\r\n";
-        }
-        else
-            count = 0;
-        return "";
-    }
-    else
-    {
-        if (c == '\r')
-            count++;
-        else if (c == '\n' && count == 1)
-        {
-            count = 0;
-            return "\r\n";
-        }
-        else
-            count = 0;
-        return "";
-    }
-}
 
 void Client::handleRequest()
 {
@@ -150,7 +120,7 @@ void Client::handleRequest()
             this->request->state = Stat::FIRSTLINE;
         if (line.find("\r\n") != std::string::npos || line.find("\n") != std::string::npos)
         {
-            if (line == "\r\n" || line == "\n")
+            if ((line == "\r\n" || line == "\n") && this->request->contentLength)
                 this->request->state = Stat::BODY;
             if (this->request->state & Stat::FIRSTLINE)
             {
@@ -163,13 +133,13 @@ void Client::handleRequest()
             }
             line = "";
         }
+        std::cout << this->request->contentLength << std::endl;
         // if (this->request->buffer.find("\r\n\r\n") != std::string::npos)
         //     this->request->state = Stat::BODY;
     }
 
     else if (this->request->state & Stat::BODY)
     {
-
 
         if (this->request->bodyType == BodyType::CHUNKED)
         {
@@ -184,9 +154,14 @@ void Client::handleRequest()
             this->request->ParseBody();
 
 
-        this->generateResponse();
         // writeResponse();
     }
+    else if (this->request->state == Stat::END)
+    {
+        
+        this->pollfd_.events &= ~POLLOUT;
+    }
+    this->generateResponse();
 }
 
 void Client::cgi_handler(){
@@ -273,11 +248,39 @@ void Client::cgi_handler(){
             body.push_back(buff);
         }
         close(int(piepfd[0]));
+        this->pollfd_.events |= POLLOUT;
+        int bytes = send(this->fd, body.c_str(),  body.size(), 0);
+        if (bytes == -1)
+            std::cout << "Return 503 ERROR" << std::endl;
+        this->pollfd_.events &= ~POLLOUT;
 
-        send(this->fd, body.c_str(), body.size(), 0);
-        close(this->fd);
-        exit(1);
-        // std::cout << "BODY: " << body << std::endl;
+        // std::string response = "HTTP/1.1 200 OK\n"
+        //                   "Date: Fri, 25 Mar 2023 09:30:00 GMT\n"
+        //                   "Server: Apache/2.4.48 (Unix) OpenSSL/1.1.1k\n"
+        //                   "Last-Modified: Thu, 24 Mar 2023 16:40:00 GMT\n"
+        //                   "ETag: \"10a0-5a88d50f8a940\"\n"
+        //                   "Accept-Ranges: bytes\n"
+        //                   "Content-Length: 2576\n"
+        //                   "Content-Type: text/html\n"
+        //                   "\n"
+        //                   "<!DOCTYPE html>\n"
+        //                   "<html>\n"
+        //                   "<head>\n"
+        //                   "  <title>Example</title>\n"
+        //                   "</head>\n"
+        //                   "<body>\n"
+        //                   "  <h1>Hello, World!</h1>\n"
+        //                   "  <p>This is an example response.</p>\n"
+        //                   "</body>\n"
+        //                   "</html>\n";
+
+        // int bytes = send(this->fd, response.c_str(), response.size(), 0);
+
+        if (bytes < 0)
+            std::cout << "<h1>Error</h1>" << std::endl;
+        // close(this->fd);
+        // exit(1);
+    //     // std::cout << "BODY: " << body << std::endl;
     }
 
     // else if (this->request->method == "POST")
@@ -323,12 +326,12 @@ void Client::generateResponse()
 {
 	this->response->client = &Servme::getCore()->map_clients[this->response->client_fd];
 	// this->response->checkAllowedMethods(); // error here aborted
-	// this->response->checkCgi();
-	// if (this->cgiFlag == 1)
-	// {
-	// 	// cgi matching
+	this->response->checkCgi();
+	if (this->cgiFlag == 1)
+	{
+		// cgi matching
         cgi_handler();
-	// }
+	}
 	// else
 		// this->response->matchLocation(this->server->locations);
 	// this->path = this->location->root + this->request->url;

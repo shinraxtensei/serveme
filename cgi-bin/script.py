@@ -10,8 +10,8 @@ form = cgi.FieldStorage()
 name = form.getvalue('name')
 nick  = form.getvalue('nick')
 
+print "HTTP/1.1 200 OK"
 print "Content-type:text/html"
-print "Server: Servme v0.1 software\r\n\r\n"
 print "<html>"
 print "<head>"
 print "<title>Hello - Second CGI Program</title>"
