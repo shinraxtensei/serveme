@@ -169,122 +169,122 @@ void Client::handleRequest()
 
 void Client::cgi_handler(){
 
-    std::cout << "******************** cgi_handler **********************" << std::endl;
+    // std::cout << "******************** cgi_handler **********************" << std::endl;
 
-    // there's a problem in the allowed methods from request
-    std::vector<std::string> allowed_methods = {"GET", "POST",  "DELETE"};
-    std::vector<std::string>::iterator it;
+    // // there's a problem in the allowed methods from request
+    // std::vector<std::string> allowed_methods = {"GET", "POST",  "DELETE"};
+    // std::vector<std::string>::iterator it;
 
-    this->cgi->CONTENT_LENGTH   = this->request->contentLength;
-    this->cgi->PATH_INFO        = this->cgi->parseUrl(this->request->url);
-    this->cgi->QUERY_MAP        = this->cgi->parseQuery(this->request->url);
-    this->cgi->BODY             = this->request->bodyString;
+    // this->cgi->CONTENT_LENGTH   = this->request->contentLength;
+    // this->cgi->PATH_INFO        = this->cgi->parseUrl(this->request->url);
+    // this->cgi->QUERY_MAP        = this->cgi->parseQuery(this->request->url);
+    // this->cgi->BODY             = this->request->bodyString;
 
-    std::string surfix = this->cgi->parseSurfix(this->cgi->PATH_INFO);
-    this->cgi->CGI_PATH         = this->cgi->CompilerPathsByLanguage[surfix];
-    if (this->cgi->CGI_PATH == "")
-        std::cout << "CGI PATH IS EMPTY" << std::endl;
-    else
-        std::cout << "CGI PATH IS NOT EMPTY" << std::endl;
+    // std::string surfix = this->cgi->parseSurfix(this->cgi->PATH_INFO);
+    // this->cgi->CGI_PATH         = this->cgi->CompilerPathsByLanguage[surfix];
+    // if (this->cgi->CGI_PATH == "")
+    //     std::cout << "CGI PATH IS EMPTY" << std::endl;
+    // else
+    //     std::cout << "CGI PATH IS NOT EMPTY" << std::endl;
 
-    std::cout << "[PY : " << this->cgi->CompilerPathsByLanguage["py"] << "]" << std::endl;
+    // std::cout << "[PY : " << this->cgi->CompilerPathsByLanguage["py"] << "]" << std::endl;
+    // // }
+    // // for (std::vector<std::string>::iterator it = allowed_methods.begin(); it != allowed_methods.end(); ++it)
+    // //     std::cout << *it << std::endl;
+    // it = find (allowed_methods.begin(), allowed_methods.end(), this->request->method);
+    // if (it == allowed_methods.end()){
+    //     std::cout << "Return 405 ERROR" << std::endl;
+    // //  generateResponse(); // wrong function jut to avoid error xD
+    // //  // return ERROR METHID NOT ALLOWD
+    //     exit(100);
     // }
-    // for (std::vector<std::string>::iterator it = allowed_methods.begin(); it != allowed_methods.end(); ++it)
-    //     std::cout << *it << std::endl;
-    it = find (allowed_methods.begin(), allowed_methods.end(), this->request->method);
-    if (it == allowed_methods.end()){
-        std::cout << "Return 405 ERROR" << std::endl;
-    //  generateResponse(); // wrong function jut to avoid error xD
-    //  // return ERROR METHID NOT ALLOWD
-        exit(100);
-    }
-    if (this->request->method == "GET")
-    {
-        // here just teating the file output
+    // if (this->request->method == "GET")
+    // {
+    //     // here just teating the file output
 
-        std::cout << "********* CGI FOR GET IS CALLEEDDDD **********" << std::endl;
-        int piepfd[2];
-        std::cout << "URL: " << this->request->url << std::endl;
-        std::cout << "PATH INFO: " << this->cgi->PATH_INFO << std::endl;
-        if (pipe(piepfd) == -1)
-            std::cout << "Return 503 ERROR" << std::endl;
-        pid_t pid = fork();
-        if (pid == -1)
-            std::cout << "Return 503 ERROR" << std::endl;
-        /* child process */
-        if (pid == 0){
-            // std::fstream tmp;
+    //     std::cout << "********* CGI FOR GET IS CALLEEDDDD **********" << std::endl;
+    //     int piepfd[2];
+    //     std::cout << "URL: " << this->request->url << std::endl;
+    //     std::cout << "PATH INFO: " << this->cgi->PATH_INFO << std::endl;
+    //     if (pipe(piepfd) == -1)
+    //         std::cout << "Return 503 ERROR" << std::endl;
+    //     pid_t pid = fork();
+    //     if (pid == -1)
+    //         std::cout << "Return 503 ERROR" << std::endl;
+    //     /* child process */
+    //     if (pid == 0){
+    //         // std::fstream tmp;
 
-            // tmp.open("log.txt", std::fstream::out | std::fstream::trunc);
-            int toDelFD = open("cgipage.html", O_RDWR | O_CREAT, 0666);
-            std::cout << "CHILD PROCESS BEGIN" << std::endl;
-            dup2(int(piepfd[1]), 1);
-            // dup2(toDelFD, 1);
-            // std::cout << toDelFD << std::endl;
-            close(int(piepfd[0]));
-            close(int(piepfd[1]));
-            close(toDelFD);
+    //         // tmp.open("log.txt", std::fstream::out | std::fstream::trunc);
+    //         int toDelFD = open("cgipage.html", O_RDWR | O_CREAT, 0666);
+    //         std::cout << "CHILD PROCESS BEGIN" << std::endl;
+    //         dup2(int(piepfd[1]), 1);
+    //         // dup2(toDelFD, 1);
+    //         // std::cout << toDelFD << std::endl;
+    //         close(int(piepfd[0]));
+    //         close(int(piepfd[1]));
+    //         close(toDelFD);
 
-            try {
-                this->cgi->setEnv(this->request->method);
-                // std::cout << "QUERY_STRING " << getenv("QUERY_STRING") << std::endl;
-                extern char** environ;
-                char** env = environ;
-                this->cgi->PATH_INFO.erase(0, 1);
-                char* arg[] = {strdup(this->cgi->CGI_PATH.c_str()), strdup(this->cgi->PATH_INFO.c_str()), NULL};
-                char* path = strdup(this->cgi->CGI_PATH.c_str());
+    //         try {
+    //             this->cgi->setEnv(this->request->method);
+    //             // std::cout << "QUERY_STRING " << getenv("QUERY_STRING") << std::endl;
+    //             extern char** environ;
+    //             char** env = environ;
+    //             this->cgi->PATH_INFO.erase(0, 1);
+    //             char* arg[] = {strdup(this->cgi->CGI_PATH.c_str()), strdup(this->cgi->PATH_INFO.c_str()), NULL};
+    //             char* path = strdup(this->cgi->CGI_PATH.c_str());
                 
-                if (execve(path, arg, env) == -1)
-                    std::cout << "Return 503 ERROR" << std::endl;
-                exit(0);
-            } catch (...) {
-                std::cout << "Error" << std::endl;
-            }
-            exit (1);
-        }
-        char buff;
-        std::string body;
-        waitpid(-1, 0, 0);
-        close(int(piepfd[1]));
-        while (read(piepfd[0], &buff, 1) > 0){
-            // std::cout << "BODY: " << buff << std::endl;
-            body.push_back(buff);
-        }
-        close(int(piepfd[0]));
-        this->pollfd_.events |= POLLOUT;
-        int bytes = send(this->fd, body.c_str(),  body.size(), 0);
-        if (bytes == -1)
-            std::cout << "Return 503 ERROR" << std::endl;
-        this->pollfd_.events &= ~POLLOUT;
+    //             if (execve(path, arg, env) == -1)
+    //                 std::cout << "Return 503 ERROR" << std::endl;
+    //             exit(0);
+    //         } catch (...) {
+    //             std::cout << "Error" << std::endl;
+    //         }
+    //         exit (1);
+    //     }
+    //     char buff;
+    //     std::string body;
+    //     waitpid(-1, 0, 0);
+    //     close(int(piepfd[1]));
+    //     while (read(piepfd[0], &buff, 1) > 0){
+    //         // std::cout << "BODY: " << buff << std::endl;
+    //         body.push_back(buff);
+    //     }
+    //     close(int(piepfd[0]));
+    //     this->pollfd_.events |= POLLOUT;
+    //     int bytes = send(this->fd, body.c_str(),  body.size(), 0);
+    //     if (bytes == -1)
+    //         std::cout << "Return 503 ERROR" << std::endl;
+    //     this->pollfd_.events &= ~POLLOUT;
 
-        // std::string response = "HTTP/1.1 200 OK\n"
-        //                   "Date: Fri, 25 Mar 2023 09:30:00 GMT\n"
-        //                   "Server: Apache/2.4.48 (Unix) OpenSSL/1.1.1k\n"
-        //                   "Last-Modified: Thu, 24 Mar 2023 16:40:00 GMT\n"
-        //                   "ETag: \"10a0-5a88d50f8a940\"\n"
-        //                   "Accept-Ranges: bytes\n"
-        //                   "Content-Length: 2576\n"
-        //                   "Content-Type: text/html\n"
-        //                   "\n"
-        //                   "<!DOCTYPE html>\n"
-        //                   "<html>\n"
-        //                   "<head>\n"
-        //                   "  <title>Example</title>\n"
-        //                   "</head>\n"
-        //                   "<body>\n"
-        //                   "  <h1>Hello, World!</h1>\n"
-        //                   "  <p>This is an example response.</p>\n"
-        //                   "</body>\n"
-        //                   "</html>\n";
+        std::string response = "HTTP/1.1 200 OK\n"
+                          "Date: Fri, 25 Mar 2023 09:30:00 GMT\n"
+                          "Server: Apache/2.4.48 (Unix) OpenSSL/1.1.1k\n"
+                          "Last-Modified: Thu, 24 Mar 2023 16:40:00 GMT\n"
+                          "ETag: \"10a0-5a88d50f8a940\"\n"
+                          "Accept-Ranges: bytes\n"
+                          "Content-Length: 2576\n"
+                          "Content-Type: text/html\n"
+                          "\n"
+                          "<!DOCTYPE html>\n"
+                          "<html>\n"
+                          "<head>\n"
+                          "  <title>Example</title>\n"
+                          "</head>\n"
+                          "<body>\n"
+                          "  <h1>Hello, World!</h1>\n"
+                          "  <p>This is an example response.</p>\n"
+                          "</body>\n"
+                          "</html>\n";
 
-        // int bytes = send(this->fd, response.c_str(), response.size(), 0);
+        int bytes = send(this->fd, response.c_str(), response.size(), 0);
 
         if (bytes < 0)
             std::cout << "<h1>Error</h1>" << std::endl;
         // close(this->fd);
         // exit(1);
     //     // std::cout << "BODY: " << body << std::endl;
-    }
+    // }
 
     // else if (this->request->method == "POST")
     // {
