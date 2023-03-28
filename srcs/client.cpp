@@ -143,8 +143,11 @@ void Client::handleRequest()
 
         if (this->request->bodyType == BodyType::CHUNKED)
         {
-            if (this->request->bodyString.empty())
-                this->request->state = Stat::CHUNKED_SIZE;
+            // if (!(this->request->state & (Stat::CHUNKED_SIZE | Stat::CHUNKED_DATA)))
+            // {
+            //     std::cout << RED << "this should be printed only once" << RESET << std::endl;
+            //     this->request->state = Stat::CHUNKED_SIZE;
+            // }
             this->request->ParseChunkedBody(); // ! : this function is not working ,still working on ti
         }
 

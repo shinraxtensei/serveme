@@ -61,6 +61,10 @@ void Parser::parse_directives(int type)
                 Parser::getHttp()->servers.back().locations.back().Return.first = std::stoi(pair.second[0]);
                 Parser::getHttp()->servers.back().locations.back().Return.second = pair.second[1];
         }
+        if (pair.first == "root")
+        {
+            Parser::getHttp()->servers.back().locations.back().root = pair.second[0];
+        }
     }
     else if (type == 3)
     {
@@ -69,6 +73,10 @@ void Parser::parse_directives(int type)
         {
                 Parser::getHttp()->servers.back().locations.back().locations.back().Return.first = std::stoi(pair.second[0]);
                 Parser::getHttp()->servers.back().locations.back().locations.back().Return.second = pair.second[1];
+        }
+        if (pair.first == "root")
+        {
+            Parser::getHttp()->servers.back().locations.back().locations.back().root = pair.second[0];
         }
     }
     else
@@ -195,10 +203,15 @@ void Parser::parse()
     //     std::cout << "server_name : " << server.server_name << std::endl;
     //     std::cout << "root : " << server.root << std::endl;
     //     std::cout << "index : " << server.index[0] << std::endl;
-    //     std::cout << "error_page : "<< server.error_page.first << " " << server.error_page.second[0]  << std::endl;
+    //     std::cout << "error_page : "<< server.error_page.first ;
+    //     for (auto error : server.error_page.second)
+    //         std::cout << " " << error; std::cout << std::endl;
+    //     // std::cout << "error_page : "<< server.error_page.first << " " << server.error_page.second[0]  << std::endl;
     //     std::cout << "autoindex : " << server.autoindex << std::endl;
     //     std::cout << "client_max_body_size : " << server.client_max_body_size << std::endl;
-    //     std::cout << "allowed_methods : " << server.allowed_methods[0] << std::endl;
+    //     for(auto method : server.allowed_methods)
+    //         std::cout << "allowed_methods : " << method << std::endl;
+    //     // std::cout << "allowed_methods : " << server.allowed_methods[0] << std::endl;
     //     std::cout << "ip : " << server.ipPort.first << std::endl;
     //     std::cout << "port : " << server.ipPort.second << std::endl;
     //     std::cout << "---------------------------------" << std::endl;
@@ -206,6 +219,7 @@ void Parser::parse()
     //     for (auto location : server.locations)
     //     {
     //         std::cout  << "location " <<std::endl; 
+    //         std::cout << BLUE << "root" << RESET << " : " << location.root << std::endl;
     //         std::cout<< BLUE << "location path :"<< RESET <<  location.path << std::endl;
     //         std::cout << BLUE<< "return :" << RESET <<  location.Return.first << " " << location.Return.second << std::endl;
     //     }

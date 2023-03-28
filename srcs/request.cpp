@@ -180,6 +180,7 @@ void Request::ParseBody()
     static int bodySize = 0;
     char buffer[1024];
 
+    std::cout << YELLOW  << "content-length: " << this->contentLength << std::endl;
     int bytesRead = read(this->client_fd, buffer, std::min((this->contentLength - bodySize), 1024));
     if (bytesRead == -1)
         throw std::runtime_error("Error: read() failed.");
@@ -189,10 +190,13 @@ void Request::ParseBody()
         return;
     }
         // throw std::runtime_error("Error: read() returned 0.");
-    bodySize += bytesRead;
     this->bodyString += std::string(buffer, bytesRead);
     if ((int)this->bodyString.size() >= this->contentLength)
+    {
+        std::cout << RED  << this->bodyString.size() << RESET << std::endl;
+        std::cout << RED << "END" << RESET << std::endl;
         this->state = Stat::END;
+    }
 
     std::cout << this->bodyString << std::endl;
 }
@@ -201,49 +205,104 @@ void Request::ParseBody()
 
 
 // TODO :  remake this shit
-void Request::ParseChunkedBody()
-{
-    std::cout << CYAN << "STATE: " << (this->state == BODY ? "BODY chunked" : "weird") << RESET << std::endl;
-    if (this->state == Stat::END)
+
+void Request::ParseChunkedBody() {
+    if (this->state == Stat::END) {
+        std::cout << "STAT: END" << std::endl;
         return;
-    std::string stringSize;
-    if (this->state & Stat::CHUNKED_SIZE)
-    {
-        std::cout << "CHUNKED SIZE" << std::endl;
-       
-        int bytesRead = read(this->client_fd, &stringSize, 1024);
-        if (bytesRead == -1)
-            throw std::runtime_error("Error: read() failed.");
-        if (bytesRead == 0)
-            throw std::runtime_error("Error: read() returned 0.");
-        if (stringSize == "\r\n" || stringSize == "\n")        
-            return;
-
-        if (stringSize.find("\r\n") != std::string::npos)
-            stringSize = stringSize.substr(0, stringSize.find("\r\n"));
-        else if (stringSize.find("\n") != std::string::npos)
-            stringSize = stringSize.substr(0, stringSize.find("\n"));
-
-        if (stringSize.find_first_not_of("0123456789") != std::string::npos)
-            throw std::runtime_error("Error: Invalid chunk size.");
-
-        std::cout << "stringSize: " << stringSize << std::endl;
-        this->state = Stat::CHUNKED_DATA;
     }
-    if (this->state & Stat::CHUNKED_DATA)
+
+    static int chunkSize = 0;
+    if (this->state & Stat::CHUNKED_START)
     {
-        std::cout << "CHUNKED DATA" << std::endl;
-        char buffer[atoi(stringSize.c_str())];
-        int bytesRead = read(this->client_fd, buffer, atoi(stringSize.c_str()));
-        if (bytesRead == -1)
-            throw std::runtime_error("Error: read() failed.");
-        if (bytesRead == 0)
-            throw std::runtime_error("Error: read() returned 0.");
-        this->bodyString += std::string(buffer, bytesRead);
+        std::cout << "STAT: CHUNKED START" << std::endl;
         this->state = Stat::CHUNKED_SIZE;
     }
-    std::cout << this->bodyString << std::endl;
+    if (this->state & Stat::CHUNKED_SIZE) {
+
+        std::cout << "STAT: CHUNKED SIZE" << std::endl;
+
+        int bytesRead = 0;
+        char buffer[1];
+        std::string line;
+ 
+        // // bytesRead = read(this->client_fd, buffer, 1);
+        while(line.find("\r\n") == std::string::npos && line.find("\n") == std::string::npos) {
+            bytesRead = read(this->client_fd, buffer, 1);
+            if (bytesRead == -1) {
+                throw std::runtime_error("Error: read() failed.");
+            }
+            if (bytesRead == 0) {
+                std::cout << "READ 0" << std::endl;
+                // throw std::runtime_error("Error: read() returned 0.");
+            }
+            line += std::string(buffer, bytesRead);
+        }
+        std::cout << "line: " << line << std::endl;
+
+        if (line == "\r\n" || line == "\n") {
+        // //     // End of chunked body
+        // //     // this->state = Stat::END;
+            line = "";
+            return;
+        }
+        if (line.find("\r\n") != std::string::npos || line.find("\n") != std::string::npos) 
+        {
+        //     // End of chunk size
+            if (line.find("\r\n") != std::string::npos)
+                line = line.substr(0, line.find("\r\n"));
+            else
+                line = line.substr(0, line.find("\n"));
+            if (line.find_first_not_of("0123456789abcdefABCDEF") != std::string::npos)
+                throw std::runtime_error("Error: invalid chunk size.");
+            chunkSize = strtol(line.c_str(), NULL, 16);
+            std::cout <<YELLOW << "chunkSize before reading body : " << chunkSize << RESET << std::endl;
+            line = "";
+
+            this->state = Stat::CHUNKED_DATA;
+        }
+        if (chunkSize == 0) {
+        //     // End of chunked body
+            std::cout << "chunkSize is 0" << std::endl;
+            std::cout << "this is the bodyString: " << this->bodyString << std::endl;
+            this->state = Stat::END;
+            return;
+        }
+    }
+
+    else if (this->state & Stat::CHUNKED_DATA) {
+        // Parse the chunk data
+        std::cout << "STAT: CHUNKED DATA" << std::endl;
+        this->state = Stat::CHUNKED_SIZE;
+        char buffer[1024] ;
+        int bytesRead = 0;
+
+        bytesRead = read(this->client_fd, buffer, std::min(chunkSize, (int)sizeof(buffer)));
+        if (bytesRead == -1) {
+            throw std::runtime_error("Error: read() failed.");
+        }
+        if (bytesRead == 0) 
+        {
+
+            std::cout << "DATA READ 0" << std::endl;
+        //     // throw std::runtime_error("Error: read() returned 0.");
+        }
+        std::cout << "bytesRead: " << bytesRead << std::endl;
+        this->bodyString += std::string(buffer,bytesRead);
+        std::cout << GREEN << this->bodyString<< RESET << std::endl;
+        chunkSize -= bytesRead;
+        // chunkSize --;
+        std::cout << YELLOW << "chunkSize after reading body : " << chunkSize  << RESET<< std::endl;
+        if (chunkSize <= 0) {
+            std::cout << "chunkSize is  : " << chunkSize << std::endl;
+        // //     // End of current chunk
+            this->state = Stat::CHUNKED_SIZE;
+        }
+        
+    }
 }
+
+
 
 void Request::ParseMultiPartBody()
 {
