@@ -109,31 +109,115 @@ void	Response::checkCgi()
 	}
 }
 
+void	Response::handleGet(int type, std::string newPath)
+{
+	// struct    stat    infos;
+
+	// if (type == DIR)
+	// {
+	// 	if (!this->client->location->index.empty())
+	// 	{
+	// 		std::vector <std::string>::iterator	iter;
+	// 		for (iter = this->client->location->index.begin(); iter < this->client->location->index.end(); iter++)
+	// 		{
+	// 			if (stat((this->client->path + (*iter)).c_str(), &infos) == 0)
+	// 			{
+	// 				this->client->path = this->client->path + (*iter);
+	// 				break ;
+	// 			}
+	// 		}
+	// 	}
+	// 	// this->client->path = this->client->path + this->client->location->index;
+	// }
+	std::cout << "handling file" << std::endl;
+	if (type == FILE)
+	{
+		std::cout << "hnaa" << std::endl;
+        if (access(newPath.c_str(), R_OK) == 0)
+        {
+			std::ifstream file(newPath.c_str());
+			if (!file.good()) {
+    			std::cerr << "Error opening file\n";
+    			return ;
+			}
+    		std::stringstream buffer;
+    		buffer << file.rdbuf();
+    		this->body = buffer.str();
+    		file.close();
+			this->responseStr =
+    			"HTTP/1.1 200 OK\r\n"
+    			"Content-Type: text/html\r\n"
+    			"Content-Length: " + this->body + "\r\n"
+				"Connection: close\r\n\r\n";
+			std::cout << "----------------------------" << std::endl;
+			std::cout << "response: " << this->responseStr << std::endl;
+			std::cout << "----------------------------" << std::endl;
+			send(this->client_fd, this->responseStr.c_str(), this->responseStr.length(), 0);
+		}
+		else
+			std::cout << "access denied" << std::endl;
+	}
+}
+
 void    Response::checkPath()
 {
     struct    stat    infos;
 
-    if (stat(this->client->path.c_str(), &infos) == 0)
-        std::cout << "File or directory not found" << std::endl;
+	std::cout << "in check path" << std::endl;
+	std::cout << "path: " << this->client->path << std::endl;
+	std::string	newPath = this->client->path.substr(this->client->path.find_first_of('/') + 1, this->client->path.length() - this->client->path.find_first_of('/') + 1);
+	std::cout << "newPath: " << newPath << std::endl;
+    if (stat(newPath.c_str(), &infos) == 0)
+        std::cout << "File found" << std::endl;
     if (S_ISDIR(infos.st_mode))
+	{
         std::cout << "It's a directory" << std::endl;
-    else if (S_ISREG(infos.st_mode))
+        // if (access(this->client->path.c_str(), R_OK) == 0)
+        // {
+		// 	if (this->client->request->method == "GET")
+		// 		this->handleGet(DIR);
+        // }
+        // else
+        //     std::cout << "permission denied" << std::endl;
+	}
+    if (S_ISREG(infos.st_mode))
     {
         std::cout << "It's a file" << std::endl;
-        if (access(this->client->path.c_str(), R_OK) == 0)
-        {
-            // this->handleGet();
-        }
+		if (this->client->request->method == "GET")
+			this->handleGet(FILE, newPath);
         else
-            std::cout << "permission denied" << std::endl;
+            std::cout << "Forbidden " << std::endl;
     }
+}
+
+std::string	removeBackSlashes(std::string url)
+{
+	if (url.size() != 1)
+	{
+		while (url.back() == '/')
+			url.pop_back();
+	}
+	return (url);
 }
 
 void    Response::handleNormalReq()
 {
     this->client = &Servme::getCore()->map_clients[this->client_fd];
+	this->client->request->url = removeBackSlashes(this->client->request->url);
+	std::cout << "url after removing back slashes: " << this->client->request->url << std::endl;
+	std::cout << "url before matching: " << this->client->request->url << std::endl;
     this->matchLocation(this->client->server->locations);
-	this->client->request->url.substr(client->request->url.find_first_of('/'), client->request->url.size() - client->request->url.find_first_of('/'));
-    this->client->path = this->client->location->root + this->client->request->url;
+	std::cout << "location found " << this->client->location->path << std::endl;
+	std::cout << "location root " << this->client->location->root << std::endl;
+	std::cout << "url after matching: " << this->client->request->url << std::endl;
+	if (this->client->request->url != this->client->location->path)
+	{
+		this->client->request->url = this->client->request->url.erase(this->client->request->url.find(this->client->location->path), this->client->location->path.length());
+		std::cout << "url after substr: " << this->client->request->url << std::endl;
+		this->client->path = this->client->location->root + this->client->request->url;
+	}
+	else
+		this->client->path = this->client->location->root;
+	std::cout << "Final path: " << this->client->path << std::endl;
     this->checkPath();
 }

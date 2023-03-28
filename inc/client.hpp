@@ -17,8 +17,8 @@ enum BodyType
     MULTIPART
 };
 
-
-
+#define FILE 1
+#define DIR 2
 
 enum Stat
 {
@@ -96,7 +96,9 @@ class Response
 			int client_fd;
 			Client	*client; // this is a pointer to its parent client
 			Http	*http;
-			Location	*location;
+			
+			std::string		responseStr;
+			std::string		body;
 
 			Response() {};
 			~Response() {};
@@ -107,7 +109,7 @@ class Response
 			void	checkPath();
 			std::vector<Location>	getLocations(std::vector<Location> locations);
 			void	handleNormalReq();
-			// void	handleGet();
+			void	handleGet(int type, std::string newPath);
 			// void	handlePost();
 			void	handleDelete();
 };
