@@ -18,6 +18,10 @@ public:
     std::vector<std::string> lines;
     std::vector<std::string> all_directs;
     std::istringstream input_stream;
-
     std::string input;
+    
+    int streamPos;
+    void refrechPos();
+
+
 };
