@@ -120,8 +120,12 @@ void Client::handleRequest()
             this->request->state = Stat::FIRSTLINE;
         if (line.find("\r\n") != std::string::npos || line.find("\n") != std::string::npos)
         {
-            if ((line == "\r\n" || line == "\n") && this->request->contentLength)
+            if (line == "\r\n" || line == "\n")
+            {
+                if (this->request->method == "GET")
+                    this->response->GENERATE_RES = true;   
                 this->request->state = Stat::BODY;
+            }
             if (this->request->state & Stat::FIRSTLINE)
             {
                 this->request->ParseFirstLine(line);
@@ -148,6 +152,13 @@ void Client::handleRequest()
             //     std::cout << RED << "this should be printed only once" << RESET << std::endl;
             //     this->request->state = Stat::CHUNKED_SIZE;
             // }
+            static int flag = 0;
+            if (flag == 0)
+            {
+                flag = 1;
+                std::cout << BLUE <<"this is the start of chunked body" << RESET << std::endl;
+                this->request->state = Stat::CHUNKED_START;
+            }
             this->request->ParseChunkedBody(); // ! : this function is not working ,still working on ti
         }
 
@@ -323,6 +334,12 @@ void Client::cgi_handler(){
     //     }
     // }
 
+    if (this->response->GENERATE_RES)
+    {
+        std::cout << "generate response" << std::endl;
+        // this->generateResponse();
+        // this->response->GENERATE_RES = false;
+    }
 }
 
 void Client::generateResponse()

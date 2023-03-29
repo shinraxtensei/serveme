@@ -45,7 +45,7 @@ enum Stat
     END = 1 << 11 ,// for both chunked and multipart
 
     // combined states
-    BODY = CHUNKED_START | CHUNKED_SIZE | CHUNKED_DATA | BOUNDARY | MULTI_PART_HEADERS | END
+    BODY = (CHUNKED_START | CHUNKED_SIZE | CHUNKED_DATA | BOUNDARY | MULTI_PART_HEADERS | END)
 };
 
 
@@ -101,6 +101,7 @@ class Response
 			Client	*client; // this is a pointer to its parent client
 			Http	*http;
 			Location	*location;
+            bool GENERATE_RES = false;
 
 			Response() {};
 			~Response() {};

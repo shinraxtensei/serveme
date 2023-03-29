@@ -218,6 +218,7 @@ void Request::ParseChunkedBody() {
         std::cout << "STAT: CHUNKED START" << std::endl;
         this->state = Stat::CHUNKED_SIZE;
     }
+
     if (this->state & Stat::CHUNKED_SIZE) {
 
         std::cout << "STAT: CHUNKED SIZE" << std::endl;
@@ -273,7 +274,6 @@ void Request::ParseChunkedBody() {
     else if (this->state & Stat::CHUNKED_DATA) {
         // Parse the chunk data
         std::cout << "STAT: CHUNKED DATA" << std::endl;
-        this->state = Stat::CHUNKED_SIZE;
         char buffer[1024] ;
         int bytesRead = 0;
 
@@ -285,7 +285,6 @@ void Request::ParseChunkedBody() {
         {
 
             std::cout << "DATA READ 0" << std::endl;
-        //     // throw std::runtime_error("Error: read() returned 0.");
         }
         std::cout << "bytesRead: " << bytesRead << std::endl;
         this->bodyString += std::string(buffer,bytesRead);
@@ -295,7 +294,6 @@ void Request::ParseChunkedBody() {
         std::cout << YELLOW << "chunkSize after reading body : " << chunkSize  << RESET<< std::endl;
         if (chunkSize <= 0) {
             std::cout << "chunkSize is  : " << chunkSize << std::endl;
-        // //     // End of current chunk
             this->state = Stat::CHUNKED_SIZE;
         }
         
