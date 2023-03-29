@@ -118,8 +118,8 @@ void Client::handleRequest()
             }
             line = "";
         }
-        // if (this->request->buffer.find("\r\n\r\n") != std::string::npos)
-        //     this->request->state = Stat::BODY;
+        if (this->request->buffer.find("\r\n\r\n") != std::string::npos)
+            this->request->state = Stat::BODY;
     }
 
     else if (this->request->state & Stat::BODY)
@@ -149,8 +149,8 @@ void Client::handleRequest()
             this->request->ParseBody();
 
 
-        this->generateResponse();
         // writeResponse();
+    	this->generateResponse();
     }
     if (this->response->GENERATE_RES)
     {
