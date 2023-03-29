@@ -123,7 +123,7 @@ void Client::handleRequest()
             if (line == "\r\n" || line == "\n")
             {
                 if (this->request->method == "GET")
-                    this->response->GENERATE_RES = true;   
+                    this->response->GENERATE_RES = true;
                 this->request->state = Stat::BODY;
             }
             if (this->request->state & Stat::FIRSTLINE)
@@ -145,6 +145,8 @@ void Client::handleRequest()
     else if (this->request->state & Stat::BODY)
     {
 
+
+        static int flag = 0;
         if (this->request->bodyType == BodyType::CHUNKED)
         {
             // if (!(this->request->state & (Stat::CHUNKED_SIZE | Stat::CHUNKED_DATA)))
@@ -152,7 +154,6 @@ void Client::handleRequest()
             //     std::cout << RED << "this should be printed only once" << RESET << std::endl;
             //     this->request->state = Stat::CHUNKED_SIZE;
             // }
-            static int flag = 0;
             if (flag == 0)
             {
                 flag = 1;
@@ -163,7 +164,15 @@ void Client::handleRequest()
         }
 
         else if (this->request->bodyType == BodyType::MULTIPART)
+        {
+            if (flag == 0)
+            {
+                flag = 1;
+                std::cout << BLUE <<"this is the start of multipart body" << RESET << std::endl;
+                this->request->state = Stat::MULTI_PART_START;
+            }
             this->request->ParseMultiPartBody(); // ! : this function is not working ,still working on ti
+        }
         else
             this->request->ParseBody();
 
@@ -176,12 +185,12 @@ void Client::handleRequest()
         
         this->pollfd_.events &= ~POLLOUT;
     }
-    if (this->response->GENERATE_RES)
-    {
-        std::cout << "generate response" << std::endl;
-        this->generateResponse();
+    // if (this->response->GENERATE_RES)
+    // {
+    //     std::cout << "generate response" << std::endl;
+    //     this->generateResponse();
     //     // this->response->GENERATE_RES = false;
-    }
+    // }
 }
 
 void Client::cgi_handler(){
