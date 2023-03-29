@@ -1,5 +1,11 @@
 #include "../inc/client.hpp"
 
+
+Response::Response()
+{
+	this->GENERATE_RES = false;
+}
+
 void	Response::checkAllowedMethods()
 {
 	std::vector<std::string>			methods;

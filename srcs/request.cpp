@@ -1,17 +1,37 @@
 #include "../inc/core.hpp"
 
+Multipart_ENV::Multipart_ENV()
+{
+
+}
+
+Multipart_ENV::Multipart_ENV(std::string filename, std::string contenType , std::string data)
+{
+    this->file_name = filename;
+    this->content_type = contenType;
+    this->data = data;
+}
+
+Multipart_ENV::~Multipart_ENV()
+{
+
+}
+
 Request::Request()
 {
+
     this->state = Stat::START;
     this->bodyType = BodyType::NONE;
     this->host = "";
     this->connection = "";
-    this->contentLength = 0;
+    this->contentLength = 1024;
     this->transferEncoding = "";
     this->method = "";
     this->url = "";
     this->version = "";
     this->bodyString = "";
+    this->contentType = "";
+    this->boundary = "";
 }
 
 Request &Request::operator=(const Request &other)
@@ -41,6 +61,7 @@ Request::Request(const Request &other)
 
 Request::~Request()
 {
+
 }
 
 
@@ -113,7 +134,7 @@ void Request::ParseHeaders(std::string &line)
     if (line == "\r\n" || line == "\n")
         return;
 
-    std::pair<std::string, std::vector<std::string>> pair;
+    std::pair<std::string, std::vector<std::string> > pair;
     std::string key;
     std::string value;
     Parser::lex()->set_input(line);
@@ -135,7 +156,7 @@ void Request::ParseHeaders(std::string &line)
 
     if (key == "content-length:")
     {
-        this->bodyType = BodyType::NONE;
+        // this->bodyType = BodyType::NONE;
         Parser::lex()->set_input(value);
         if (Parser::lex()->next_token(false).find_first_not_of("0123456789") != std::string::npos)
             std::cout << "Error: Invalid content-length." << std::endl;
@@ -152,14 +173,19 @@ void Request::ParseHeaders(std::string &line)
             this->bodyType = BodyType::CHUNKED;
         }
         
-        // TODO : if it has chunked, then it should be chunked
         this->transferEncoding = value;
     }
     if (key == "content-type:")
     {
-        // TODO : if it has multipart, then it should be multipart
-        if (value.find("multipart") != std::string::npos)
+        if (value.find("multipart/form-data") != std::string::npos)
+        {
+
+            this->boundary = value.substr(value.find("boundary=") + 9);
+            Parser::lex()->set_input(this->boundary);
+            boundary = Parser::lex()->next_token(true);
             this->bodyType = BodyType::MULTIPART;       
+
+        }
     }
 
     if (key == "connection:")
@@ -201,9 +227,6 @@ void Request::ParseBody()
 }
 
 
-
-
-// TODO :  remake this shit
 
 void Request::ParseChunkedBody() {
     if (this->state == Stat::END) {
@@ -303,5 +326,142 @@ void Request::ParseChunkedBody() {
 
 void Request::ParseMultiPartBody()
 {
+    if (this->state & Stat::END)
+        return;
+    std::cout << CYAN << "STATE: " << (this->state & BODY ? "BODY multiPart" : "weird") << RESET << std::endl;
+
+// ? : i should  read with a 1024 buffer , while keeping track of the content-length
+// ? : after reading i should give the buffer to a stringstream and parse it
+// ? : the first state will be the boundary since its the first thing in the body after the headers
+
+
+    char buffer[1024];
+    int bytesRead = 0;
+    bytesRead = read(this->client_fd, buffer, sizeof(buffer));
+    if (bytesRead == -1)
+        throw std::runtime_error("Error: read() failed.");
+    if (bytesRead == 0)
+        std::cout << "READ 0" << std::endl;
+        // throw std::runtime_error("Error: read() returned 0.");
+    // this->ss << std::string(buffer, bytesRead);
+    this->bodyString += std::string(buffer, bytesRead);
+    Parser::lex()->set_input(this->bodyString);
+    // Parser::lex()->refrechPos();
+    // std::cout << GREEN << "bodyString: " << this->bodyString << RESET << std::endl;
+    // std::cout << Parser::lex()->streamPos << std::endl;
+    // static int streamPos = Parser::lex()->input_stream.tellg();
+
+
+
+
+    if (this->state & Stat::MULTI_PART_START)
+    {
+        std::cout << "STATE: MULTI_PART_START" << std::endl;
+        this->state = Stat::MULTI_PART_BOUNDARY;
+    }
+
+
+
+    if (this->state & Stat::MULTI_PART_BOUNDARY)
+    {
+        std::cout << "STATE: MULTI_PART_BOUNDARY" << std::endl;
+
+        std::string boundary;
+        // Parser::lex()->set_input(this->ss.str());
+        // Parser::lex()->input_stream.seekg(streamPos);
+        if (Parser::lex()->streamPos != 0)
+            Parser::lex()->refrechPos();
+        boundary = Parser::lex()->next_token(true);
+        std::cout << "boundary: " << boundary << std::endl;
+        // streamPos = Parser::lex()->input_stream.tellg();
+
+        // boundary = Parser::lex()->next_token(true);
+        // while ( !this->ss.eof() && this->ss.peek() != '\r' && this->ss.peek() != '\n')
+        // {
+
+            // boundary += this->ss.get();
+            // if (this->ss.eof())
+                // break;
+        
+            if (boundary == this->boundary)
+            {
+                // streamPos = Parser::lex()->input_stream.tellg();
+                std::cout << "BOUNDARY FOUND" << std::endl;
+                this->state = Stat::MULTI_PART_HEADERS;
+            }
+        // }
+    }
+
+    else if (this->state & Stat::MULTI_PART_HEADERS)
+    {
+        std::cout << "STATE: MULTI_PART_HEADERS" << std::endl;
+
+        static std::string fieldName= "";
+        static std::string filename = "";
+        static std::string contentType = "";
+        static std::string data = "";
+
+        // if (Parser::lex()->next_token(false) == "EOF")
+            // Parser::lex()->set_input(this->ss.str());
+        // Parser::lex()->input_stream.seekg(streamPos);
+        // streamPos = Parser::lex()->input_stream.tellg();
+        Parser::lex()->refrechPos();
+        
+        if (Parser::match("Content-Disposition:"))
+        {
+                std::cout<< YELLOW << "Content-Disposition:" <<  RESET<< std::endl;
+            if (Parser::match("form-data;"))
+            {
+                std::cout<< YELLOW << "form-data" <<  RESET<< std::endl;
+                if (Parser::lex()->next_token(false).find("name=") != std::string::npos)
+                {
+                    fieldName = Parser::lex()->next_token(true);
+                    // fieldName = fieldName.substr(fieldName.find("=") + 1);
+                    fieldName = fieldName.substr(fieldName.find_first_of("\"") + 1 , fieldName.find_last_of("\"") - fieldName.find_first_of("\"") - 1);
+
+
+                    // if (std::string(this->boundary).find_first_not_of(" \t\n\v\f\r") == std::string::npos)
+                        // this->boundary = std::string(this->boundary).substr(0, this->boundary.size()-2); // remove CRLF at the end
+
+                }
+                if (Parser::lex()->next_token(false).find("filename=") != std::string::npos)
+                {
+                    filename = Parser::lex()->next_token(true);
+                    filename = filename.substr(filename.find_first_of("\"") + 1 , filename.find_last_of("\"") - filename.find_first_of("\"") - 1);
+                }
+            }
+        }
+        if (Parser::match("Content-Type:"))
+        {
+            std::cout<< YELLOW << "Content-Type:" <<  RESET<< std::endl;
+            contentType = Parser::lex()->next_token(true);
+        }
+
+
+        std::cout << GREEN << "fieldName: " << fieldName << std::endl;
+        std::cout << "filename: " << filename << std::endl;
+        std::cout << "contentType: " << contentType << std::endl;
+        std::cout << "data: " << data << RESET <<  std::endl;
+
+        this->multipart_env.insert(std::pair<std::string, Multipart_ENV>(fieldName, Multipart_ENV(filename, contentType, data)));
+
+        this->state = Stat::MULTI_PART_DATA;
+    }
+    
+
+
+    
+    else if (this->state & Stat::MULTI_PART_DATA)
+    {
+        std::cout << "STATE: MULTI_PART_DATA" << std::endl;
+
+        Parser::lex()->refrechPos();
+        std::string data = Parser::lex()->next_token(true);
+
+
+
+        this->state = Stat::MULTI_PART_BOUNDARY;
+    }
+
 
 }
