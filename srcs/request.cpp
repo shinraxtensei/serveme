@@ -6,7 +6,7 @@ Request::Request()
     this->bodyType = BodyType::NONE;
     this->host = "";
     this->connection = "";
-    this->contentLength = 0;
+    this->contentLength = 1024;
     this->transferEncoding = "";
     this->method = "";
     this->url = "";

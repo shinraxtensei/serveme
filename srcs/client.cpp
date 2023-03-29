@@ -138,8 +138,8 @@ void Client::handleRequest()
             line = "";
         }
         std::cout << this->request->contentLength << std::endl;
-        // if (this->request->buffer.find("\r\n\r\n") != std::string::npos)
-        //     this->request->state = Stat::BODY;
+        if (this->request->buffer.find("\r\n\r\n") != std::string::npos)
+            this->request->state = Stat::BODY;
     }
 
     else if (this->request->state & Stat::BODY)
@@ -168,13 +168,19 @@ void Client::handleRequest()
             this->request->ParseBody();
 
 
-        this->generateResponse();
+        // this->generateResponse();
         // writeResponse();
     }
     else if (this->request->state == Stat::END)
     {
         
         this->pollfd_.events &= ~POLLOUT;
+    }
+    if (this->response->GENERATE_RES)
+    {
+        std::cout << "generate response" << std::endl;
+        this->generateResponse();
+    //     // this->response->GENERATE_RES = false;
     }
 }
 
@@ -209,32 +215,65 @@ void Client::cgi_handler(){
     //  // return ERROR METHID NOT ALLOWD
         exit(100);
     }
+    int piepfd[2];
+    if (pipe(piepfd) == -1)
+        std::cout << "Return 503 ERROR" << std::endl;
     if (this->request->method == "GET")
     {
         // here just teating the file output
 
         std::cout << "********* CGI FOR GET IS CALLEEDDDD **********" << std::endl;
-        int piepfd[2];
         std::cout << "URL: " << this->request->url << std::endl;
         std::cout << "PATH INFO: " << this->cgi->PATH_INFO << std::endl;
-        if (pipe(piepfd) == -1)
-            std::cout << "Return 503 ERROR" << std::endl;
         pid_t pid = fork();
         if (pid == -1)
             std::cout << "Return 503 ERROR" << std::endl;
         /* child process */
         if (pid == 0){
-            // std::fstream tmp;
-
-            // tmp.open("log.txt", std::fstream::out | std::fstream::trunc);
-            int toDelFD = open("cgipage.html", O_RDWR | O_CREAT, 0666);
             std::cout << "CHILD PROCESS BEGIN" << std::endl;
             dup2(int(piepfd[1]), 1);
-            // dup2(toDelFD, 1);
+            close(int(piepfd[0]));
+            close(int(piepfd[1]));
+            try {
+                this->cgi->setEnv(this->request->method);
+                extern char** environ;
+                char** env = environ;
+                this->cgi->PATH_INFO.erase(0, 1);
+                char* arg[] = {strdup(this->cgi->CGI_PATH.c_str()), strdup(this->cgi->PATH_INFO.c_str()), NULL};
+                char* path = strdup(this->cgi->CGI_PATH.c_str());
+                
+                if (execve(path, arg, env) == -1)
+                    std::cout << "Return 503 ERROR" << std::endl;
+                exit(0);
+            } catch (...) {
+                std::cout << "Error" << std::endl;
+            }
+            exit (1);
+        }
+    }
+    else if (this->request->method == "POST")
+    {
+        // random string file_name;
+        std::cout << "********* CGI FOR GET IS CALLEEDDDD **********" << std::endl;
+        std::cout << "URL: " << this->request->url << std::endl;
+        std::cout << "PATH INFO: " << this->cgi->PATH_INFO << std::endl;
+        pid_t pid = fork();
+        if (pid == -1)
+            std::cout << "Return 503 ERROR" << std::endl;
+        /* child process */
+        if (pid == 0){
+            std::ofstream tmp("tmpfile");
+
+            this->request->bodyString = this->request->bodyString.erase(this->request->bodyString.find_last_of("\r\n\r\n") + 1); 
+            tmp << this->request->bodyString;
+            std::cout << "CHILD PROCESS BEGIN" << std::endl;
+            // dup2(int(piepfd[1]), 1);
+            int fd = open("tmpfile", O_RDONLY);
+            dup2(fd, 0);
             // std::cout << toDelFD << std::endl;
             close(int(piepfd[0]));
             close(int(piepfd[1]));
-            close(toDelFD);
+            close(fd);
 
             try {
                 this->cgi->setEnv(this->request->method);
@@ -253,93 +292,60 @@ void Client::cgi_handler(){
             }
             exit (1);
         }
-        char buff;
-        std::string body;
-        waitpid(-1, 0, 0);
-        close(int(piepfd[1]));
-        while (read(piepfd[0], &buff, 1) > 0){
-            // std::cout << "BODY: " << buff << std::endl;
-            body.push_back(buff);
-        }
-        close(int(piepfd[0]));
-        this->pollfd_.events |= POLLOUT;
-        int bytes = send(this->request->client_fd, body.c_str(),  body.size(), 0);
-        if (bytes == -1)
-            std::cout << "Return 503 ERROR" << std::endl;
-        this->pollfd_.events &= ~POLLOUT;
+    }
+    // if (this->request->state == BODY){
 
-        // std::string response = "HTTP/1.1 200 OK\n"
-        //                   "Date: Fri, 25 Mar 2023 09:30:00 GMT\n"
-        //                   "Server: Apache/2.4.48 (Unix) OpenSSL/1.1.1k\n"
-        //                   "Last-Modified: Thu, 24 Mar 2023 16:40:00 GMT\n"
-        //                   "ETag: \"10a0-5a88d50f8a940\"\n"
-        //                   "Accept-Ranges: bytes\n"
-        //                   "Content-Length: 2576\n"
-        //                   "Content-Type: text/html\n"
-        //                   "\n"
-        //                   "<!DOCTYPE html>\n"
-        //                   "<html>\n"
-        //                   "<head>\n"
-        //                   "  <title>Example</title>\n"
-        //                   "</head>\n"
-        //                   "<body>\n"
-        //                   "  <h1>Hello, World!</h1>\n"
-        //                   "  <p>This is an example response.</p>\n"
-        //                   "</body>\n"
-        //                   "</html>\n";
-        // // this->request->client_fd;
-        // int bytes = send(this->request->client_fd, response.c_str(), response.size(), 0);
+    //     this->pollfd_.events |= POLLOUT;
+    //     std::string response = "HTTP/1.1 200 OK\n"
+    //                       "Date: Fri, 25 Mar 2023 09:30:00 GMT\n"
+    //                       "Server: Apache/2.4.48 (Unix) OpenSSL/1.1.1k\n"
+    //                       "Last-Modified: Thu, 24 Mar 2023 16:40:00 GMT\n"
+    //                       "ETag: \"10a0-5a88d50f8a940\"\n"
+    //                       "Accept-Ranges: bytes\n"
+    //                       "Content-Length: 2576\n"
+    //                       "Content-Type: text/html\n"
+    //                       "\n"
+    //                       "<!DOCTYPE html>\n"
+    //                       "<html>\n"
+    //                       "<head>\n"
+    //                       "  <title>Example</title>\n"
+    //                       "</head>\n"
+    //                       "<body>\n"
+    //                       "  <h1>Hello, World!</h1>\n"
+    //                       "  <p>This is an example response.</p>\n"
+    //                       "</body>\n"
+    //                       "</html>\n";
+    //     // this->request->client_fd;
+    //     int bytes = send(this->request->client_fd, response.c_str(), response.size(), 0);
+    //     this->pollfd_.events &= ~POLLOUT;
 
-        if (bytes < 0)
-            std::cout << "<h1>Error</h1>" << std::endl;
-        // close(this->fd);
+    //     if (bytes < 0)
+    //         std::cout << "<h1>Error</h1>" << std::endl;
+        // close(this->request->client_fd);
         // exit(1);
     //     // std::cout << "BODY: " << body << std::endl;
-    }
-
-    // else if (this->request->method == "POST")
-    // {
-    //     // random string file_name;
-    //     std::string file_name = "tmp_file";
-    //     int piepfd[2];
-
- 
-
-    //     // std::cout << this->cgi->querymap << std::endl;
-    //     std::cout << this->cgi->PATH_INFO << std::endl;
-    //     std::cout << this->cgi->BODY << std::endl;
-    //     if (pipe(piepfd) == -1)
-    //         std::cout << "Return 503 ERROR" << std::endl;
-    //     pid_t pid = fork();
-    //     if (pid < 0)
-    //         std::cout << "Return 503 ERROR" << std::endl;
-    //     if (pid == 0){
-    //         // handle signales
-    //         setenv("REQUEST_METHOD", this->request->method.c_str(), 1);
-    //         setenv("PATH_INFO", this->cgi->PATH_INFO.c_str(), 1);
-    //         // setenv("CONTENT_LENGTH", this->request->contentLength.c_str(), 1);
-    //         // setenv("CONTENT_TYPE", this->request->contentType.c_str(), 1);
-    //         // setenv("SCRIPT_FILENAME", this->server->cgi_path.c_str(), 1);
-    //         // setenv("QUERY_STRING", this->cgi->querymap.c_str(), 1);
-    //         // // set env variables: REQ METH ; CONTENT LEN ; PATH INFO ;  SCRUPT FILE ; CONTENT TYPE; //////////////
-
-    //         // open output file stream with the random file name
-    //         std::ofstream tmpfile(file_name);
-    //         // trim the body in the file
-    //         // open fd on the random file with read permisson
-    //         // dup the stander input to therandom file
-    //         // run the script
-
-    //         exit (1);
-    //     }
     // }
 
-    if (this->response->GENERATE_RES)
-    {
-        std::cout << "generate response" << std::endl;
-        // this->generateResponse();
-        // this->response->GENERATE_RES = false;
+
+    char buff;
+    std::string body;
+    waitpid(-1, 0, 0);
+    close(int(piepfd[1]));
+    while (read(piepfd[0], &buff, 1) > 0){
+        // std::cout << "BODY: " << buff << std::endl;
+        body.push_back(buff);
     }
+    close(int(piepfd[0]));
+    std::cout << "-----------------BODY FROM CGI-----------------\n" << body << std::endl;
+    int bytes = send(this->request->client_fd, body.c_str(),  body.size(), 0);
+    if (bytes == -1)
+        std::cout << "Return 503 ERROR" << std::endl;
+    // if (this->response->GENERATE_RES)
+    // {
+    //     std::cout << "generate response" << std::endl;
+    //     // this->generateResponse();
+    //     // this->response->GENERATE_RES = false;
+    // }
 }
 
 void Client::generateResponse()
