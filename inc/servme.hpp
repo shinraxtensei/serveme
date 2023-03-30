@@ -25,6 +25,8 @@
 #include <fcntl.h>
 #include <unordered_map>
 #include <sys/stat.h>
+#include <dirent.h>
+#include <iomanip>
 
 #include "cgi.hpp"
 #include "client.hpp"
@@ -34,7 +36,7 @@
 #include "parser.hpp"
 #include "socketWrapper.hpp"
 
-std::pair<std::string, std::string> generateError(std::string error);
+std::string	generateError(std::string error);
 
 class Core;
 

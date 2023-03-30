@@ -11,7 +11,7 @@ Http::Http()
 {
     // std::cout << "Http constructor called : " << this << std::endl;
     this->http_directives.insert(std::pair<std::string, std::vector<std::string> >("root", std::vector<std::string> (1 , "/html")));
-    this->http_directives.insert(std::pair<std::string, std::vector<std::string> >("index", std::vector<std::string> (1, "index.html")));
+    this->http_directives.insert(std::pair<std::string, std::vector<std::string> >("", std::vector<std::string> (1, "index.html")));
     this->http_directives.insert(std::pair<std::string, std::vector<std::string> >("error_page", std::vector<std::string> (1 , "404")));
     this->http_directives.insert(std::pair<std::string, std::vector<std::string> >("autoindex", std::vector<std::string> (1 , "off")));
     this->http_directives.insert(std::pair<std::string, std::vector<std::string> >("client_max_body_size", std::vector<std::string> (1 , "1024")));
@@ -24,7 +24,7 @@ Http::Http()
     this->autoindex = false;
     this->client_max_body_size = 1024;
     this->error_page = std::pair<int, std::vector<std::string> > (404, std::vector<std::string> (1, "404.html"));
-    this->index.push_back("index.html");
+    this->index.push_back("");
     this->root = "/html";
 
 
@@ -40,7 +40,7 @@ void Parser::init_http()
 {
     if (Parser::getHttp()->http_directives.find("root") != Parser::getHttp()->http_directives.end())
         Parser::getHttp()->root = Parser::getHttp()->http_directives["root"][0];
-    if (Parser::getHttp()->http_directives.find("index") != Parser::getHttp()->http_directives.end())
+    if (Parser::getHttp()->http_directives.find("") != Parser::getHttp()->http_directives.end())
         Parser::getHttp()->index = Parser::getHttp()->http_directives["index"];
     if (Parser::getHttp()->http_directives.find("client_max_body_size") != Parser::getHttp()->http_directives.end())
         Parser::getHttp()->client_max_body_size = atoi(Parser::getHttp()->http_directives["client_max_body_size"][0].c_str());
@@ -84,7 +84,7 @@ Server::Server()
 
 
     this->server_directives.insert(std::pair<std::string, std::vector<std::string> >("root", std::vector<std::string> (1 , "/html")));
-    this->server_directives.insert(std::pair<std::string, std::vector<std::string> >("index", std::vector<std::string> (1, "index.html")));
+    this->server_directives.insert(std::pair<std::string, std::vector<std::string> >("", std::vector<std::string> (1, "index.html")));
     this->server_directives.insert(std::pair<std::string, std::vector<std::string> >("error_page", std::vector<std::string> (1 , "404")));
     this->server_directives.insert(std::pair<std::string, std::vector<std::string> >("autoindex", std::vector<std::string> (1 , "off")));
     this->server_directives.insert(std::pair<std::string, std::vector<std::string> >("client_max_body_size", std::vector<std::string> (1 , "1024")));

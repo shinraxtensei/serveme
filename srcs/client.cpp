@@ -374,10 +374,9 @@ void Client::generateResponse()
 	}
 	else
 		this->response->handleNormalReq();
-
 }
 
-void Client::selectServer()
+void	Client::selectServer()
 {
     std::vector<Server>::iterator it;
     std::vector<Server> candidates;
