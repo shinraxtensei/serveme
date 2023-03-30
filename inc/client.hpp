@@ -44,12 +44,6 @@ enum Stat
     BODY = (CHUNKED_START | CHUNKED_SIZE | CHUNKED_DATA | BOUNDARY | MULTI_PART_HEADERS | END)
 };
 
-
-
-
-
-
-
 class Request
 {
     public:
@@ -96,13 +90,14 @@ class Response
 			int client_fd;
 			Client	*client; // this is a pointer to its parent client
 			Http	*http;
-			
+	
 			std::string		responseStr;
 			std::string		body;
-
+	
+            bool GENERATE_RES = false;
+	
 			Response() {};
 			~Response() {};
-
 			void	checkAllowedMethods();
 			void	matchLocation(std::vector<Location> locations);
 			void	checkCgi();
@@ -112,6 +107,9 @@ class Response
 			void	handleGet(int type, std::string newPath);
 			// void	handlePost();
 			void	handleDelete();
+		
+			std::string	getIndex(std::string newPath);
+			void	Response::listDirectory();
 };
 
 class Client

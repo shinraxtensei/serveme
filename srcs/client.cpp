@@ -102,7 +102,11 @@ void Client::handleRequest()
         if (line.find("\r\n") != std::string::npos || line.find("\n") != std::string::npos)
         {
             if (line == "\r\n" || line == "\n")
+            {
+                if (this->request->method == "GET")
+                    this->response->GENERATE_RES = true;   
                 this->request->state = Stat::BODY;
+            }
             if (this->request->state & Stat::FIRSTLINE)
             {
                 this->request->ParseFirstLine(line);
@@ -114,8 +118,8 @@ void Client::handleRequest()
             }
             line = "";
         }
-        // if (this->request->buffer.find("\r\n\r\n") != std::string::npos)
-        //     this->request->state = Stat::BODY;
+        if (this->request->buffer.find("\r\n\r\n") != std::string::npos)
+            this->request->state = Stat::BODY;
     }
 
     else if (this->request->state & Stat::BODY)
@@ -145,8 +149,14 @@ void Client::handleRequest()
             this->request->ParseBody();
 
 
-        this->generateResponse();
         // writeResponse();
+    	this->generateResponse();
+    }
+    if (this->response->GENERATE_RES)
+    {
+        std::cout << "generate response" << std::endl;
+        // this->generateResponse();
+        // this->response->GENERATE_RES = false;
     }
 }
 
