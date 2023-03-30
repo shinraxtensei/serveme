@@ -137,7 +137,7 @@ void Client::handleRequest()
             }
             line = "";
         }
-        std::cout << this->request->contentLength << std::endl;
+        // std::cout << this->request->contentLength << std::endl;
         if (this->request->buffer.find("\r\n\r\n") != std::string::npos)
             this->request->state = Stat::BODY;
     }
@@ -185,12 +185,16 @@ void Client::handleRequest()
         
         this->pollfd_.events &= ~POLLOUT;
     }
-    if (this->response->GENERATE_RES)
+    if (this->response->GENERATE_RES && this->request->method == "GET")
     {
         std::cout << "generate response" << std::endl;
         this->generateResponse();
         // this->response->GENERATE_RES = false;
     }
+    else if (this->request->method == "POST" || this->request->method == "DELETE")
+        this->generateResponse();
+    
+
 }
 
 void Client::cgi_handler(){
@@ -227,7 +231,8 @@ void Client::cgi_handler(){
     int piepfd[2];
     if (pipe(piepfd) == -1)
         std::cout << "Return 503 ERROR" << std::endl;
-    std::cout << "From BodyString: " << this->request->bodyString << std::endl;
+    
+    std::cout << "From BodyString: " << this->request->bodyString  << std::endl;
     if (this->request->method == "GET")
     {
         // here just teating the file output
