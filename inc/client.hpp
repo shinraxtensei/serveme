@@ -60,6 +60,7 @@ struct Multipart_ENV
     std::string data;
 };
 
+
 class Request
 {
     public:
@@ -117,15 +118,14 @@ class Response
 			int client_fd;
 			Client	*client; // this is a pointer to its parent client
 			Http	*http;
+			Location	*location;
+            bool GENERATE_RES;
+
 			std::string		responseStr;
 			std::string		body;
 	
-            bool GENERATE_RES;
-	
 			Response();
 			~Response() {};
-			Location	*location;
-  
 			void	checkAllowedMethods();
 			void	matchLocation(std::vector<Location> locations);
 			void	checkCgi();
