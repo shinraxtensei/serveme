@@ -24,6 +24,7 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <unordered_map>
+#include <sys/stat.h>
 
 #include "cgi.hpp"
 #include "client.hpp"

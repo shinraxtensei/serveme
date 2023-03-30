@@ -21,8 +21,8 @@ enum BodyType
     MULTIPART
 };
 
-
-
+#define FILE 1
+#define DIR 2
 
 enum Stat
 {
@@ -50,7 +50,6 @@ enum Stat
 };
 
 
-
 struct Multipart_ENV
 {
     Multipart_ENV();
@@ -61,9 +60,6 @@ struct Multipart_ENV
     std::string content_type;
     std::string data;
 };
-
-
-
 
 
 
@@ -124,15 +120,30 @@ class Response
 			int client_fd;
 			Client	*client; // this is a pointer to its parent client
 			Http	*http;
+	
+			std::string		responseStr;
+			std::string		body;
+	
+            bool GENERATE_RES = false;
+	
+			Response() {};
+			~Response() {};
 			Location	*location;
-            bool GENERATE_RES;
+      bool GENERATE_RES;
 
-			Response() ;
-			~Response() ;
 
 			void	checkAllowedMethods();
 			void	matchLocation(std::vector<Location> locations);
 			void	checkCgi();
+			void	checkPath();
+			std::vector<Location>	getLocations(std::vector<Location> locations);
+			void	handleNormalReq();
+			void	handleGet(int type, std::string newPath);
+			// void	handlePost();
+			void	handleDelete();
+		
+			std::string	getIndex(std::string newPath);
+			void	Response::listDirectory();
 };
 
 class Client

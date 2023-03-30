@@ -137,7 +137,6 @@ void Client::handleRequest()
             }
             line = "";
         }
-        // std::cout << this->request->contentLength << std::endl;
         if (this->request->buffer.find("\r\n\r\n") != std::string::npos)
             this->request->state = Stat::BODY;
     }
@@ -177,8 +176,8 @@ void Client::handleRequest()
             this->request->ParseBody();
 
 
-        // this->generateResponse();
         // writeResponse();
+    	this->generateResponse();
     }
     else if (this->request->state == Stat::END)
     {
@@ -373,9 +372,9 @@ void Client::generateResponse()
 		// cgi matching
         cgi_handler();
 	}
-	// else
-		// this->response->matchLocation(this->server->locations);
-	// this->path = this->location->root + this->request->url;
+	else
+		this->response->handleNormalReq();
+
 }
 
 void Client::selectServer()
