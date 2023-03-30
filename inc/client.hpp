@@ -125,8 +125,8 @@ class Response
 			std::string		body;
 	
 			Response();
-			~Response() {};
-            
+			~Response();
+
 			void	checkAllowedMethods();
 			void	matchLocation(std::vector<Location> locations);
 			void	checkCgi();
