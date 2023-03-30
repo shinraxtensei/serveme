@@ -1,9 +1,13 @@
 #pragma once
 
+#include "cgi.hpp"
 #include "servme.hpp"
+#include <fcntl.h>
+#include <unistd.h>
 
 class Core;
 class SocketWrapper;
+class Cgi;
 class Http;
 class Server;
 class Client;
@@ -35,14 +39,29 @@ enum Stat
     CHUNKED_DATA = 1 << 7, // for both chunked and multipart
 
     // this is for multipart
-    BOUNDARY = 1 << 8,
-    MULTI_PART_HEADERS = 1 << 9,
-    MULTI_PART_DATA = 1 << 10,
-    END = 1 << 11 ,// for both chunked and multipart
+    MULTI_PART_START = 1 << 8,
+    MULTI_PART_BOUNDARY = 1 << 9,
+    MULTI_PART_HEADERS = 1 << 10,
+    MULTI_PART_DATA = 1 << 11,
+    END = 1 << 12 ,// for both chunked and multipart
 
     // combined states
-    BODY = (CHUNKED_START | CHUNKED_SIZE | CHUNKED_DATA | BOUNDARY | MULTI_PART_HEADERS | END)
+    BODY = (CHUNKED_START | CHUNKED_SIZE | CHUNKED_DATA  | MULTI_PART_START | MULTI_PART_BOUNDARY | MULTI_PART_HEADERS | END)
 };
+
+
+struct Multipart_ENV
+{
+    Multipart_ENV();
+    Multipart_ENV(std::string filename, std::string contenType , std::string data);
+    ~Multipart_ENV();
+    std::string field_name;
+    std::string file_name;
+    std::string content_type;
+    std::string data;
+};
+
+
 
 class Request
 {
@@ -54,22 +73,33 @@ class Request
 
         int client_fd;
         Stat state;
+        std::multimap<std::string, Multipart_ENV> multipart_env;
         BodyType bodyType;
         Core *core;
         Client *client; // this is a pointer to its parent client
         std::string buffer; 
 
-        std::stringstream ss;
-        std::multimap<std::string, std::string > headers;
-        std::ofstream body;
-        std::string bodyString;
+        
 
         std::string method;
         std::string url;
         std::string version;
+        std::multimap<std::string, std::string > headers;
+
+        std::stringstream ss;
+        std::ofstream body;
+        std::string bodyString;
+
+
+
+
 
         int 		contentLength;
         std::string transferEncoding;
+
+        std::string contentType;
+        std::string boundary;
+        
         std::string host;
         std::string connection;
 
@@ -98,6 +128,10 @@ class Response
 	
 			Response() {};
 			~Response() {};
+			Location	*location;
+      bool GENERATE_RES;
+
+
 			void	checkAllowedMethods();
 			void	matchLocation(std::vector<Location> locations);
 			void	checkCgi();
@@ -128,16 +162,22 @@ class Client
 
 		int				cgiFlag;
 
+        Cgi *cgi;
+        // Response *response;
+        // SocketWrapper *socket;
+        Client();
+        ~Client();
 		std::string		path;
-
-    	Client();
 		Client(SocketWrapper &socket);
-    	~Client();
 
 
         //**  methods
+    void handleRequest();
+    void cgi_handler();
+    // void generateResponse();
+    // void writeResponse();
+    // void checkInactivity();
 		void	selectServer();
-    	void	handleRequest();
     	void	generateResponse();
         
     	// void writeResponse();

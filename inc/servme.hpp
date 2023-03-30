@@ -26,6 +26,7 @@
 #include <unordered_map>
 #include <sys/stat.h>
 
+#include "cgi.hpp"
 #include "client.hpp"
 #include "core.hpp"
 #include "lexer.hpp"
