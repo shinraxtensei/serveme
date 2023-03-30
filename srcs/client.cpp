@@ -185,12 +185,12 @@ void Client::handleRequest()
         
         this->pollfd_.events &= ~POLLOUT;
     }
-    // if (this->response->GENERATE_RES)
-    // {
-    //     std::cout << "generate response" << std::endl;
-    //     this->generateResponse();
-    //     // this->response->GENERATE_RES = false;
-    // }
+    if (this->response->GENERATE_RES)
+    {
+        std::cout << "generate response" << std::endl;
+        this->generateResponse();
+        // this->response->GENERATE_RES = false;
+    }
 }
 
 void Client::cgi_handler(){
@@ -227,6 +227,7 @@ void Client::cgi_handler(){
     int piepfd[2];
     if (pipe(piepfd) == -1)
         std::cout << "Return 503 ERROR" << std::endl;
+    std::cout << "From BodyString: " << this->request->bodyString << std::endl;
     if (this->request->method == "GET")
     {
         // here just teating the file output
