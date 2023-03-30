@@ -177,21 +177,21 @@ void Client::handleRequest()
 
 
         // writeResponse();
-    	this->generateResponse();
+    	// this->generateResponse();
     }
-    else if (this->request->state == Stat::END)
-    {
+    // else if (this->request->state == Stat::END)
+    // {
         
-        this->pollfd_.events &= ~POLLOUT;
-    }
-    if (this->response->GENERATE_RES && this->request->method == "GET")
-    {
-        std::cout << "generate response" << std::endl;
-        this->generateResponse();
-        // this->response->GENERATE_RES = false;
-    }
-    else if (this->request->method == "POST" || this->request->method == "DELETE")
-        this->generateResponse();
+    //     this->pollfd_.events &= ~POLLOUT;
+    // }
+    // if (this->response->GENERATE_RES && this->request->method == "GET")
+    // {
+    //     std::cout << "generate response" << std::endl;
+    //     this->generateResponse();
+    //     // this->response->GENERATE_RES = false;
+    // }
+    // else if (this->request->method == "POST" || this->request->method == "DELETE")
+    //     this->generateResponse();
     
 
 }

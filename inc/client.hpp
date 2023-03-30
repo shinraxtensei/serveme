@@ -124,12 +124,12 @@ class Response
 			std::string		responseStr;
 			std::string		body;
 	
-            bool GENERATE_RES = false;
+            // bool GENERATE_RES = false;
 	
-			Response() {};
-			~Response() {};
+			Response() ;
+			~Response();
 			Location	*location;
-      bool GENERATE_RES;
+            bool GENERATE_RES;
 
 
 			void	checkAllowedMethods();
@@ -140,10 +140,10 @@ class Response
 			void	handleNormalReq();
 			void	handleGet(int type, std::string newPath);
 			// void	handlePost();
-			void	handleDelete();
+			// void	handleDelete();
 		
 			std::string	getIndex(std::string newPath);
-			void	Response::listDirectory();
+			void	listDirectory();
 };
 
 class Client

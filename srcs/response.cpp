@@ -6,6 +6,10 @@ Response::Response()
 	this->GENERATE_RES = false;
 }
 
+Response::~Response()
+{
+}
+
 void	Response::checkAllowedMethods()
 {
 	std::vector<std::string>			methods;
