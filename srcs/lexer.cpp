@@ -87,6 +87,7 @@ bool Lexer::errors_check()
 Lexer::Lexer(std::string filename)
 {   
     // *** this is for inserting all the directives inside a vector in order to check if the directive is valid or not
+    this->streamPos = 0;
 
     std::ifstream dir("all_directs");
     std::string input;
@@ -142,9 +143,19 @@ static void skip_whitespace(std::istringstream &input)
     }
 }
 
+
+void Lexer::refrechPos()
+{
+    this->input_stream.seekg(this->streamPos);
+    this->next_token(true);
+}
+
+
 std::string Lexer::next_token(bool consume)
 {
     std::streampos pos = input_stream.tellg();
+    this->streamPos = this->input_stream.tellg();
+
     skip_whitespace(input_stream);
     std::string token;
 
@@ -157,15 +168,19 @@ std::string Lexer::next_token(bool consume)
             char quote = input_stream.get();
             token += quote;
             while (!input_stream.eof() && (input_stream.peek() != quote) && (quote == '(' && input_stream.peek() != ')'))
+            {
                 token += input_stream.get();
+
+            }
         }
         if (is_whitespace(input_stream.peek()))
             break;
         token += input_stream.get();
     }
-
     if (consume == false)
         input_stream.seekg(pos);
+        
+
     this->tokens.push_back(token);
     return token;
 }
