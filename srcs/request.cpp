@@ -145,7 +145,7 @@ void Request::ParseHeaders(std::string &line)
     if (key.back() != ':')
         std::cout << "Error: Invalid header line." << std::endl;
 
-    if (key == "host:" )
+    if (key == "Host:" )
     {
         this->host = value;
         this->client = &Servme::getCore()->map_clients[this->client_fd]; //TODO: change this to be in the constructor 
@@ -154,7 +154,7 @@ void Request::ParseHeaders(std::string &line)
     }
 
 
-    if (key == "content-length:")
+    if (key == "Content-Length:")
     {
         // this->bodyType = BodyType::NONE;
         Parser::lex()->set_input(value);
@@ -166,7 +166,7 @@ void Request::ParseHeaders(std::string &line)
             throw std::runtime_error("Error: Content-Length is too big.");
     }
 
-    if (key == "transfer-encoding:")
+    if (key == "Transfer-Encoding:")
     {
         if (value.find("chunked") != std::string::npos)
         {
@@ -175,7 +175,7 @@ void Request::ParseHeaders(std::string &line)
         
         this->transferEncoding = value;
     }
-    if (key == "content-type:")
+    if (key == "Content-Type:")
     {
         if (value.find("multipart/form-data") != std::string::npos)
         {
@@ -223,7 +223,7 @@ void Request::ParseBody()
         this->state = Stat::END;
     }
 
-    std::cout << this->bodyString << std::endl;
+    // std::cout << this->bodyString << std::endl;
 }
 
 
