@@ -99,7 +99,9 @@ void	Response::matchLocation(std::vector<Location> locations)
 			return ;
 		}
 	}
-	std::cout << "No location found" << std::endl;
+	this->responseStr = generateError(E404);
+	send(this->client_fd, this->responseStr.c_str(), this->responseStr.length(), 0);
+
 }
 
 void	Response::checkCgi()
@@ -122,25 +124,72 @@ void	Response::checkCgi()
 
 void	Response::handleGet(int type, std::string newPath)
 {
-	// struct    stat    infos;
-
-	// if (type == DIR)
-	// {
-	// 	if (!this->client->location->index.empty())
-	// 	{
-	// 		std::vector <std::string>::iterator	iter;
-	// 		for (iter = this->client->location->index.begin(); iter < this->client->location->index.end(); iter++)
-	// 		{
-	// 			if (stat((this->client->path + (*iter)).c_str(), &infos) == 0)
-	// 			{
-	// 				this->client->path = this->client->path + (*iter);
-	// 				break ;
-	// 			}
-	// 		}
-	// 	}
-	// 	// this->client->path = this->client->path + this->client->location->index;
-	// }
-	std::cout << "handling file" << std::endl;
+	if (type == DIRE)
+	{
+		std::cout << "handling directory listing" << std::endl;
+    	DIR	*dir = opendir(this->client->path.c_str());
+		if (dir == NULL)
+		{
+			std::cout << "error opening directory";
+			return ;
+		}
+		std::string	html = 
+			"<html>\n"
+			"<head><title>Index of " + newPath + "</title></head>\n"
+			"<body>\n"
+			"<h1>Index of " + newPath + "</h1>\n"
+			"<table style=\"width: 50%\">\n"
+			"<tr><td>Name</td><td>Last Modified</td><td>Size</td></tr>\n";
+			struct	dirent *dirent;
+			while ((dirent = readdir(dir)) != NULL)
+			{
+				std::cout << "stuck hna" << std::endl;
+				std::string	filename = dirent->d_name;
+				if (filename == "." || filename == "..")
+					continue ;
+				// std::string statPath = 
+				std::string	filePath = "/" + newPath + "/" + filename;
+				std::cout << filePath << std::endl;
+				struct stat	fileinfo;
+				if (stat(filePath.c_str(), &fileinfo) < 0)
+				{
+					std::cout << "stat problem" << std::endl;
+					continue ;
+				}
+				std::string	size;
+				if (S_ISREG(fileinfo.st_mode))
+					size = std::to_string(fileinfo.st_size);
+				else
+					size = "-";
+				time_t last_modified_timestamp = fileinfo.st_mtime;
+				std::string	time = std::string(ctime(&last_modified_timestamp));
+            	html += "<tr><td><a href=\"";
+            	html += filename;
+            	html += "\">";
+            	html += filename;
+            	html += "</a></td><td>";
+				html += time;
+				html += "</td><td>";
+            	html += size;
+            	html += "</td></tr>\n";				
+			}
+			html += "</table>\n"
+			"</body>\n"
+			"</html>\n";
+			this->body = html;
+			std::stringstream ss;
+    		ss << this->body.size();
+			this->responseStr =
+				"HTTP/1.1 200 OK\r\n"
+				"Content-Type: text/html\r\n"
+				"Content-Length:" + ss.str() + " \r\n"
+				"Connection: close\r\n\r\n" + this->body;
+			std::cout << "----------------------------" << std::endl;
+			std::cout << this->responseStr << std::endl;
+			std::cout << "----------------------------" << std::endl;
+			closedir(dir);
+			send(this->client_fd, this->responseStr.c_str(), this->responseStr.length(), 0);
+	}
 	if (type == FILE)
 	{
 		std::cout << "hnaa" << std::endl;
@@ -174,43 +223,15 @@ std::string	Response::getIndex(std::string newPath)
 {
 	std::vector<std::string>::iterator	it;
 
+	std::cout << newPath << std::endl;
 	for (it = this->client->location->index.begin(); it < this->client->location->index.end(); it++)
 	{
-		// std::cout << "kan9llb" << std::endl;
-		std::cout << *it << std::endl;
-		std::cout << "file path : " << this->client->path + "/" + (*it) << std::endl;
 		if (access((newPath + "/" + (*it)).c_str(), R_OK) == 0)
-		{
 			return (*it);
-		}
-		else
-			std::cout << "ma3ndekch l7e99" << std::endl;
 	}
 	return ("");
 }
 
-// void	Response::listDirectory()
-// {
-// 	DIR *dir;
-// 	struct dirent *ent;
-// 	std::string	newPath = this->client->path.substr(this->client->path.find_first_of('/') + 1, this->client->path.length() - this->client->path.find_first_of('/') + 1);
-// 	std::cout << "newPath: " << newPath << std::endl;
-// 	std::string	index = this->getIndex(newPath);
-// 	std::cout << "index: " << index << std::endl;
-// 	if (index != "")
-// 	{
-// 		std::cout << "hnaa" << std::endl;
-// 		this->handleGet(FILE, newPath + "/" + index);
-// 		return ;
-// 	}
-// 	if ((dir = opendir(newPath.c_str())) != NULL)
-// 	{
-// 		while ((ent = readdir(dir)) != NULL)
-// 		{
-// 			std::cout << ent->d_name << std::endl;
-// 			this->body += ent->d_name;
-// 			this->body += "
-// }
 
 void    Response::checkPath()
 {
@@ -218,36 +239,37 @@ void    Response::checkPath()
 
 	std::cout << "in check path" << std::endl;
 	std::cout << "path: " << this->client->path << std::endl;
+    if (stat(this->client->location->path.c_str(), &infos) == 0)
+        std::cout << "File found" << std::endl;
 	std::string	newPath = this->client->path.substr(this->client->path.find_first_of('/') + 1, this->client->path.length() - this->client->path.find_first_of('/') + 1);
 	std::cout << "newPath: " << newPath << std::endl;
-    if (stat(newPath.c_str(), &infos) == 0)
-        std::cout << "File found" << std::endl;
-	else
-		std::cout << "File not found" << std::endl;
     if (S_ISDIR(infos.st_mode))
 	{
         std::cout << "It's a directory" << std::endl;
-		if (!(this->client->location->index.empty()))
+		if ((this->client->location->index[0] != ""))
 		{
-			std::string file = this->getIndex(newPath);
+			std::cout << "index is here" << std::endl;
+			std::string	file = this->getIndex(newPath);
 			std::cout << "file: " << file << std::endl;
-			if(!file.empty())
+			if (file == "")
+			{
+				std::cout << "Forbidden" << std::endl;
+				return ;
+			}
+			else
 			{
 				std::cout << "index found" << std::endl;
-				// this->client->path = this->client->path + "/" + file;
 				newPath = newPath + "/" + file;
 				this->handleGet(FILE, newPath);
 			}
-			else
-				std::cout << "Forbidden" << std::endl;
 		} 
 		else
 		{
-			if (this->client->location->autoindex == true)
-			{
+			// if (this->client->location->autoindex == true)
+			// {
 				std::cout << "autoindex" << std::endl;
-				this->handleGet(DIR, newPath);
-			}
+				this->handleGet(DIRE, newPath);
+			// }
 		}
 	}
     else if (S_ISREG(infos.st_mode))
@@ -276,6 +298,8 @@ void    Response::handleNormalReq()
     this->client = &Servme::getCore()->map_clients[this->client_fd];
 	this->client->request->url = removeBackSlashes(this->client->request->url);
     this->matchLocation(this->client->server->locations);
+	if (this->client->server->locations.empty())
+		return ;
 	if (this->client->request->url != this->client->location->path)
 	{
 		this->client->request->url = this->client->request->url.erase(this->client->request->url.find(this->client->location->path), this->client->location->path.length());
