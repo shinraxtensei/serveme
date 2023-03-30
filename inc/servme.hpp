@@ -25,6 +25,7 @@
 #include <fcntl.h>
 #include <unordered_map>
 
+#include "cgi.hpp"
 #include "client.hpp"
 #include "core.hpp"
 #include "lexer.hpp"

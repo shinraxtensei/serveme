@@ -145,7 +145,7 @@ void Request::ParseHeaders(std::string &line)
     if (key.back() != ':')
         std::cout << "Error: Invalid header line." << std::endl;
 
-    if (key == "host:")
+    if (key == "host:" )
     {
         this->host = value;
         this->client = &Servme::getCore()->map_clients[this->client_fd]; //TODO: change this to be in the constructor 

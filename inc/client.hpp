@@ -1,9 +1,13 @@
 #pragma once
 
+#include "cgi.hpp"
 #include "servme.hpp"
+#include <fcntl.h>
+#include <unistd.h>
 
 class Core;
 class SocketWrapper;
+class Cgi;
 class Http;
 class Server;
 class Client;
@@ -147,16 +151,22 @@ class Client
 
 		int				cgiFlag;
 
+        Cgi *cgi;
+        // Response *response;
+        // SocketWrapper *socket;
+        Client();
+        ~Client();
 		std::string		path;
-
-    	Client();
 		Client(SocketWrapper &socket);
-    	~Client();
 
 
         //**  methods
+    void handleRequest();
+    void cgi_handler();
+    // void generateResponse();
+    // void writeResponse();
+    // void checkInactivity();
 		void	selectServer();
-    	void	handleRequest();
     	void	generateResponse();
         
     	// void writeResponse();
