@@ -120,24 +120,28 @@ class Response
 			Http	*http;
 			Location	*location;
             bool GENERATE_RES;
+			std::map<std::string, std::string>	contentTypes;	
 
 			std::string		responseStr;
 			std::string		body;
 	
 			Response();
 			~Response() {};
-			void	checkAllowedMethods();
-			void	matchLocation(std::vector<Location> locations);
-			void	checkCgi();
-			void	checkPath();
-			std::vector<Location>	getLocations(std::vector<Location> locations);
 			void	handleNormalReq();
+			void	storeMimeTypes();
+	
+			void					checkAllowedMethods();
+			void					matchLocation(std::vector<Location> locations);
+			void					checkCgi();
+			void					checkPath();
+			std::string				getIndex(std::string newPath);
+			void					listDirectory();
+			std::vector<Location>	getLocations(std::vector<Location> locations);
+
 			void	handleGet(int type, std::string newPath);
-			// void	handleDelete();
-			// void	handlePost();
+			void	handleDelete() {};
+			void	handlePost() {};
 		
-			std::string	getIndex(std::string newPath);
-			void	listDirectory();
 };
 
 class Client

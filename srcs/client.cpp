@@ -368,10 +368,7 @@ void Client::generateResponse()
 	// this->response->checkAllowedMethods(); // error here aborted
 	this->response->checkCgi();
 	if (this->cgiFlag == 1)
-	{
-		// cgi matching
         cgi_handler();
-	}
 	else
 		this->response->handleNormalReq();
 }
@@ -395,11 +392,10 @@ void	Client::selectServer()
 		{
 			if (it->server_name == this->request->host)
 			{
-				this->server = new  Server(*it);
+				this->server = new Server(*it);
 				return ;
 			}
 		}
 		this->server = new  Server(candidates[0]);
   }
-
 }
