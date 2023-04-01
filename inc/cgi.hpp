@@ -3,6 +3,7 @@
 #include "servme.hpp"
 #include <map>
 #include <string>
+#include <vector>
 
 class Cgi{
 
@@ -22,6 +23,7 @@ class Cgi{
 		std::string							BODY;
 		std::string							QUERY_STRING;
 		std::string							CGI_PATH;
+		std::vector<std::string>			FULLBODY;
 		std::map<std::string, std::string>	QUERY_MAP;
 		std::map<std::string, std::string> 	CompilerPathsByLanguage;
 

@@ -216,6 +216,7 @@ void Request::ParseBody()
     }
         // throw std::runtime_error("Error: read() returned 0.");
     this->bodyString += std::string(buffer, bytesRead);
+    this->body << std::string(buffer, bytesRead);
     if ((int)this->bodyString.size() >= this->contentLength)
     {
         std::cout << RED  << this->bodyString.size() << RESET << std::endl;

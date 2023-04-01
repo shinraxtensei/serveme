@@ -12,6 +12,7 @@ Cgi::Cgi(){
     this->SCRIPT_FILENAME = "";
     this->CONTENT_TYPE = "";
     this->BODY = "";
+    this->FULLBODY = "";
     this->QUERY_MAP = std::map<std::string, std::string>();
 
     this->CompilerPathsByLanguage = std::map<std::string, std::string>{

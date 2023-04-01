@@ -16,9 +16,8 @@ Last Name: <input type = "text" name = "last_name" />
 </form>
 
 
-POST /cgi-bin/script.py HTTP/1.1
+POST /cgi-bin/info.py HTTP/1.1
 Host: rsaf.com
-Content-Type: application/x-www-form-urlencoded
-Content-Length: 21
+Content-Length: 10
 
-name=Amine&nick=rsaf    
+first_name=Amine&last_name=rsaf    

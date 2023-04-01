@@ -232,7 +232,6 @@ void Client::cgi_handler(){
     if (pipe(piepfd) == -1)
         std::cout << "Return 503 ERROR" << std::endl;
     
-    std::cout << "From BodyString: " << this->request->bodyString  << std::endl;
     if (this->request->method == "GET")
     {
         // here just teating the file output
@@ -269,43 +268,59 @@ void Client::cgi_handler(){
     else if (this->request->method == "POST")
     {
         // random string file_name;
-        std::cout << "********* CGI FOR GET IS CALLEEDDDD **********" << std::endl;
-        std::cout << "URL: " << this->request->url << std::endl;
-        std::cout << "PATH INFO: " << this->cgi->PATH_INFO << std::endl;
-        pid_t pid = fork();
+
+        std::cout << "State: " << this->request->state << std::endl;
+        // if (this->request->state == END){
+        //     std::cout << "ENDED" << std::endl;
+        //     exit(1);
+        // }
+        std::cout << "From BodyString: " << this->request->bodyString  << std::endl;
+        std::cout << "********* CGI FOR POST IS CALLEEDDDD **********" << std::endl;
+        pid_t pid = 0;
+        if (this->request->state == END)
+            pid = fork();
         if (pid == -1)
             std::cout << "Return 503 ERROR" << std::endl;
         /* child process */
-        if (pid == 0){
-            std::ofstream tmp("tmpfile");
+        if (pid == 0 && this->request->state == END){
+                std::cout << "CHILD PROCESS BEGIN POST" << std::endl;
 
-            this->request->bodyString = this->request->bodyString.erase(this->request->bodyString.find_last_of("\r\n\r\n") + 1); 
-            tmp << this->request->bodyString;
-            std::cout << "CHILD PROCESS BEGIN" << std::endl;
-            // dup2(int(piepfd[1]), 1);
-            int fd = open("tmpfile", O_RDONLY);
-            dup2(fd, 0);
-            // std::cout << toDelFD << std::endl;
-            close(int(piepfd[0]));
-            close(int(piepfd[1]));
-            close(fd);
 
-            try {
-                this->cgi->setEnv(this->request->method);
-                // std::cout << "QUERY_STRING " << getenv("QUERY_STRING") << std::endl;
-                extern char** environ;
-                char** env = environ;
-                this->cgi->PATH_INFO.erase(0, 1);
-                char* arg[] = {strdup(this->cgi->CGI_PATH.c_str()), strdup(this->cgi->PATH_INFO.c_str()), NULL};
-                char* path = strdup(this->cgi->CGI_PATH.c_str());
-                
-                if (execve(path, arg, env) == -1)
-                    std::cout << "Return 503 ERROR" << std::endl;
-                exit(0);
-            } catch (...) {
-                std::cout << "Error" << std::endl;
-            }
-            exit (1);
+                std::ofstream tmp("tmpfile");
+                int fd = open("tmpfile", O_WRONLY);
+                std::vector<std::string>::iterator it;
+                for (it = this->cgi->FULLBODY.begin(); it != this->cgi->FULLBODY.end(); ++it)
+                    tmp << *it;
+                // write(fd, this->request->bodyString.c_str(), this->request->bodyString.size());
+                dup2(fd, 0);
+                close(int(piepfd[0]));
+                close(int(piepfd[1]));
+                close(fd);
+            // if (this->request->state != END)
+                // this->cgi->FULLBODY += this->request->bodyString.erase(this->request->bodyString.find_last_of("\r\n\r\n") + 1); 
+            // else {
+                // dup2(int(piepfd[1]), 1);
+
+                try {
+                    this->cgi->setEnv(this->request->method);
+                    // std::cout << "QUERY_STRING " << getenv("QUERY_STRING") << std::endl;
+                    extern char** environ;
+                    char** env = environ;
+                    this->cgi->PATH_INFO.erase(0, 1);
+                    char* arg[] = {strdup(this->cgi->CGI_PATH.c_str()), strdup(this->cgi->PATH_INFO.c_str()), NULL};
+                    char* path = strdup(this->cgi->CGI_PATH.c_str());
+
+                    if (execve(path, arg, env) == -1)
+                        std::cout << "Return 503 ERROR" << std::endl;
+                    exit(0);
+                } catch (...) {
+                    std::cout << "Error" << std::endl;
+                }
+                exit (1);
+            // }
+        }
+        else {
+            this->cgi->FULLBODY.push_back(this->request->bodyString);
         }
     }
     // if (this->request->state == BODY){
