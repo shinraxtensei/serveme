@@ -21,8 +21,8 @@ enum BodyType
     MULTIPART
 };
 
-
-
+#define FILE 1
+#define DIRE 2
 
 enum Stat
 {
@@ -49,8 +49,6 @@ enum Stat
     BODY = (CHUNKED_START | CHUNKED_SIZE | CHUNKED_DATA  | MULTI_PART_START | MULTI_PART_BOUNDARY | MULTI_PART_HEADERS | END)
 };
 
-
-
 struct Multipart_ENV
 {
     Multipart_ENV();
@@ -61,10 +59,6 @@ struct Multipart_ENV
     std::string content_type;
     std::string data;
 };
-
-
-
-
 
 
 class Request
@@ -127,12 +121,23 @@ class Response
 			Location	*location;
             bool GENERATE_RES;
 
-			Response() ;
-			~Response() ;
-
+			std::string		responseStr;
+			std::string		body;
+	
+			Response();
+			~Response() {};
 			void	checkAllowedMethods();
 			void	matchLocation(std::vector<Location> locations);
 			void	checkCgi();
+			void	checkPath();
+			std::vector<Location>	getLocations(std::vector<Location> locations);
+			void	handleNormalReq();
+			void	handleGet(int type, std::string newPath);
+			// void	handleDelete();
+			// void	handlePost();
+		
+			std::string	getIndex(std::string newPath);
+			void	listDirectory();
 };
 
 class Client
@@ -161,8 +166,8 @@ class Client
 
 
         //**  methods
-    void handleRequest();
-    void cgi_handler();
+    	void handleRequest();
+    	void cgi_handler();
     // void generateResponse();
     // void writeResponse();
     // void checkInactivity();
