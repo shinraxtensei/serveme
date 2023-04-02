@@ -195,35 +195,35 @@ void Request::ParseHeaders(std::string &line)
 
 }
 
-void Request::ParseBody()
+std::string Request::ParseBody()
 {
     if (this->state == Stat::END)
-        return;
-    std::cout << CYAN << "STATE: " << (this->state == BODY ? "BODY normal" : "weird") << RESET << std::endl;
+        return "";
+    // std::cout << CYAN << "STATE: " << (this->state == BODY ? "BODY normal" : "weird") << RESET << std::endl;
     if (this->state == Stat::END)
-        return;
+        return "";
     static int bodySize = 0;
     char buffer[1024];
 
-    std::cout << YELLOW  << "content-length: " << this->contentLength << std::endl;
+    // std::cout << YELLOW  << "content-length: " << this->contentLength << std::endl;
     int bytesRead = read(this->client_fd, buffer, std::min((this->contentLength - bodySize), 1024));
     if (bytesRead == -1)
         throw std::runtime_error("Error: read() failed.");
     if (bytesRead == 0)
     {
         this->state = Stat::END;
-        return;
+        return "";
     }
         // throw std::runtime_error("Error: read() returned 0.");
     this->bodyString += std::string(buffer, bytesRead);
-    this->body << std::string(buffer, bytesRead);
+
     if ((int)this->bodyString.size() >= this->contentLength)
     {
-        std::cout << RED  << this->bodyString.size() << RESET << std::endl;
+        // std::cout << RED  << this->bodyString.size() << RESET << std::endl;
         std::cout << RED << "END" << RESET << std::endl;
         this->state = Stat::END;
     }
-
+    return this->bodyString;
     // std::cout << this->bodyString << std::endl;
 }
 

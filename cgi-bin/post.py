@@ -7,8 +7,14 @@ import cgi, cgitb
 form = cgi.FieldStorage() 
 
 # Get data from fields
-first_name = form.getvalue('first_name')
-last_name  = form.getvalue('last_name')
+if 'first_name' in form:
+    first_name = form.getvalue('first_name')
+else:
+    first_name = 'Unknown'
+if 'last_name' in form:
+    last_name  = form.getvalue('last_name')
+else:
+    last_name = 'Unknown'
 
 print "Content-type:text/html\r\n\r\n"
 print "<html>"

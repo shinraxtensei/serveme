@@ -105,7 +105,7 @@ class Request
         std::string	checkType(std::string path);
         void ParseFirstLine(std::string &line);
         void ParseHeaders(std::string &line);
-        void ParseBody();
+        std::string ParseBody();
         void ParseChunkedBody();
         void ParseMultiPartBody();
         // void ParseBodyChunked();
