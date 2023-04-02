@@ -9,6 +9,7 @@
 #include <ostream>
 #include <stdlib.h>
 #include <string>
+#include <sys/_types/_pid_t.h>
 #include <sys/fcntl.h>
 #include <unistd.h>
 
@@ -23,7 +24,7 @@ Cgi::Cgi(){
     this->QUERY_MAP = std::map<std::string, std::string>();
 
     this->CompilerPathsByLanguage = std::map<std::string, std::string>{
-        {"py", "/usr/bin/python"},
+        {"py", "/usr/bin/python3"},
         {"php", "/usr/bin/php"}
     };    
 
@@ -189,8 +190,7 @@ void Client::cgi_handler(){
     {
 
         std::cout << "********* CGI FOR POST IS CALLEEDDDD **********" << std::endl;
-        pid_t pid = 0;
-        pid = fork();
+        pid_t pid = fork();
         if (pid == -1)
             std::cout << "Return 503 ERROR" << std::endl;
         /* child process */
@@ -198,21 +198,21 @@ void Client::cgi_handler(){
             std::cout << "-------CHILD PROCESS BEGIN POST-------" << std::endl;
         
         
-            // std::string chnck = this->request->ParseBody();
-            // std::size_t found = chnck.find("\r\n\r\n");
-            // std::string bb = chnck.substr(found + 4);
-            // std::cout << "Body From Parser Direct :\n" << bb << std::endl;
-            // std::ofstream tmp("tmp.txt");
-            // tmp << bb;
-            // tmp.close();
-            // int fd = open("tmp.txt", O_RDONLY | O_CREAT | O_TRUNC, 0666);
-            // dup2(fd, 0);
-            // close(fd);
+            std::string chnck = this->request->ParseBody();
+            std::size_t found = chnck.find("\r\n\r\n");
+            std::string bb = chnck.substr(found + 4);
+            std::cout << "Body From Parser Direct :\n" << bb << std::endl;
+            std::ofstream tmp("tmp.txt");
+            tmp << bb;
+            tmp.close();
+            int fd = open("tmp.txt", O_RDONLY | O_CREAT | O_TRUNC, 0666);
+            dup2(fd, 0);
+            close(fd);
             dup2(int(piepfd[1]), 1);
             close(int(piepfd[0]));
             close(int(piepfd[1]));
             try {
-                this->cgi->setEnv(this->request->method);
+                // this->cgi->setEnv(this->request->method);
                 setenv("first_name", "Amine", 1);
                 setenv("last_name", "READA", 1);
                 // std::cout << "QUERY_STRING " << getenv("QUERY_STRING") << std::endl;
@@ -230,13 +230,13 @@ void Client::cgi_handler(){
             exit (1);
         }
         unlink("tmp.txt");
-        // else {
-        //     this->cgi->FULLBODY.push_back(this->request->bodyString);
-        // }
     }
+    std::cout << "Parent Process" << std::endl;
     char buff;
     std::string body;
     waitpid(-1, 0, 0);
+    // int flags = fcntl(piepfd[0], F_GETFL, 0);
+    // fcntl(piepfd[0], F_SETFL, flags | O_NONBLOCK);
     close(int(piepfd[1]));
     while (read(piepfd[0], &buff, 1) > 0){
         // std::cout << "BODY: " << buff << std::endl;
