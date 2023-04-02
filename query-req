@@ -18,6 +18,10 @@ Last Name: <input type = "text" name = "last_name" />
 
 POST /cgi-bin/info.py HTTP/1.1
 Host: rsaf.com
-Content-Length: 10
+Content-Length: 20
 
-first_name=Amine&last_name=rsaf    
+
+{
+    "first_name": "John",
+    "last_name": "Doe"
+}

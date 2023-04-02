@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="UTF-8">
+	<title>Send JSON Data</title>
+</head>
+<body>
+	<form id="json-form">
+		<label for="first-name">First Name:</label>
+		<input type="text" id="first-name" name="first-name"><br>
+
+		<label for="last-name">Last Name:</label>
+		<input type="text" id="last-name" name="last-name"><br>
+
+		<button type="submit">Send JSON</button>
+	</form>
+
+	<script>
+		const form = document.getElementById('json-form');
+
+		form.addEventListener('submit', event => {
+			event.preventDefault();
+
+			const firstName = document.getElementById('first-name').value;
+			const lastName = document.getElementById('last-name').value;
+
+			const data = {
+				first_name: firstName,
+				last_name: lastName
+			};
+
+			const xhr = new XMLHttpRequest();
+
+			xhr.open('POST', 'http://localhost:6969/cgi-bin/info.py');
+			xhr.setRequestHeader('Content-Type', 'application/json');
+
+			xhr.onreadystatechange = function() {
+				if (xhr.readyState === XMLHttpRequest.DONE && xhr.status === 200) {
+					console.log(xhr.responseText);
+				}
+			}
+
+			xhr.send(JSON.stringify(data));
+		});
+	</script>
+</body>
+</html>
