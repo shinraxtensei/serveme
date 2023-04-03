@@ -4,17 +4,18 @@
 import cgi, cgitb 
 
 # Create instance of FieldStorage 
-form = cgi.FieldStorage() 
+form = cgi.FieldStorage()
+cgitb.enable()
 
 # Get data from fields
 if 'first_name' in form:
-    first_name = form.getvalue('first_name')
+    name = form.getvalue('name')
 else:
-    first_name = 'Unknown'
+    name = 'Unknown'
 if 'last_name' in form:
-    last_name  = form.getvalue('last_name')
+    age  = form.getvalue('age')
 else:
-    last_name = 'Unknown'
+    age = 'Unknown'
 
 print("Content-type:text/html\r\n\r\n")
 print("<html>")

@@ -107,7 +107,7 @@ void	Response::checkCgi()
 	std::string	imaginaryPath = this->client->request->url;
 	if (imaginaryPath.find(cgiPath) != std::string::npos)
 	{
-		std::cout << "cgi request" << std::endl;
+		// std::cout << "cgi request" << std::endl;
 		this->client->cgiFlag = 1;
 		return ;
 	}

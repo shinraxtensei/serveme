@@ -211,6 +211,7 @@ std::string Request::ParseBody()
         throw std::runtime_error("Error: read() failed.");
     if (bytesRead == 0)
     {
+        
         this->state = Stat::END;
         return "";
     }
