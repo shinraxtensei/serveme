@@ -115,37 +115,49 @@ void Client::cgi_handler(){
 		int		pipefd[2];
 		pid_t	pid = -1;
 
+
 		if (pipe(pipefd) == -1)
 			throw std::runtime_error("CGI : Pipe failed");
 		if ((pid = fork()) == -1)
 			throw std::runtime_error("CGI : Fork failed");
 		/*child process*/
 		if (pid == 0) {
-			// if (this->request->method == "POST"){
+			if (this->request->method == "POST"){
+				std::cout << "[ contentLength = " << this->request->contentLength << " ] [ body size " << this->request->bodyString.size() << "]" << std::endl;
 				srand(time(NULL));
-				std::string tmp_filename = "/tmp/" + std::string("serveme-") + std::to_string(rand()) + ".tmp";
+				std::string tmp_filename =  std::string("tmp/serveme-") + std::to_string(rand()) + ".tmp";
 				std::ofstream ofs(tmp_filename);
+				if (!ofs.is_open())
+					throw std::runtime_error("CGI : Can't open tmp file");
 				ofs << this->request->bodyString;
+				std::cout << "body = " << this->request->bodyString << std::endl;
 				ofs.close();
-				int fdf = open(tmp_filename.c_str(), O_WRONLY);
-				std::cout << "fd = " << fd << std::endl;
-				dup2(fdf, 0);
-				
-				close(fd);
-			// }
+				int fdf = open(tmp_filename.c_str(), O_RDWR);
+				if (fdf == -1)
+					throw std::runtime_error("CGI : Can't open tmp file");
+				std::cout << "fdf = " << fdf << std::endl;
+				dup2(fdf, STDIN_FILENO);
+				close(fdf);
+			}
 			/*++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
 			setenv("REQUEST_METHOD", this->request->method.c_str(), 1);
 			setenv("REQUEST_URI", this->request->url.c_str(), 1);
 			setenv("CONTENT_LENGTH", std::to_string(this->request->contentLength).c_str(), 1);
 			setenv("SCRIPT_FILENAME", server_path.c_str(), 1);
 			setenv("SCRIPT_NAME", file_path.c_str(), 1);
-			setenv("CONTENT_TYPE", "text/html", 1); // empty
+			setenv("CONTENT_TYPE", "application/json", 1); // empty
+			std::cout << "CONTENT_TYPE = " << this->request->contentType << std::endl;
 			setenv("CONTENT_BODY", this->request->bodyString.c_str(), 1);
 			setenv("QUERY_STRING", query_string.c_str(), 1);
 			setenv("GATEWAY_INTERFACE", "CGI/1.1", 1);
+
+			if (getenv("REQUEST_METHOD") == NULL)
+				throw std::runtime_error("CGI : Can't set env");
+			else
+			 	std::cout << "REQUEST_METHOD = " << getenv("REQUEST_METHOD") << std::endl;
 			// std::cout << "Path info: " << this->cgi->parseUrl(this->request->url) << std::endl;
-			// setenv("PATH_INFO", this->request->url.c_str(), 1);
-			// setenv("REDIRECT_STATUS", "1", 1); // for later
+			setenv("PATH_INFO", this->request->url.c_str(), 1);
+			setenv("REDIRECT_STATUS", "1", 1); // for later
 			for (it = this->cgi->QUERY_MAP.begin(); it != this->cgi->QUERY_MAP.end(); ++it)
 			     setenv(it->first.c_str(), it->second.c_str(), 1);
 			/*++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
