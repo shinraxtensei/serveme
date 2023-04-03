@@ -2,6 +2,11 @@
 #include "../inc/macros.hpp"
 
 
+Response::~Response()
+{
+	
+}
+
 void	Response::storeMimeTypes()
 {
     std::vector<std::pair<std::string, std::string>> keyValuePairs = {
@@ -80,8 +85,6 @@ Response::Response()
 {
 	this->GENERATE_RES = false;
 }
-
-
 
 void	Response::checkAllowedMethods()
 {
