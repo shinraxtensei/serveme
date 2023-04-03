@@ -183,7 +183,7 @@ void Request::ParseHeaders(std::string &line)
             this->boundary = value.substr(value.find("boundary=") + 9);
             Parser::lex()->set_input(this->boundary);
             boundary = Parser::lex()->next_token(true);
-            this->bodyType = BodyType::MULTIPART;       
+            this->bodyType = BodyType::MULTIPART;
 
         }
     }
@@ -289,7 +289,6 @@ void Request::ParseChunkedBody() {
         if (chunkSize == 0) {
         //     // End of chunked body
             std::cout << "chunkSize is 0" << std::endl;
-            std::cout << "this is the bodyString: " << this->bodyString << std::endl;
             this->state = Stat::END;
             return;
         }
@@ -437,6 +436,7 @@ void Request::ParseMultiPartBody()
         {
             std::cout<< YELLOW << "Content-Type:" <<  RESET<< std::endl;
             contentType = Parser::lex()->next_token(true);
+            std::cout << "From REQ: contentType: " << contentType << std::endl;
         }
 
 
