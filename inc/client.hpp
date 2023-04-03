@@ -51,8 +51,9 @@ enum Stat
 
 struct Multipart_ENV
 {
+    
     Multipart_ENV();
-    Multipart_ENV(std::string filename, std::string contenType , std::string data);
+    Multipart_ENV(std::string filename, std::string data);
     ~Multipart_ENV();
     std::string field_name;
     std::string file_name;
@@ -133,7 +134,16 @@ class Response
 			std::string		body;
 	
 			Response();
-			~Response() {};
+// <<<<<<< HEAD
+// 			~Response();
+
+// 			void	checkAllowedMethods();
+// 			void	matchLocation(std::vector<Location> locations);
+// 			void	checkCgi();
+// 			void	checkPath();
+// 			std::vector<Location>	getLocations(std::vector<Location> locations);
+// =======
+			// ~Response() {};
 			void	handleNormalReq();
 			void	storeMimeTypes();
 
@@ -151,8 +161,10 @@ class Response
 			std::vector<Location>	getLocations(std::vector<Location> locations);
 
 			void	handleGet(int type, std::string newPath);
+
 			void	handleDelete(std::string newPath);
 			void	handlePost();
+
 		
 			void	handleMultipart();
 };

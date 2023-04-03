@@ -59,6 +59,7 @@ Client::Client(SocketWrapper &sock)
     {
         throw std::runtime_error("Failed to accept connection");
     }
+
     this->request->client_fd = fd;
     this->response->client_fd = fd;
     // this->request->core = Servme::getCore();
@@ -106,7 +107,7 @@ void Client::handleRequest()
         else if (ret == 0)
         {
             std::cout << "disconnection" << std::endl;
-            return;
+            this->pollfd_.fd = -1;
         }
         line += buffer[0];
         this->request->buffer += buffer[0];
@@ -144,15 +145,12 @@ void Client::handleRequest()
     else if (this->request->state & Stat::BODY)
     {
 
-
+        
         static int flag = 0;
+
+        this->request->ParseBody();
         if (this->request->bodyType == BodyType::CHUNKED)
         {
-            // if (!(this->request->state & (Stat::CHUNKED_SIZE | Stat::CHUNKED_DATA)))
-            // {
-            //     std::cout << RED << "this should be printed only once" << RESET << std::endl;
-            //     this->request->state = Stat::CHUNKED_SIZE;
-            // }
             if (flag == 0)
             {
                 flag = 1;
@@ -172,16 +170,16 @@ void Client::handleRequest()
             }
             this->request->ParseMultiPartBody(); // ! : this function is not working ,still working on ti
         }
-        else
-            this->request->ParseBody();
+        // else
 
 
         // writeResponse();
-    	this->generateResponse();
+    	// this->generateResponse();
     }
     else if (this->request->state == Stat::END)
     {
         
+
         this->pollfd_.events &= ~POLLOUT;
     }
     if (this->response->GENERATE_RES && this->request->method == "GET")
@@ -192,6 +190,7 @@ void Client::handleRequest()
     }
     else if (this->request->method == "POST" || this->request->method == "DELETE")
         this->generateResponse();
+
 }
 
 void Client::cgi_handler(){
