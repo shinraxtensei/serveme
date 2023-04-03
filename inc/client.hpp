@@ -88,10 +88,6 @@ class Request
         std::ofstream body;
         std::string bodyString;
 
-
-
-
-
         int 		contentLength;
         std::string transferEncoding;
 
@@ -108,36 +104,57 @@ class Request
         void ParseBody();
         void ParseChunkedBody();
         void ParseMultiPartBody();
+
+		std::string	query;
+
         // void ParseBodyChunked();
 		// int handle error();
 };
 
+// enum responseStat
+// {
+//     START,
+//     FIRSTLINE,
+//     HEADERS,
+//     DONE
+// };
+
 class Response
 {
 		public:
-			int client_fd;
-			Client	*client; // this is a pointer to its parent client
-			Http	*http;
+			int			client_fd;
+			Client		*client;
+			Http		*http;
 			Location	*location;
-            bool GENERATE_RES;
+            bool 		GENERATE_RES;
+			std::map<std::string, std::string>	contentTypes;	
 
 			std::string		responseStr;
 			std::string		body;
 	
 			Response();
 			~Response() {};
-			void	checkAllowedMethods();
-			void	matchLocation(std::vector<Location> locations);
-			void	checkCgi();
-			void	checkPath();
-			std::vector<Location>	getLocations(std::vector<Location> locations);
 			void	handleNormalReq();
+			void	storeMimeTypes();
+
+			void	checkReturn();
+
+			void	sendChunked(std::ifstream &file);
+
+			void					getQuery();
+			void					checkAllowedMethods();
+			void					matchLocation(std::vector<Location> locations);
+			void					checkCgi();
+			void					checkPath();
+			std::string				getIndex(std::string newPath);
+			void					listDirectory();
+			std::vector<Location>	getLocations(std::vector<Location> locations);
+
 			void	handleGet(int type, std::string newPath);
-			// void	handleDelete();
-			// void	handlePost();
+			void	handleDelete(std::string newPath);
+			void	handlePost();
 		
-			std::string	getIndex(std::string newPath);
-			void	listDirectory();
+			void	handleMultipart();
 };
 
 class Client
