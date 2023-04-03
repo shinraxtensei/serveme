@@ -125,7 +125,7 @@ void Lexer::set_input(const std::string &input)
 
 static bool is_whitespace(char c)
 {
-    return c == ' ' || c == '\t' || c == '\n';
+    return c == ' ' || c == '\t' || c == '\n' || c == '\r';
 }
 
 static void skip_whitespace(std::istringstream &input)
@@ -149,6 +149,33 @@ void Lexer::refrechPos()
     this->input_stream.seekg(this->streamPos);
     this->next_token(true);
 }
+
+
+std::string Lexer::next_line()
+{
+    skip_whitespace(input_stream);
+    std::string line;
+    if (input_stream.eof())
+        return "EOF";
+    while(!input_stream.eof())
+    {
+        if (input_stream.peek() == '\n')
+        {
+            input_stream.get();
+            break;
+        }
+        else  if (input_stream.peek() == '\r')
+        {
+            input_stream.get();
+            input_stream.get();
+            break;
+        }
+        line += input_stream.get();
+    }
+    return line;
+}
+
+
 
 
 std::string Lexer::next_token(bool consume)

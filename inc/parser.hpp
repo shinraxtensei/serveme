@@ -14,6 +14,11 @@
 #define MAGENTA "\033[0;35m"
 #define CYAN "\033[0;36m"
 #define BOLDBLACK "\033[1;30m"
+#define BOLDRED "\033[1;31m"
+#define BOLDGREEN "\033[1;32m"
+#define BOLDYELLOW "\033[1;33m"
+#define BOLDBLUE "\033[1;34m"
+
 
 class Lexer;
 class Server;
