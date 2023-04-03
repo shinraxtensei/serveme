@@ -391,7 +391,7 @@ void Request::ParseChunkedBody() {
         // std::cout << "line: " << line  << "size: " << line.size() << std::endl;
         if (line == "EOF" || this->bodyString == "\r\n" || this->bodyString == "\n")
             return;
-        // std::cout << "line: " << line << std::endl;
+        std::cout << "line: " << line << std::endl;
         if (line.find_first_not_of("0123456789abcdefABCDEF") != std::string::npos)
             throw std::runtime_error("Error: invalid chunk size.");
         chunkSize = strtol(line.c_str(), NULL, 16);
@@ -399,8 +399,8 @@ void Request::ParseChunkedBody() {
         // std::cout << "chunkSize: " << chunkSize << std::endl;
         if (chunkSize == 0)
         {
-            // this->bodyString = data;
-            std::cout << GREEN << "BODY: " << data << std::endl;
+            this->bodyString = data;
+            std::cout << GREEN << "BODY: " << this->bodyString << std::endl;
             this->state = Stat::END;
             return;
         }
@@ -430,14 +430,43 @@ void Request::ParseChunkedBody() {
             }
             if (chunkSize == 0)
             {
-                std::cout << "chunksize has been all read !!" << std::endl;
-                std::cout << BLUE <<  "data: " << data <<RESET << std::endl;
+                std::cout << BLUE <<  "chunk has been read !!" << data <<RESET << std::endl;
                 this->state = Stat::CHUNKED_SIZE;
                 break;
             }
         }
     }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
