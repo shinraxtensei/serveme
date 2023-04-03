@@ -134,16 +134,9 @@ class Response
 			std::string		body;
 	
 			Response();
-// <<<<<<< HEAD
-// 			~Response();
+			~Response();
 
-// 			void	checkAllowedMethods();
-// 			void	matchLocation(std::vector<Location> locations);
-// 			void	checkCgi();
-// 			void	checkPath();
-// 			std::vector<Location>	getLocations(std::vector<Location> locations);
-// =======
-			// ~Response() {};
+			
 			void	handleNormalReq();
 			void	storeMimeTypes();
 
@@ -164,8 +157,6 @@ class Response
 
 			void	handleDelete(std::string newPath);
 			void	handlePost();
-
-		
 			void	handleMultipart();
 };
 

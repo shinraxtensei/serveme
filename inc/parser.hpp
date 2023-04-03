@@ -65,6 +65,8 @@ class Server : public Http
 		// **** optional directives ****
 		std::pair<std::string, int>	ipPort;
 		std::string					server_name;
+
+		//error page syntax [error_page code path]
 };
 
 class Location : public Server
@@ -84,6 +86,7 @@ class Location : public Server
 		int	returned;
 		std::string	returnUrl;
 		std::string returnType;
+
 
 		std::string path;
 		// std::string root;
