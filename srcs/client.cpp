@@ -192,8 +192,6 @@ void Client::handleRequest()
     }
     else if (this->request->method == "POST" || this->request->method == "DELETE")
         this->generateResponse();
-    
-
 }
 
 void Client::cgi_handler(){

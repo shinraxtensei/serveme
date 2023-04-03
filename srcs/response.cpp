@@ -59,6 +59,7 @@ void	Response::storeMimeTypes()
         {"msp", "application/octet-stream"},
         {"msm", "application/octet-stream"},
         {"mp3", "audio/mpeg"},
+		{"mp4", "video/mp4"},
         {"ra", "audio/x-realaudio"},
         {"mpeg", "video/mpeg"},
         {"mpg", "video/mpeg"},
@@ -91,8 +92,12 @@ void	Response::checkAllowedMethods()
 		return ;
 	for (iter = methods.begin(); iter < methods.end(); iter++)
 	{
+		std::cout << "is " << this->client->request->method << " same as : " << *iter << std::endl;
 		if (*iter == this->client->request->method)
+		{
+			std::cout << "YES" << std::endl;
 			break ;
+		}
 	}
 	if (iter == methods.end())
 	{
@@ -174,6 +179,7 @@ void	Response::matchLocation(std::vector<Location> locations)
 	std::vector<Location>	candidates;
 	std::vector<Location>::iterator	iter;
 
+	std::cout << "wlayla hna mzyan" << std::endl;
 	std::cout << "matching location" << std::endl;
 	this->client = &Servme::getCore()->map_clients[this->client_fd];
 	candidates = this->getLocations(locations);
@@ -297,12 +303,7 @@ void	Response::handleGet(int type, std::string newPath)
 				send(this->client_fd, this->responseStr.c_str(), this->responseStr.length(), 0);
 				exit (1);
 			}
-    		std::stringstream buffer;
-    		buffer << file.rdbuf();
-    		this->body = buffer.str();
-    		file.close();
 			std::string	extension;
-			std::string inter;
 			std::string	contentType;
 			std::string::size_type dotIndex = newPath.rfind('.');
     		if (dotIndex != std::string::npos)
@@ -314,16 +315,17 @@ void	Response::handleGet(int type, std::string newPath)
 			}
 			else
 				contentType = "text/plain";
+			std::cout << "content type : " << contentType << std::endl; 
 			this->responseStr =
     			"HTTP/1.1 200 OK\r\n"
     			"Content-Type: "
 				 + contentType + "\r\n"
     			"Content-Length: \r\n"
-				"Connection: close\r\n\r\n" + this->body;
-			std::cout << "----------------------------" << std::endl;
-			std::cout << "response: " << this->responseStr << std::endl;
-			std::cout << "----------------------------" << std::endl;
+				// "Connection: keep-alive\r\n"
+				"Transfer-Encoding: chunked\r\n\r\n";
 			send(this->client_fd, this->responseStr.c_str(), this->responseStr.length(), 0);
+			this->sendChunked(file);
+			std::cout << "response sent" << std::endl;
 		}
 		else
 		{
@@ -332,6 +334,33 @@ void	Response::handleGet(int type, std::string newPath)
 			exit (1);
 		}
 	}
+}
+
+void	Response::sendChunked(std::ifstream &file)
+{
+    this->responseStr = "";
+	int	buffer_size = 1024;
+    char buffer[buffer_size];
+	int i = 0;
+	while (file)
+	{
+		std::cout << "ba9i kanseft" << std::endl;
+        file.read(buffer, buffer_size);
+        auto count = file.gcount();
+        if (count > 0) {
+            std::ostringstream chunk_header;
+            chunk_header << std::hex << count << "\r\n";
+            this->responseStr = chunk_header.str();
+            send(this->client_fd, this->responseStr.c_str(), this->responseStr.length(), 0);
+            send(this->client_fd, buffer, count, 0);
+            send(this->client_fd, "\r\n", 2, 0);
+			std::cout << "ha : " << i << std::endl;
+			i++;
+        }
+    }
+	std::cout << "safi rah salina" << std::endl;
+	send(this->client_fd, "0\r\n\r\n", 5, 0);
+    // this->responseStr << "0\r\n\r\n";	
 }
 
 std::string	Response::getIndex(std::string newPath)
@@ -352,7 +381,6 @@ std::string	Response::getIndex(std::string newPath)
 	exit (1);
 }
 
-
 void    Response::checkPath()
 {
     struct    stat    infos;
@@ -372,32 +400,43 @@ void    Response::checkPath()
     if (S_ISDIR(infos.st_mode))
 	{
         std::cout << "It's a directory" << std::endl;
-		if ((this->client->location->index[0] != ""))
+		if (this->client->request->method == "DELETE")
 		{
-			std::cout << "index is here" << std::endl;
-			std::string	file = this->getIndex(newPath);
-			std::cout << "file: " << file << std::endl;
-			if (file == "")
+			this->responseStr = generateError(E405);
+			send(this->client_fd, this->responseStr.c_str(), this->responseStr.length(), 0);
+			exit (1);
+		}
+		else if (this->client->request->method == "POST")
+			this->handlePost();
+		else
+		{
+			if ((this->client->location->index[0] != ""))
 			{
-				this->responseStr = generateError(E404);
-				send(this->client_fd, this->responseStr.c_str(), this->responseStr.length(), 0);
-				exit (1);
+				std::cout << "index is here" << std::endl;
+				std::string	file = this->getIndex(newPath);
+				std::cout << "file: " << file << std::endl;
+				if (file == "")
+				{
+					this->responseStr = generateError(E404);
+					send(this->client_fd, this->responseStr.c_str(), this->responseStr.length(), 0);
+					exit (1);
+				}
+				else
+				{
+					std::cout << "index found" << std::endl;
+					newPath = newPath + "/" + file;
+					this->handleGet(FILE, newPath);
+				}
 			}
 			else
 			{
-				std::cout << "index found" << std::endl;
-				newPath = newPath + "/" + file;
-				this->handleGet(FILE, newPath);
+				if (this->client->location->autoindex == true)
+				{
+					std::cout << "autoindex" << std::endl;
+					this->handleGet(DIRE, newPath);
+				}
 			}
 		} 
-		else
-		{
-			if (this->client->location->autoindex == true)
-			{
-				std::cout << "autoindex" << std::endl;
-				this->handleGet(DIRE, newPath);
-			}
-		}
 	}
     else if (S_ISREG(infos.st_mode))
     {
@@ -407,7 +446,7 @@ void    Response::checkPath()
         else if (this->client->request->method == "POST")
 			this->handlePost();
 		else if (this->client->request->method == "DELETE")
-			this->handleDelete();
+			this->handleDelete(newPath);
 		else
 		{
 			this->responseStr = generateError(E405);
@@ -417,32 +456,182 @@ void    Response::checkPath()
 	}
 }
 
+void	Response::handleMultipart()
+{
+	std::multimap<std::string, Multipart_ENV>::iterator	iter;
+
+	for (iter = this->client->request->multipart_env.begin(); iter != this->client->request->multipart_env.end(); iter++)
+	{
+		// std::cout << "file path : " << (*iter).first << std::endl;
+		std::cout << "file name : " << (*iter).second.file_name << std::endl;
+		std::cout << "content type : " << (*iter).second.content_type << std::endl;
+		std::cout << "data : " << (*iter).second.data << std::endl;
+		if ((*iter).second.file_name == "")
+		{
+			std::map<std::string, std::string>::iterator	i;
+			std::string	extension;
+			for (i = this->contentTypes.begin(); i != this->contentTypes.end(); i++)
+			{
+				if ((*i).second == (*iter).second.content_type)
+				{
+					extension = (*i).first;
+					break;
+				}
+			}
+			if (i == this->contentTypes.end())
+				extension = "txt";
+			(*iter).second.file_name = "random." + extension;
+		}
+		std::string path = "upload/" + (*iter).second.file_name;
+		std::ofstream	file(path);
+		if (!file.good())
+		{
+			std::ofstream	upload(path);
+			file << (*iter).second.data;
+			file.close();
+		}
+	}
+}
+
+void	Response::handlePost()
+{
+	std::cout << "handling post" << std::endl;
+	if (this->client->request->bodyType == MULTIPART)
+	{
+		std::cout << "multipart" << std::endl;
+		this->handleMultipart();
+	}
+	else
+	{
+		std::cout << "not multipart" << std::endl;
+		std::cout << "body : " << this->client->request->bodyString << std::endl;
+		std::map<std::string, std::string>::iterator	i;
+		std::string	extension;
+		for (i = this->contentTypes.begin(); i != this->contentTypes.end(); i++)
+		{
+			if (this->client->request->contentType == (*i).second)
+			{
+				extension = (*i).first;
+				break;
+			}
+		}
+		if (i == this->contentTypes.end())
+			extension = "txt";
+		std::string	filename = "random." + extension;
+		std::string	path = "upload/" + filename;
+		std::ofstream	file(path);
+		if (!file.good())
+		{
+			this->responseStr = generateError(E500);
+			send(this->client_fd, this->responseStr.c_str(), this->responseStr.length(), 0);
+			exit (1);
+		}
+		else
+		{
+			file << this->client->request->bodyString;
+			file.close();
+		}
+		this->body = "<html><head></head><body><h1>KOULCHI NADI AWLDI</h1></body></html>";
+		std::stringstream ss;
+		ss << this->body.length();
+		this->responseStr = "HTTP/1.1 200 OK\r\n"
+				"Content-Type: text/html\r\n"
+				"Content-Length:" + ss.str() + " \r\n"
+				"Connection: close\r\n\r\n" + this->body;
+		send(this->client_fd, this->responseStr.c_str(), this->responseStr.length(), 0);
+	}
+}
+
+void	Response::handleDelete(std::string newPath)
+{
+	struct    stat    infos;
+
+	std::cout << " trying to delete new Path : " << newPath << std::endl;
+    if (stat(newPath.c_str(), &infos) == 0)
+	{
+        std::cout << "File found " << this->client->location->path.c_str() << std::endl;
+		if (remove(newPath.c_str()) == 0)
+		{
+			this->responseStr = "HTTP/1.1 200 OK\r\n"
+								"Content-Type: text/html\r\n"
+								"Content-Length: 0\r\n"
+								"Connection: close\r\n\r\n";
+			send(this->client_fd, this->responseStr.c_str(), this->responseStr.length(), 0);
+		}
+		else
+		{
+			std::cout << "ma3ndekch l7ee99" << std::endl;
+			this->responseStr = generateError(E403);
+			send(this->client_fd, this->responseStr.c_str(), this->responseStr.length(), 0);
+			exit (1);
+		}
+	}
+	else
+	{
+		this->responseStr = generateError(E404);
+		send(this->client_fd, this->responseStr.c_str(), this->responseStr.length(), 0);
+		exit (1);
+	}
+}
+
 std::string	removeBackSlashes(std::string url)
 {
-	if (url.size() != 1)
-	{
-		while (url.back() == '/')
-			url.pop_back();
-	}
+	while (url.back() == '/' && url.size() != 1)
+		url.pop_back();
 	return (url);
+}
+
+void	Response::getQuery()
+{
+	std::string				query;
+	// std::string::iterator	it;
+	size_t					pos;
+
+	pos = this->client->request->url.find('?');
+	if (pos != std::string::npos)
+	{
+		query = this->client->request->url.substr(pos + 1, this->client->request->url.length() - pos + 1);
+		this->client->request->query = query;
+		this->client->request->url = this->client->request->url.substr(0, pos);
+	}
+}
+
+void	Response::checkReturn()
+{
+	if (this->client->location->returned != 0)
+	{
+		if (this->client->location->returnType == "permanently")
+			this->responseStr = "HTTP/1.1 308 Permanent Redirect\r\n"
+								"Location: " + this->client->location->returnUrl + "\r\n"
+								"Content-Type: text/html\r\n"
+								"Content-Length: 0\r\n"
+								"Connection: close\r\n\r\n";
+		else
+			this->responseStr = "HTTP/1.1 307 Temporary Redirect\r\n"
+								"Location: " + this->client->location->returnUrl + "\r\n"
+								"Content-Type: text/html\r\n"
+								"Content-Length: 0\r\n"
+								"Connection: close\r\n\r\n";
+		send(this->client_fd, this->responseStr.c_str(), this->responseStr.length(), 0);
+		exit (1);
+	}
 }
 
 void    Response::handleNormalReq()
 {
 	this->storeMimeTypes();
-	std::cout << "in handle normal req" << std::endl;
+	this->client->selectServer();
     this->client = &Servme::getCore()->map_clients[this->client_fd];
+	this->getQuery();
 	this->client->request->url = removeBackSlashes(this->client->request->url);
     this->matchLocation(this->client->server->locations);
+	this->checkReturn();
 	this->checkAllowedMethods();
 	if (this->client->request->url != this->client->location->path)
 	{
-		std::cout << "machi bhal bhal" << std::endl;
 		if (this->client->location->path != "/")
 			this->client->request->url = this->client->request->url.erase(this->client->request->url.find(this->client->location->path), this->client->location->path.length());
-		std::cout << "khouna bgha : " << this->client->request->url << std::endl;;
 		this->client->path = this->client->location->root + this->client->request->url;
-		std::cout << "nmchiw n9llbo 3la : " << this->client->path << std::endl;
 	}
 	else
 		this->client->path = this->client->location->root;
