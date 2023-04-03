@@ -12,6 +12,7 @@ public:
     ~Lexer(){};
     void set_input(const std::string &input);
     void print_input();
+    std::string next_line();
     std::string next_token(bool consume);
     bool errors_check();
     std::vector<std::string> tokens;

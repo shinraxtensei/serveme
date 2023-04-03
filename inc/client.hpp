@@ -51,12 +51,13 @@ enum Stat
 
 struct Multipart_ENV
 {
+    
     Multipart_ENV();
-    Multipart_ENV(std::string filename, std::string contenType , std::string data);
+    Multipart_ENV(std::string filename, std::string data);
     ~Multipart_ENV();
     std::string field_name;
     std::string file_name;
-    std::string content_type;
+    // std::string content_type;
     std::string data;
 };
 
