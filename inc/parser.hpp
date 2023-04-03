@@ -79,6 +79,12 @@ class Location : public Server
 		// std::string Return ;
 		std::pair<int, std::string> Return;
 
+		// return syntax [return url type]
+		// allowed type = permanently / temporary
+		int	returned;
+		std::string	returnUrl;
+		std::string returnType;
+
 		std::string path;
 		// std::string root;
 

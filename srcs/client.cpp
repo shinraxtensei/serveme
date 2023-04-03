@@ -176,20 +176,20 @@ void Client::handleRequest()
         // writeResponse();
     	// this->generateResponse();
     }
-    // else if (this->request->state == Stat::END)
-    // {
+    else if (this->request->state == Stat::END)
+    {
         
-    //     this->pollfd_.events &= ~POLLOUT;
-    // }
-    // if (this->response->GENERATE_RES && this->request->method == "GET")
-    // {
-    //     std::cout << "generate response" << std::endl;
-    //     this->generateResponse();
-    //     // this->response->GENERATE_RES = false;
-    // }
-    // else if (this->request->method == "POST" || this->request->method == "DELETE")
-    //     this->generateResponse();
-    
+
+        this->pollfd_.events &= ~POLLOUT;
+    }
+    if (this->response->GENERATE_RES && this->request->method == "GET")
+    {
+        std::cout << "generate response" << std::endl;
+        this->generateResponse();
+        // this->response->GENERATE_RES = false;
+    }
+    else if (this->request->method == "POST" || this->request->method == "DELETE")
+        this->generateResponse();
 
 }
 
@@ -365,10 +365,7 @@ void Client::generateResponse()
 	// this->response->checkAllowedMethods(); // error here aborted
 	this->response->checkCgi();
 	if (this->cgiFlag == 1)
-	{
-		// cgi matching
         cgi_handler();
-	}
 	else
 		this->response->handleNormalReq();
 }
@@ -392,11 +389,10 @@ void	Client::selectServer()
 		{
 			if (it->server_name == this->request->host)
 			{
-				this->server = new  Server(*it);
+				this->server = new Server(*it);
 				return ;
 			}
 		}
 		this->server = new  Server(candidates[0]);
   }
-
 }
