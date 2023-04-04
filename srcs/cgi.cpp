@@ -138,7 +138,7 @@ void Client::cgi_handler(){
 			setenv("CONTENT_LENGTH", std::to_string(this->request->contentLength).c_str(), 1);
 			setenv("SCRIPT_FILENAME", server_path.c_str(), 1);
 			setenv("SCRIPT_NAME", file_path.c_str(), 1);
-			setenv("CONTENT_TYPE", "application/json", 1); // empty
+			setenv("CONTENT_TYPE", "application/x-www-form-urlencoded", 1); // empty
 			std::cout << "CONTENT_TYPE = " << this->request->contentType << std::endl;
 			setenv("CONTENT_BODY", this->request->bodyString.c_str(), 1);
 			setenv("QUERY_STRING", query_string.c_str(), 1);
@@ -164,17 +164,26 @@ void Client::cgi_handler(){
 			if (execve(path, arg, env) == -1)
 				throw std::runtime_error("CGI : Execve failed");
 			exit(1);
+		} if (pid != 0) {
+			std::cout << "test\n";
+			char buff;
+			std::string body;
+			int error_status;
+			wait(&error_status);
+			if (error_status != 0) {
+				close(pipefd[0]);
+				exit(99);
+			}
+			// waitpid(-1, 0, 0);
+			close(pipefd[1]);
+			while (read(pipefd[0], &buff, 1) > 0){
+				body.push_back(buff);
+			}
+			std::cout << "body = " << body << std::endl;
+			close(pipefd[0]);
+			int bytes = send(this->request->client_fd, body.c_str(),  body.size(), 0);
+			if (bytes == -1)
+				std::cout << "Return 503 ERROR" << std::endl;
 		}
-    	char buff;
-    	std::string body;
-    	waitpid(-1, 0, 0);
-    	close(pipefd[1]);
-    	while (read(pipefd[0], &buff, 1) > 0){
-    	    body.push_back(buff);
-    	}
-    	close(int(pipefd[0]));
-	    int bytes = send(this->request->client_fd, body.c_str(),  body.size(), 0);
-	    if (bytes == -1)
-	        std::cout << "Return 503 ERROR" << std::endl;
 	}
 }

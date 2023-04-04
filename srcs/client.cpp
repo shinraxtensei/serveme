@@ -177,7 +177,7 @@ void Client::handleRequest()
 
 
         // writeResponse();
-    	this->generateResponse();
+    	// this->generateResponse();
     }
     else if (this->request->state == Stat::END)
     {
@@ -190,16 +190,15 @@ void Client::handleRequest()
         this->generateResponse();
         // this->response->GENERATE_RES = false;
     }
-    else if (this->request->method == "POST" || this->request->method == "DELETE")
+    if (this->request->method == "POST" || this->request->method == "DELETE")
         this->generateResponse();
-    
-
 }
 
 
 
 void Client::generateResponse()
 {
+
 	this->response->client = &Servme::getCore()->map_clients[this->response->client_fd];
 	// this->response->checkAllowedMethods(); // error here aborted
 	this->response->checkCgi();
