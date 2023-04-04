@@ -53,7 +53,8 @@ struct Multipart_ENV
 {
     
     Multipart_ENV();
-    Multipart_ENV(std::string filename, std::string data);
+    Multipart_ENV(std::string fileName , std::string contentType, std::string data);
+    Multipart_ENV(std::string fileName , std::string contentType);
     ~Multipart_ENV();
     std::string field_name;
     std::string file_name;
@@ -72,7 +73,7 @@ class Request
 
         int client_fd;
         Stat state;
-        std::multimap<std::string, Multipart_ENV> multipart_env;
+        std::map<std::string, Multipart_ENV> multipart_env;
         BodyType bodyType;
         Core *core;
         Client *client; // this is a pointer to its parent client
