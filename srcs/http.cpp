@@ -205,6 +205,8 @@ Location::Location()
     this->location_directives.insert(std::pair<std::string, std::vector<std::string> >("path", std::vector<std::string> (1 , "/html")));
     this->location_directives.insert(std::pair<std::string, std::vector<std::string> >("return", std::vector<std::string> (1 , "200")));
     this->returned = 0;
+    this->returnType = "";
+    this->returnUrl = "";
     this->path = "/";
     this->Return.first = 200;
     this->Return.second = "OK";
