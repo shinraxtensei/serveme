@@ -97,18 +97,14 @@ void	Response::checkAllowedMethods()
 		return ;
 	for (iter = methods.begin(); iter < methods.end(); iter++)
 	{
-		std::cout << "is " << this->client->request->method << " same as : " << *iter << std::endl;
 		if (*iter == this->client->request->method)
-		{
-			std::cout << "YES" << std::endl;
 			break ;
-		}
 	}
 	if (iter == methods.end())
 	{
 		this->responseStr = generateError(E405);
 		send(this->client_fd, this->responseStr.c_str(), this->responseStr.length(), 0);
-		exit (1);
+		this->responseSent = 1;
 	}
 }
 
@@ -184,30 +180,26 @@ void	Response::matchLocation(std::vector<Location> locations)
 	std::vector<Location>	candidates;
 	std::vector<Location>::iterator	iter;
 
-	std::cout << "wlayla hna mzyan" << std::endl;
-	std::cout << "matching location" << std::endl;
 	this->client = &Servme::getCore()->map_clients[this->client_fd];
 	candidates = this->getLocations(locations);
 	if (candidates.empty())
 	{
-		std::cout << "no location found" << std::endl;
 		this->responseStr = generateError(E404);
 		send(this->client_fd, this->responseStr.c_str(), this->responseStr.length(), 0);
-		exit (1);
+		this->responseSent = 1;
 	}
 	std::sort(candidates.begin(), candidates.end(), compareFields);
 	for (iter = candidates.begin(); iter < candidates.end(); iter++)
 	{
 		if (LocationFound(iter->path, this->client->request->url))
 		{
-			std::cout << "location found" << std::endl;
 			this->client->location = new Location(*iter);
 			return ;
 		}
 	}
 	this->responseStr = generateError(E404);
 	send(this->client_fd, this->responseStr.c_str(), this->responseStr.length(), 0);
-	exit (1);
+	this->responseSent = 1;
 }
 
 void	Response::checkCgi()
