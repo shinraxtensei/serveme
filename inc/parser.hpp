@@ -66,6 +66,7 @@ class Server : public Http
 		std::pair<std::string, int>	ipPort;
 		std::string					server_name;
 
+
 		//error page syntax [error_page code path]
 };
 

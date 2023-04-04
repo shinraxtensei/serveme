@@ -57,9 +57,19 @@ void Parser::parse_directives(int type)
     {
         Parser::getHttp()->servers.back().locations.back().location_directives[directive] = values;
         if (pair.first == "return")
-        {
-                Parser::getHttp()->servers.back().locations.back().Return.first = std::stoi(pair.second[0]);
-                Parser::getHttp()->servers.back().locations.back().Return.second = pair.second[1];
+        {       
+                std::cout << "second size: " << pair.second.size() << std::endl;
+                if (pair.second.size() > 3)
+                {
+                    std::cout << "Error: return directive must have 2 arguments" << std::endl;
+                    exit(1);
+                }
+                Parser::getHttp()->servers.back().locations.back().returned = 1;
+                Parser::getHttp()->servers.back().locations.back().returnUrl = pair.second[0];
+                Parser::getHttp()->servers.back().locations.back().returnType = pair.second[1];
+
+                // Parser::getHttp()->servers.back().locations.back().Return.first = std::stoi(pair.second[0]);
+                // Parser::getHttp()->servers.back().locations.back().Return.second = pair.second[1];
         }
         if (pair.first == "root")
         {
@@ -71,8 +81,18 @@ void Parser::parse_directives(int type)
         Parser::getHttp()->servers.back().locations.back().locations.back().location_directives[directive] = values;
         if (pair.first == "return")
         {
-                Parser::getHttp()->servers.back().locations.back().locations.back().Return.first = std::stoi(pair.second[0]);
-                Parser::getHttp()->servers.back().locations.back().locations.back().Return.second = pair.second[1];
+                std::cout << "second size: " << pair.second.size() << std::endl;
+                if (pair.second.size() > 3)
+                {
+                    std::cout << "Error: return directive must have 2 arguments" << std::endl;
+                    exit(1);
+                }
+                Parser::getHttp()->servers.back().locations.back().locations.back().returned = 1;
+                Parser::getHttp()->servers.back().locations.back().locations.back().returnUrl = pair.second[0];
+                Parser::getHttp()->servers.back().locations.back().locations.back().returnType = pair.second[1];
+                
+                // Parser::getHttp()->servers.back().locations.back().locations.back().Return.first = std::stoi(pair.second[0]);
+                // Parser::getHttp()->servers.back().locations.back().locations.back().Return.second = pair.second[1];
         }
         if (pair.first == "root")
         {
