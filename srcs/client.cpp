@@ -188,7 +188,7 @@ void Client::handleRequest()
         this->generateResponse();
         // this->response->GENERATE_RES = false;
     }
-    else if (this->request->method == "POST" || this->request->method == "DELETE")
+    else if ((this->request->method == "POST" || this->request->method == "DELETE") && this->response->GENERATE_RES)
         this->generateResponse();
 
 }

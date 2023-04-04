@@ -19,7 +19,9 @@ void	Response::listDirectory(std::string	newPath, DIR *dir)
 				{
 					this->responseStr = generateError(E500);
 					send(this->client_fd, this->responseStr.c_str(), this->responseStr.length(), 0);
-					exit (1);
+					this->responseSent = 1;
+					this->client->request->state = DONE;
+					return ;
 				}
 				std::string	size;
 				if (S_ISREG(fileinfo.st_mode))
@@ -44,6 +46,8 @@ void	Response::listDirectory(std::string	newPath, DIR *dir)
 			closedir(dir);
 			send(this->client_fd, this->responseStr.c_str(), this->responseStr.length(), 0);
 			this->responseSent = 1;
+			this->client->request->state = DONE;
+			return ;
 }
 
 void	Response::sendChunked(std::ifstream &file)
@@ -80,7 +84,9 @@ void	Response::sendFile(std::string newPath)
 	{
 		this->responseStr = generateError(E500);
 		send(this->client_fd, this->responseStr.c_str(), this->responseStr.length(), 0);
-		exit (1);
+		this->responseSent = 1;
+		this->client->request->state = DONE;
+		return ;
 	}
 	std::string	extension;
 	std::string	contentType;

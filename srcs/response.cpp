@@ -105,6 +105,8 @@ void	Response::checkAllowedMethods()
 		this->responseStr = generateError(E405);
 		send(this->client_fd, this->responseStr.c_str(), this->responseStr.length(), 0);
 		this->responseSent = 1;
+		this->client->request->state = DONE;
+		return ;
 	}
 }
 
@@ -187,6 +189,8 @@ void	Response::matchLocation(std::vector<Location> locations)
 		this->responseStr = generateError(E404);
 		send(this->client_fd, this->responseStr.c_str(), this->responseStr.length(), 0);
 		this->responseSent = 1;
+		this->client->request->state = DONE;
+		return ;
 	}
 	std::sort(candidates.begin(), candidates.end(), compareFields);
 	for (iter = candidates.begin(); iter < candidates.end(); iter++)
@@ -200,6 +204,8 @@ void	Response::matchLocation(std::vector<Location> locations)
 	this->responseStr = generateError(E404);
 	send(this->client_fd, this->responseStr.c_str(), this->responseStr.length(), 0);
 	this->responseSent = 1;
+	this->client->request->state = DONE;
+	return ;
 }
 
 void	Response::checkCgi()
@@ -228,7 +234,9 @@ void	Response::handleGet(int type, std::string newPath)
 			{
 				this->responseStr = generateError(E500);
 				send(this->client_fd, this->responseStr.c_str(), this->responseStr.length(), 0);
-				exit (1);
+				this->responseSent = 1;
+				this->client->request->state = DONE;
+				return ;
 			}		
 			this->listDirectory(newPath, dir);
 		}
@@ -241,7 +249,9 @@ void	Response::handleGet(int type, std::string newPath)
 		{
 			this->responseStr = generateError(E403);
 			send(this->client_fd, this->responseStr.c_str(), this->responseStr.length(), 0);
-			exit (1);
+			this->responseSent = 1;
+			this->client->request->state = DONE;
+			return ;
 		}
 	}
 }
@@ -256,12 +266,7 @@ std::string	Response::getIndex(std::string newPath)
 		if (access((newPath + "/" + (*it)).c_str(), R_OK) == 0)
 			return (*it);
 	}
-	this->responseStr = generateError(E404);
-	std::cout << "-----------------------------" << std::endl;
-	std::cout << "Response : " << std::endl;
-	std::cout << this->responseStr << std::endl;
-	send(this->client_fd, this->responseStr.c_str(), this->responseStr.length(), 0);
-	exit (1);
+	return ("");
 }
 
 void    Response::checkPath()
@@ -273,7 +278,9 @@ void    Response::checkPath()
 	{
 		this->responseStr = generateError(E404);
 		send(this->client_fd, this->responseStr.c_str(), this->responseStr.length(), 0);
-		exit (1);
+		this->responseSent = 1;
+		this->client->request->state = DONE;
+		return ;
 	}
     if (S_ISDIR(infos.st_mode))
 	{
@@ -281,7 +288,8 @@ void    Response::checkPath()
 		{
 			this->responseStr = generateError(E405);
 			send(this->client_fd, this->responseStr.c_str(), this->responseStr.length(), 0);
-			exit (1);
+			this->responseSent = 1;
+			this->client->request->state = DONE;
 		}
 		else if (this->client->request->method == "POST")
 			this->handlePost();
@@ -294,7 +302,9 @@ void    Response::checkPath()
 				{
 					this->responseStr = generateError(E404);
 					send(this->client_fd, this->responseStr.c_str(), this->responseStr.length(), 0);
-					exit (1);
+					this->responseSent = 1;
+					this->client->request->state = DONE;
+					return ;
 				}
 				else
 				{
@@ -310,7 +320,9 @@ void    Response::checkPath()
 				{
 					this->responseStr = generateError(E403);
 					send(this->client_fd, this->responseStr.c_str(), this->responseStr.length(), 0);
-					exit (1);
+					this->responseSent = 1;
+					this->client->request->state = DONE;
+					return ;
 				}
 			}
 		} 
@@ -327,13 +339,12 @@ void    Response::checkPath()
 		{
 			this->responseStr = generateError(E405);
 			send(this->client_fd, this->responseStr.c_str(), this->responseStr.length(), 0);
-			exit (1);
+			this->responseSent = 1;
+			this->client->request->state = DONE;
+			return ;
 		}
 	}
 }
-
-
-
 
 std::string	removeBackSlashes(std::string url)
 {
