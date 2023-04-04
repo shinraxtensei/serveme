@@ -58,7 +58,6 @@ void Parser::parse_directives(int type)
         Parser::getHttp()->servers.back().locations.back().location_directives[directive] = values;
         if (pair.first == "return")
         {       
-                std::cout << "second size: " << pair.second.size() << std::endl;
                 if (pair.second.size() > 3)
                 {
                     std::cout << "Error: return directive must have 2 arguments" << std::endl;
@@ -81,7 +80,6 @@ void Parser::parse_directives(int type)
         Parser::getHttp()->servers.back().locations.back().locations.back().location_directives[directive] = values;
         if (pair.first == "return")
         {
-                std::cout << "second size: " << pair.second.size() << std::endl;
                 if (pair.second.size() > 3)
                 {
                     std::cout << "Error: return directive must have 2 arguments" << std::endl;
