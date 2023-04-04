@@ -59,8 +59,8 @@ struct Multipart_ENV
     std::string file_name;
     std::string content_type;
     std::string data;
-};
 
+};
 
 class Request
 {
@@ -136,12 +136,12 @@ class Response
 			Response();
 			~Response();
 
+			size_t	readPos = 0;
+			int		responseSent = 0;
 			
 			void	handleNormalReq();
 			void	storeMimeTypes();
-
 			void	checkReturn();
-
 			void	sendChunked(std::ifstream &file);
 
 			void					getQuery();
@@ -154,6 +154,9 @@ class Response
 			std::vector<Location>	getLocations(std::vector<Location> locations);
 
 			void	handleGet(int type, std::string newPath);
+
+			void	listDirectory(std::string	newPath, DIR *dir);
+			void	sendFile(std::string newPath);
 
 			void	handleDelete(std::string newPath);
 			void	handlePost();
