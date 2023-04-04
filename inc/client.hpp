@@ -60,6 +60,7 @@ struct Multipart_ENV
     std::string file_name;
     std::string content_type;
     std::string data;
+    int pos;
 };
 
 
