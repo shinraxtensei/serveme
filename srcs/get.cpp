@@ -85,6 +85,18 @@ void	Response::sendChunked(std::ifstream &file)
     // this->responseStr << "0\r\n\r\n";	
 }
 
+int getpollfd(pollfd clientPollfd)
+{
+	for (size_t i = 0; i < Servme::getCore()->pollFds.size() ; i++)
+	{
+		if (Servme::getCore()->pollFds[i].fd == clientPollfd.fd)
+			return i;
+	}
+	return (-1);
+}
+
+
+
 void	Response::sendFile(std::string newPath)
 {
 	std::ifstream file(newPath.c_str());
@@ -116,8 +128,17 @@ void	Response::sendFile(std::string newPath)
 		// "Content-Length: 10589111\r\n"
 		"Connection: keep-alive\r\n"
 		"Transfer-Encoding: chunked\r\n\r\n";
+
+		Servme::getCore()->pollFds[getpollfd(this->client->pollfd_)].events |= POLLOUT ;
+
 		send(this->client_fd, this->responseStr.c_str(), this->responseStr.length(), 0);
 		this->sendChunked(file);
+
+		Servme::getCore()->pollFds[getpollfd(this->client->pollfd_)].events &= POLLOUT ;
+
 		this->responseSent = 1;
 		std::cout << "response sent" << std::endl;
 }
+
+
+

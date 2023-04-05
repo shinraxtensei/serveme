@@ -178,7 +178,9 @@ void Client::handleRequest()
     }
     else if (this->request->state == Stat::END)
     {
+		// Servme::getCore()->pollFds.
 		
+
 		// this->pollfd_.events &= ~POLLIN;
         // this->pollfd_.events &= ~POLLOUT;
     }
