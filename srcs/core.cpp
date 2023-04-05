@@ -116,7 +116,7 @@ void Core::handleConnections()
                     this->pollFds.push_back(this->clients.back().pollfd_);
                 }
                 else
-                {
+                {	
                     this->map_clients[this->pollFds[i].fd].handleRequest();
                 }
             }

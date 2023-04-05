@@ -123,8 +123,8 @@ void Client::handleRequest()
         {
             if (line == "\r\n" || line == "\n")
             {
-                if (this->request->method == "GET")
-                    this->response->GENERATE_RES = true;
+                // if (this->request->method == "GET")
+                this->response->GENERATE_RES = true;
                 this->request->state = Stat::BODY;
             }
             if (this->request->state & Stat::FIRSTLINE)
@@ -178,17 +178,12 @@ void Client::handleRequest()
     }
     else if (this->request->state == Stat::END)
     {
-        
+		
+		// this->pollfd_.events &= ~POLLIN;
+        // this->pollfd_.events &= ~POLLOUT;
+    }
 
-        this->pollfd_.events &= ~POLLOUT;
-    }
-    if (this->response->GENERATE_RES && this->request->method == "GET")
-    {
-        std::cout << "generate response" << std::endl;
-        this->generateResponse();
-        // this->response->GENERATE_RES = false;
-    }
-    else if ((this->request->method == "POST" || this->request->method == "DELETE") && this->response->GENERATE_RES)
+    if (this->response->GENERATE_RES )
         this->generateResponse();
 
 }
@@ -361,6 +356,7 @@ void Client::cgi_handler(){
 
 void Client::generateResponse()
 {
+	
 	this->response->client = &Servme::getCore()->map_clients[this->response->client_fd];
 	// this->response->checkAllowedMethods(); // error here aborted
 	this->response->checkCgi();
