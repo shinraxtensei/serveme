@@ -53,21 +53,29 @@ void	Response::listDirectory(std::string	newPath, DIR *dir)
 void	Response::sendChunked(std::ifstream &file)
 {
     this->responseStr = "";
-	int	buffer_size = 5000;
+	int	buffer_size = 1024;
     char buffer[buffer_size];
 	int i = 0;
 	while (file)
 	{
 		std::cout << "ba9i kanseft" << std::endl;
         file.read(buffer, buffer_size);
-        auto count = file.gcount();
+        int count = file.gcount();
         if (count > 0) {
             std::ostringstream chunk_header;
+			std::cout << "chunk size in decimal : " << count << std::endl;
             chunk_header << std::hex << count << "\r\n";
+			std::cout << "chunk size in hexa : " << chunk_header.str() << std::endl;
             this->responseStr = chunk_header.str();
-            send(this->client_fd, this->responseStr.c_str(), this->responseStr.length(), 0);
-            send(this->client_fd, buffer, count, 0);
-            send(this->client_fd, "\r\n", 2, 0);
+			std::cout << "response str : " << this->responseStr << std::endl;
+            if (send(this->client_fd, this->responseStr.c_str(), this->responseStr.length(), 0) == -1)
+				std::cout << "error in send" << std::endl;
+			std::cout << "size macha" << std::endl;
+            if (send(this->client_fd, buffer, count, 0) == -1)
+				std::cout << "error in send" << std::endl;
+			std::cout << "buffer macha" << std::endl;
+            if (send(this->client_fd, "\r\n", 2, 0) == -1)
+				std::cout << "error in send" << std::endl;
 			std::cout << "ha : " << i << std::endl;
 			i++;
         }
@@ -105,8 +113,8 @@ void	Response::sendFile(std::string newPath)
     	"HTTP/1.1 200 OK\r\n"
 		"Content-Type: "
 		+ contentType + "\r\n"
-		"Content-Length: 10589111\r\n"
-		// "Connection: keep-alive\r\n"
+		// "Content-Length: 10589111\r\n"
+		"Connection: keep-alive\r\n"
 		"Transfer-Encoding: chunked\r\n\r\n";
 		send(this->client_fd, this->responseStr.c_str(), this->responseStr.length(), 0);
 		this->sendChunked(file);
