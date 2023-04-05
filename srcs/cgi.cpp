@@ -75,11 +75,6 @@ std::string Cgi::parseSurfix(std::string path_info){
 }
 
 
-void Client::cgi_handler(){
-
-
-	if (this->request->method == "GET" || (this->request->method == "POST" && (unsigned long)this->request->contentLength == this->request->bodyString.size())){
-
 		/*     TO DO	*/
 		// 0. check the macthing location
 		// 1. check if the file is executable
@@ -93,8 +88,8 @@ void Client::cgi_handler(){
 		// 9. check if the file is a directory
 		// 10. check if the file is a file
 		// 11. check which compiler to use
-
-
+void Client::cgi_handler(){
+	if (this->request->method == "GET" || (this->request->method == "POST" && (unsigned long)this->request->contentLength == this->request->bodyString.size())){
 		/****************************************************************/
 		std::map<std::string, std::string>::iterator		it;
 		std::map<std::string, std::string>	querys_map		= this->cgi->parseQuery(this->request->url);
@@ -138,8 +133,7 @@ void Client::cgi_handler(){
 			setenv("CONTENT_LENGTH", std::to_string(this->request->contentLength).c_str(), 1);
 			setenv("SCRIPT_FILENAME", server_path.c_str(), 1);
 			setenv("SCRIPT_NAME", file_path.c_str(), 1);
-			setenv("CONTENT_TYPE", "application/x-www-form-urlencoded", 1); // empty
-			std::cout << "CONTENT_TYPE = " << this->request->contentType << std::endl;
+			setenv("CONTENT_TYPE", this->request->contentType.c_str(), 1); // empty [FIXED]
 			setenv("CONTENT_BODY", this->request->bodyString.c_str(), 1);
 			setenv("QUERY_STRING", query_string.c_str(), 1);
 			setenv("GATEWAY_INTERFACE", "CGI/1.1", 1);
@@ -180,6 +174,14 @@ void Client::cgi_handler(){
 				body.push_back(buff);
 			}
 			std::cout << "body = " << body << std::endl;
+
+            std::string header = "HTTP/1.1 200 OK\r\n";
+            body = body.substr(body.find("\r\n\r\n") + 4);
+            header += "Content-Type: text/html\r\n";
+            header += "Content-Length: " + std::to_string(body.size()) + "\r\n";
+            header += "Server: serveme/1.0\r\n";
+            header += "Connection: close\r\n\r\n";
+            send(this->request->client_fd, header.c_str(), header.size(), 0);
 			close(pipefd[0]);
 			int bytes = send(this->request->client_fd, body.c_str(),  body.size(), 0);
 			if (bytes == -1)

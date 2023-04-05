@@ -186,6 +186,9 @@ void Request::ParseHeaders(std::string &line)
             this->bodyType = BodyType::MULTIPART;
 
         }
+        else {
+            this->contentType = value;
+        }
     }
 
     if (key == "connection:")
