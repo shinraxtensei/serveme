@@ -186,6 +186,7 @@ void Request::ParseHeaders(std::string &line)
     }
     if (key == "Content-Type:")
     {
+		this->contentType = value;
         if (value.find("multipart/form-data") != std::string::npos)
         {
 

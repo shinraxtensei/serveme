@@ -390,6 +390,10 @@ void	Response::checkReturn()
 
 void    Response::handleNormalReq()
 {
+	std::cout << "content type : " << this->client->request->contentType << std::endl;
+	std::cout << "body : " << this->client->request->bodyString << std::endl;
+	std::cout << "body size = " << this->client->request->bodyString.length() << std::endl;
+	std::cout << "request state : " << this->client->request->state << std::endl;
 	if (this->responseSent == 0)
 	{
 		this->storeMimeTypes();
