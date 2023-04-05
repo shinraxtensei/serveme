@@ -75,19 +75,54 @@ std::string Cgi::parseSurfix(std::string path_info){
 }
 
 
-		/*     TO DO	*/
-		// 0. check the macthing location
-		// 1. check if the file is executable
-		// 2. check if the file is a cgi file
-		// 3. check if the file is a python file
-		// 4. check if the file is a php file
-		// 5. check if the file is a bash file
-		// 6. check if the file is a c file
-		// 7. check if the file is a c++ file
-		// 8. check if method is allowed
-		// 9. check if the file is a directory
-		// 10. check if the file is a file
-		// 11. check which compiler to use
+/*     TO DO	*/
+// 0. check the macthing location
+// 1. check if the file is executable
+// 2. check if the file is a cgi file
+// 3. check if the file is a python file
+// 4. check if the file is a php file
+// 5. check if the file is a bash file
+// 6. check if the file is a c file
+// 7. check if the file is a c++ file
+// 8. check if method is allowed
+// 9. check if the file is a directory
+// 10. check if the file is a file
+// 11. check which compiler to use
+
+// std::vector<Location>    getNested(std::vector<Location>    candidates, Location location)
+// {
+//     std::vector<Location>::iterator    iter;
+
+//     iter = location.locations.begin();
+//     for (iter = location.locations.begin(); iter < location.locations.end(); iter++)
+//     {
+//         if (location.locations.empty())
+//             candidates.push_back(*iter);
+//         else
+//         {
+//             std::cout << "hna" << std::endl;
+//             candidates.push_back(*iter);
+//             getNested(candidates, *iter);
+//         }
+//     }
+//     return (candidates);    
+// }
+
+// std::vector<Location>    Response::getLocations(std::vector<Location> locations)
+// {
+//     std::vector<Location>    candidates;
+//     std::vector<Location>::iterator    iter;
+
+//     this->client = &Servme::getCore()->map_clients[this->client_fd];
+//     iter = locations.begin();
+//     for (iter = this->client->server->locations.begin(); iter < this->client->server->locations.end(); iter++)
+//     {
+//         candidates.push_back(*iter);
+//         candidates = getNested(candidates, *iter);
+//     }
+//     return (candidates);
+// }
+
 void Client::cgi_handler(){
 	if (this->request->method == "GET" || (this->request->method == "POST" && (unsigned long)this->request->contentLength == this->request->bodyString.size())){
 		/****************************************************************/
@@ -173,7 +208,6 @@ void Client::cgi_handler(){
 			while (read(pipefd[0], &buff, 1) > 0){
 				body.push_back(buff);
 			}
-			std::cout << "body = " << body << std::endl;
 
             std::string header = "HTTP/1.1 200 OK\r\n";
             body = body.substr(body.find("\r\n\r\n") + 4);
@@ -181,11 +215,12 @@ void Client::cgi_handler(){
             header += "Content-Length: " + std::to_string(body.size()) + "\r\n";
             header += "Server: serveme/1.0\r\n";
             header += "Connection: close\r\n\r\n";
-            send(this->request->client_fd, header.c_str(), header.size(), 0);
-			close(pipefd[0]);
-			int bytes = send(this->request->client_fd, body.c_str(),  body.size(), 0);
+            header += body;
+			std::cout << "------------\n-> BODY <-\n-------------\n" << header << std::endl;
+            int bytes = send(this->request->client_fd, header.c_str(), header.size(), 0);
 			if (bytes == -1)
 				std::cout << "Return 503 ERROR" << std::endl;
+			close(pipefd[0]);
 		}
 	}
 }
