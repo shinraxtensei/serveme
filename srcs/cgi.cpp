@@ -4,6 +4,7 @@
 #include <cstddef>
 #include <cstdio>
 #include <cstdlib>
+#include <cstring>
 #include <fstream>
 #include <iostream>
 #include <istream>
@@ -13,6 +14,7 @@
 #include <sys/_types/_pid_t.h>
 #include <sys/fcntl.h>
 #include <unistd.h>
+#include <vector>
 
 
 Cgi::Cgi(){
@@ -43,7 +45,6 @@ std::string Cgi::parseUrl(std::string url){
 
 // this function parse the query and return a map of key value
 std::map<std::string, std::string> Cgi::parseQuery(std::string query){
-
 
 	std::map<std::string, std::string> querymap;
 
@@ -89,25 +90,6 @@ std::string Cgi::parseSurfix(std::string path_info){
 // 10. check if the file is a file
 // 11. check which compiler to use
 
-// std::vector<Location>    getNested(std::vector<Location>    candidates, Location location)
-// {
-//     std::vector<Location>::iterator    iter;
-
-//     iter = location.locations.begin();
-//     for (iter = location.locations.begin(); iter < location.locations.end(); iter++)
-//     {
-//         if (location.locations.empty())
-//             candidates.push_back(*iter);
-//         else
-//         {
-//             std::cout << "hna" << std::endl;
-//             candidates.push_back(*iter);
-//             getNested(candidates, *iter);
-//         }
-//     }
-//     return (candidates);    
-// }
-
 // std::vector<Location>    Response::getLocations(std::vector<Location> locations)
 // {
 //     std::vector<Location>    candidates;
@@ -124,8 +106,14 @@ std::string Cgi::parseSurfix(std::string path_info){
 // }
 
 void Client::cgi_handler(){
+
+    std::vector<Location>   candidates;
+
+    
 	if (this->request->method == "GET" || (this->request->method == "POST" && (unsigned long)this->request->contentLength == this->request->bodyString.size())){
+        candidates = this->response->getLocations(this->server->locations);
 		/****************************************************************/
+        std::vector<Location>::iterator                     iter;
 		std::map<std::string, std::string>::iterator		it;
 		std::map<std::string, std::string>	querys_map		= this->cgi->parseQuery(this->request->url);
 		std::string query_string							= this->request->url.find_first_of("?") != std::string::npos ? this->request->url.substr(this->request->url.find_first_of("?") + 1) : "";
@@ -134,9 +122,21 @@ void Client::cgi_handler(){
 		std::string surfix									= this->cgi->parseSurfix(file_path);
 		std::string compiler								= this->cgi->CompilerPathsByLanguage[surfix];
 		//--------------------------------------------------------------
+        surfix = "\\." + surfix + "$";
+        for (iter = candidates.begin(); iter < candidates.end(); iter++)
+        {
+            std::cout << "location path = " << iter->path << std::endl;
+            if (!strcmp(surfix.c_str(), iter->path.c_str()))
+                break;
+        }
+        // if allowed method
+            // iter->allowed_methods
+		
+        // for (iter->location_directives)
+		auto dir_itr = iter->location_directives.find("cgi_root");
+		std::cout << "cgi_root = " << dir_itr->first << std::endl;
 		int		pipefd[2];
 		pid_t	pid = -1;
-
 
 		if (pipe(pipefd) == -1)
 			throw std::runtime_error("CGI : Pipe failed");
@@ -194,7 +194,6 @@ void Client::cgi_handler(){
 				throw std::runtime_error("CGI : Execve failed");
 			exit(1);
 		} if (pid != 0) {
-			std::cout << "test\n";
 			char buff;
 			std::string body;
 			int error_status;

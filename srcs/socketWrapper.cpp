@@ -16,7 +16,7 @@ SocketWrapper::SocketWrapper(int domain, int type, int protocol)
 {
     sockfd_ = socket(domain, type, protocol);
     int enable = 1;
-    setsockopt(sockfd_, SOL_SOCKET, SO_REUSEADDR, &enable, sizeof(enable));
+    setsockopt(sockfd_, SOL_SOCKET, SO_REUSEADDR, &enable, sizeof(enable)); // bind problem
     if (sockfd_ < 0)
     {
         throw std::runtime_error("Failed to create socket");
