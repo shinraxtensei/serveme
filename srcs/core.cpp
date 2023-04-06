@@ -123,12 +123,14 @@ void Core::handleConnections()
             else if (this->pollFds[i].revents & POLLHUP)
             {
                 std::cout << "Client disconnected\n";
+                this->pollFds[i].fd = -1;
                 // this->pollFds.erase(this->pollFds.begin() + i);
                 // this->clients.erase(this->clients.begin() + i);
             }
             else if (this->pollFds[i].revents & POLLERR)
             {
                 std::cout << "Error\n";
+                this->pollFds[i].fd = -1;
                 // this->pollFds.erase(this->pollFds.begin() + i);
                 // this->clients.erase(this->clients.begin() + i);
             }
