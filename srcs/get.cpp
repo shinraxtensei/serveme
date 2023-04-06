@@ -85,8 +85,21 @@ void	Response::sendChunked(std::ifstream &file)
     // this->responseStr << "0\r\n\r\n";	
 }
 
+int getpollfd(pollfd clientPollfd)
+{
+	for (size_t i = 0; i < Servme::getCore()->pollFds.size() ; i++)
+	{
+		if (Servme::getCore()->pollFds[i].fd == clientPollfd.fd)
+			return i;
+	}
+	return (-1);
+}
+
+
+
 void	Response::sendFile(std::string newPath)
 {
+	std::cout << "in sendFile" << std::endl;
 	std::ifstream file(newPath.c_str());
 	if (!file.good())
 	{
@@ -96,28 +109,58 @@ void	Response::sendFile(std::string newPath)
 		this->client->request->state = DONE;
 		return ;
 	}
-	std::string	extension;
-	std::string	contentType;
-	std::string::size_type dotIndex = newPath.rfind('.');
-	if (dotIndex != std::string::npos)
+	if (this->started == 0)
 	{
-    	extension = newPath.substr(dotIndex + 1);
-		contentType = this->contentTypes[extension];
-		if (contentType == "")
+		std::string	extension;
+		std::string	contentType;
+		std::string::size_type dotIndex = newPath.rfind('.');
+		if (dotIndex != std::string::npos)
+		{
+    		extension = newPath.substr(dotIndex + 1);
+			contentType = this->contentTypes[extension];
+			if (contentType == "")
+				contentType = "text/plain";
+		}
+		else
 			contentType = "text/plain";
-	}
-	else
-		contentType = "text/plain";
-		std::cout << "content type : " << contentType << std::endl; 
+		std::cout << "content type : " << contentType << std::endl;
+		std::stringstream	ss;
+		ss << file.rdbuf();
+		this->body = ss.str();
+		// std::cout << this->body << std::endl;
 		this->responseStr =
     	"HTTP/1.1 200 OK\r\n"
 		"Content-Type: "
 		+ contentType + "\r\n"
-		// "Content-Length: 10589111\r\n"
-		"Connection: keep-alive\r\n"
-		"Transfer-Encoding: chunked\r\n\r\n";
+		"Content-Length: "
+		+ std::to_string(this->body.length()) + "\r\n"
+		"Connection: keep-alive\r\n\r\n";
 		send(this->client_fd, this->responseStr.c_str(), this->responseStr.length(), 0);
-		this->sendChunked(file);
+		this->started = 1;
+	}
+	if (this->sendPos < this->body.length())
+	{
+		std::string	toSend;
+		int	size;
+		if (this->body.length() - this->sendPos > 1024)
+		{
+			std::cout << "dkhlna lhna" << std::endl;
+			size = 1024;
+		}
+		else
+			size = this->body.length() - this->sendPos;
+		toSend = this->body.substr(this->sendPos, size);
+		std::cout << "hadchi fih : " << toSend.length() << std::endl;
+		this->sendPos += size;
+		std::cout << "ghanseft lik : " << toSend << std::endl;
+		std::cout << "lmrra jaya ghanseft lik : " << this->body.substr(this->sendPos, size) << std::endl;
+		send(this->client_fd, toSend.c_str(), toSend.length(), 0);
+	}
+	if (this->sendPos == this->body.length())
+	{
 		this->responseSent = 1;
-		std::cout << "response sent" << std::endl;
+		this->client->request->state = DONE;
+	}
+	std::cout << "7na hna" << std::endl;
+	std::cout << "request state : " << this->client->request->state << std::endl;
 }

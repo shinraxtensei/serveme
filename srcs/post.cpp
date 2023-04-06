@@ -3,14 +3,17 @@
 
 void	Response::handleMultipart()
 {
+	std::cout << "in handleMultipart" << std::endl;
+	this->client = &Servme::getCore()->map_clients[this->client_fd];
 	std::multimap<std::string, Multipart_ENV>::iterator	iter;
 
+	if (this->client->request->multipart_env.empty())
+		std::cout << "hadchi khawi awldi" << std::endl;
 	for (iter = this->client->request->multipart_env.begin(); iter != this->client->request->multipart_env.end(); iter++)
 	{
+		std::cout << "wst loop" << std::endl;
 		if ((*iter).second.pos < (*iter).second.data.length())
 		{
-			if ((*iter).second.pos != (*iter).second.data.length())
-			{
 				if ((*iter).second.file_name == "")
 				{
 					std::map<std::string, std::string>::iterator	i;
@@ -49,7 +52,7 @@ void	Response::handleMultipart()
 					return ;
 				}
 				(*iter).second.pos += toStore;
-			}
+				break ;
 		}	
 	}
 	if (this->responseSent == 0)
@@ -62,11 +65,13 @@ void	Response::handleMultipart()
 				"Content-Length:" + ss.str() + "\r\n\r\n" + this->body;
 		send(this->client_fd, this->responseStr.c_str(), this->responseStr.length(), 0);
 		this->responseSent = 1;
+		std::cout << "reponse mchat" << std::endl;
 	}
 }
 
 void	Response::handlePost()
 {
+	this->client = &Servme::getCore()->map_clients[this->client_fd];
 	if (this->client->request->bodyType == MULTIPART)
 		this->handleMultipart();
 	else
