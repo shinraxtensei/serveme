@@ -179,19 +179,20 @@ void Client::handleRequest()
     	// this->generateResponse();
     }
 
-    // else if (this->request->state == Stat::END)
-    // {
+    else if (this->request->state == Stat::END)
+    {
+		// Servme::getCore()->pollFds.
 		
 		// this->pollfd_.events &= ~POLLIN;
-        // this->pollfd_.events &= ~POLLOUT;
-    // }
+		// this->pollfd_.events &= ~POLLOUT;
+	}
 
-    // if (GENERATE_RES)
-    // {
-    //     std::cout << "******************** generateResponse **********************" << std::endl;
-    // }
-        // this->generateResponse();
-
+    // if (this->response->GENERATE_RES || this->request->state == BODY)
+	// {
+	// 	std::cout << "here " << std::endl;
+    //     this->generateResponse();
+	// }
+	// std::cout << "rj3na lhna" << std::endl;
 }
 
 void Client::cgi_handler(){
@@ -362,8 +363,11 @@ void Client::cgi_handler(){
 
 void Client::generateResponse()
 {
-	
+	std::cout << "in generateResponse" << std::endl;
+	std::cout << "request state : " << this->request->state << std::endl;
 	this->response->client = &Servme::getCore()->map_clients[this->response->client_fd];
+	if (this->request->multipart_env.empty())
+		std::cout << "hadchi khawiiiiiiiiiiiii" << std::endl;
 	// this->response->checkAllowedMethods(); // error here aborted
 	this->response->checkCgi();
 	if (this->cgiFlag == 1)

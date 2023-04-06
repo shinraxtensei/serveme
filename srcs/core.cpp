@@ -101,6 +101,9 @@ void Core::handleConnections()
         }
         for (size_t i = 0; i < this->pollFds.size(); i++)
         {
+            if (this->map_clients[this->pollFds[i].fd].response->GENERATE_RES)
+                this->map_clients[this->pollFds[i].fd].generateResponse();
+                
             if (this->pollFds[i].revents & POLLIN)
             {
                 if (int it = check_servers_socket(this->pollFds[i].fd); it != -1)
@@ -120,6 +123,7 @@ void Core::handleConnections()
                     this->map_clients[this->pollFds[i].fd].handleRequest();
                 }
             }
+
             else if (this->pollFds[i].revents & POLLHUP)
             {
                 std::cout << "Client disconnected\n";
