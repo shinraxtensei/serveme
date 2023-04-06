@@ -144,6 +144,8 @@ class Response
 			int		started = 0;
 
 			size_t	contentLength;
+
+			std::ifstream	file;
 			
 			void	handleNormalReq();
 			void	storeMimeTypes();

@@ -101,17 +101,19 @@ int getpollfd(pollfd clientPollfd)
 void	Response::sendFile(std::string newPath)
 {
 	std::cout << "in sendFile" << std::endl;
-	static	std::ifstream file(newPath.c_str());
-	if (!file.good())
-	{
-		this->responseStr = generateError(E500);
-		send(this->client_fd, this->responseStr.c_str(), this->responseStr.length(), 0);
-		this->responseSent = 1;
-		this->client->request->state = DONE;
-		return ;
-	}
 	if (this->started == 0)
 	{
+		std::cout << "hna mzyan" << std::endl;
+		this->file.open(newPath.c_str(), std::ios::binary);
+		std::cout << "hna mzyan" << std::endl;
+		if (!this->file.good())
+		{
+			this->responseStr = generateError(E500);
+			send(this->client_fd, this->responseStr.c_str(), this->responseStr.length(), 0);
+			this->responseSent = 1;
+			this->client->request->state = DONE;
+			return ;
+		}
 		std::string	extension;
 		std::string	contentType;
 		std::string::size_type dotIndex = newPath.rfind('.');
@@ -149,7 +151,7 @@ void	Response::sendFile(std::string newPath)
 			size = this->contentLength - this->sendPos;
 		char	buffer[size];
 		std::cout << "before reading" << std::endl;
-		file.read(buffer, sizeof(buffer));
+		this->file.read(buffer, sizeof(buffer));
 		this->sendPos += size;
 		send(this->client_fd, buffer, sizeof(buffer), 0);
 		// this->body = std::string(buffer);
