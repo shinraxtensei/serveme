@@ -92,13 +92,15 @@ std::string Request::checkType(std::string path)
 
 void Client::handleRequest()
 {
+
     // if (this->request->state == START || this->request->state == Stat::FIRSTLINE || this->request->state == Stat::HEADERS)
     if (this->request->state & (Stat::START | Stat::FIRSTLINE | Stat::HEADERS))
     {
         static std::string line = "";
         char buffer[1];
         int ret;
-        ret = recv(this->fd, buffer, 1, 0);
+        // ret = recv(this->fd, buffer, 1, 0);
+        ret = read(this->fd, buffer, 1);
         if (ret == -1)
         {
             std::cerr << "Error: recv() failed" << std::endl;
@@ -106,8 +108,8 @@ void Client::handleRequest()
         }
         else if (ret == 0)
         {
-            std::cout << "disconnection" << std::endl;
             this->pollfd_.fd = -1;
+            std::cout << "disconnection" << std::endl;
         }
         line += buffer[0];
         this->request->buffer += buffer[0];
@@ -176,6 +178,7 @@ void Client::handleRequest()
         // writeResponse();
     	// this->generateResponse();
     }
+
     else if (this->request->state == Stat::END)
     {
 		// Servme::getCore()->pollFds.
@@ -184,13 +187,12 @@ void Client::handleRequest()
 		// this->pollfd_.events &= ~POLLOUT;
 	}
 
-
-    if (this->response->GENERATE_RES || this->request->state == BODY)
-	{
-		std::cout << "here " << std::endl;
-        this->generateResponse();
-	}
-	std::cout << "rj3na lhna" << std::endl;
+    // if (this->response->GENERATE_RES || this->request->state == BODY)
+	// {
+	// 	std::cout << "here " << std::endl;
+    //     this->generateResponse();
+	// }
+	// std::cout << "rj3na lhna" << std::endl;
 }
 
 void Client::cgi_handler(){

@@ -68,6 +68,8 @@ void generate_dot(Http &http)
 int main(int argc, char **argv)
 {
 
+    signal(SIGPIPE, SIG_IGN);
+
     if (argc == 1)
     {
         std::cout << BLUE << "---------------------- Serverme  -------------------------" << RESET << std::endl;
