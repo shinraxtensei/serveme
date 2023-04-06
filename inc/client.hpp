@@ -142,6 +142,10 @@ class Response
 			int		responseSent = 0;
 			size_t	sendPos = 0;
 			int		started = 0;
+
+			size_t	contentLength;
+
+			std::ifstream	file;
 			
 			void	handleNormalReq();
 			void	storeMimeTypes();
@@ -156,7 +160,6 @@ class Response
 			std::string				getIndex(std::string newPath);
 			void					listDirectory();
 			std::vector<Location>	getLocations(std::vector<Location> locations);
-
 
 			void	handleGet(int type, std::string newPath);
 			void	listDirectory(std::string	newPath, DIR *dir);

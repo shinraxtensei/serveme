@@ -52,6 +52,7 @@ void	Response::listDirectory(std::string	newPath, DIR *dir)
 
 void	Response::sendChunked(std::ifstream &file)
 {
+	std::cout << "in sendChunked" << std::endl;
     this->responseStr = "";
 	int	buffer_size = 1024;
     char buffer[buffer_size];
@@ -100,17 +101,19 @@ int getpollfd(pollfd clientPollfd)
 void	Response::sendFile(std::string newPath)
 {
 	std::cout << "in sendFile" << std::endl;
-	std::ifstream file(newPath.c_str());
-	if (!file.good())
-	{
-		this->responseStr = generateError(E500);
-		send(this->client_fd, this->responseStr.c_str(), this->responseStr.length(), 0);
-		this->responseSent = 1;
-		this->client->request->state = DONE;
-		return ;
-	}
 	if (this->started == 0)
 	{
+		std::cout << "hna mzyan" << std::endl;
+		this->file.open(newPath.c_str(), std::ios::binary);
+		std::cout << "hna mzyan" << std::endl;
+		if (!this->file.good())
+		{
+			this->responseStr = generateError(E500);
+			send(this->client_fd, this->responseStr.c_str(), this->responseStr.length(), 0);
+			this->responseSent = 1;
+			this->client->request->state = DONE;
+			return ;
+		}
 		std::string	extension;
 		std::string	contentType;
 		std::string::size_type dotIndex = newPath.rfind('.');
@@ -124,37 +127,35 @@ void	Response::sendFile(std::string newPath)
 		else
 			contentType = "text/plain";
 		std::cout << "content type : " << contentType << std::endl;
-		std::stringstream	ss;
-		ss << file.rdbuf();
-		this->body = ss.str();
-		// std::cout << this->body << std::endl;
 		this->responseStr =
     	"HTTP/1.1 200 OK\r\n"
 		"Content-Type: "
 		+ contentType + "\r\n"
 		"Content-Length: "
-		+ std::to_string(this->body.length()) + "\r\n"
+		+ std::to_string(this->contentLength) + "\r\n"
 		"Connection: keep-alive\r\n\r\n";
+		// std::cout << "first line + headers : " << std::endl << this->responseStr << std::endl;
 		send(this->client_fd, this->responseStr.c_str(), this->responseStr.length(), 0);
 		this->started = 1;
 	}
-	if (this->sendPos < this->body.length())
+	if (this->sendPos < this->contentLength)
 	{
-		std::string	toSend;
+		std::cout << "ba9i masalinach" << std::endl;
 		int	size;
-		if (this->body.length() - this->sendPos > 1024)
+		if (this->contentLength - this->sendPos > 1024)
 		{
 			std::cout << "dkhlna lhna" << std::endl;
 			size = 1024;
 		}
 		else
-			size = this->body.length() - this->sendPos;
-		toSend = this->body.substr(this->sendPos, size);
-		std::cout << "hadchi fih : " << toSend.length() << std::endl;
+			size = this->contentLength - this->sendPos;
+		char	buffer[size];
+		std::cout << "before reading" << std::endl;
+		this->file.read(buffer, sizeof(buffer));
 		this->sendPos += size;
-		std::cout << "ghanseft lik : " << toSend << std::endl;
-		std::cout << "lmrra jaya ghanseft lik : " << this->body.substr(this->sendPos, size) << std::endl;
-		send(this->client_fd, toSend.c_str(), toSend.length(), 0);
+		send(this->client_fd, buffer, sizeof(buffer), 0);
+		// this->body = std::string(buffer);
+		// std::cout << "le body is this->body : " << this->body << std::endl;
 	}
 	if (this->sendPos == this->body.length())
 	{
