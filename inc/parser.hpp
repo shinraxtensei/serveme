@@ -14,6 +14,11 @@
 #define MAGENTA "\033[0;35m"
 #define CYAN "\033[0;36m"
 #define BOLDBLACK "\033[1;30m"
+#define BOLDRED "\033[1;31m"
+#define BOLDGREEN "\033[1;32m"
+#define BOLDYELLOW "\033[1;33m"
+#define BOLDBLUE "\033[1;34m"
+
 
 class Lexer;
 class Server;
@@ -60,6 +65,9 @@ class Server : public Http
 		// **** optional directives ****
 		std::pair<std::string, int>	ipPort;
 		std::string					server_name;
+
+
+		//error page syntax [error_page code path]
 };
 
 class Location : public Server
@@ -73,6 +81,13 @@ class Location : public Server
 		// **** mandatory directives ****
 		// std::string Return ;
 		std::pair<int, std::string> Return;
+
+		// return syntax [return url type]
+		// allowed type = permanently / temporary
+		int	returned;
+		std::string	returnUrl;
+		std::string returnType;
+
 
 		std::string path;
 		// std::string root;

@@ -51,13 +51,16 @@ enum Stat
 
 struct Multipart_ENV
 {
+    
     Multipart_ENV();
-    Multipart_ENV(std::string filename, std::string contenType , std::string data);
+    Multipart_ENV(std::string fileName , std::string contentType, std::string data);
+    Multipart_ENV(std::string fileName , std::string contentType);
     ~Multipart_ENV();
     std::string field_name;
     std::string file_name;
     std::string content_type;
     std::string data;
+    unsigned long pos;
 };
 
 
@@ -71,7 +74,7 @@ class Request
 
         int client_fd;
         Stat state;
-        std::multimap<std::string, Multipart_ENV> multipart_env;
+        std::map<std::string, Multipart_ENV> multipart_env;
         BodyType bodyType;
         Core *core;
         Client *client; // this is a pointer to its parent client
@@ -88,10 +91,6 @@ class Request
         std::ofstream body;
         std::string bodyString;
 
-
-
-
-
         int 		contentLength;
         std::string transferEncoding;
 
@@ -105,39 +104,65 @@ class Request
         std::string	checkType(std::string path);
         void ParseFirstLine(std::string &line);
         void ParseHeaders(std::string &line);
-        std::string ParseBody();
+        void ParseBody();
         void ParseChunkedBody();
         void ParseMultiPartBody();
+
+		std::string	query;
+
         // void ParseBodyChunked();
 		// int handle error();
 };
 
+// enum responseStat
+// {
+//     START,
+//     FIRSTLINE,
+//     HEADERS,
+//     DONE
+// };
+
 class Response
 {
 		public:
-			int client_fd;
-			Client	*client; // this is a pointer to its parent client
-			Http	*http;
+			int			client_fd;
+			Client		*client;
+			Http		*http;
 			Location	*location;
-            bool GENERATE_RES;
+            bool 		GENERATE_RES;
+			std::map<std::string, std::string>	contentTypes;	
 
 			std::string		responseStr;
 			std::string		body;
 	
 			Response();
-			~Response() {};
-			void	checkAllowedMethods();
-			void	matchLocation(std::vector<Location> locations);
-			void	checkCgi();
-			void	checkPath();
-			std::vector<Location>	getLocations(std::vector<Location> locations);
+			~Response();
+
+			size_t	readPos = 0;
+			int		responseSent = 0;
+			
 			void	handleNormalReq();
+			void	storeMimeTypes();
+			void	checkReturn();
+			void	sendChunked(std::ifstream &file);
+
+			void					getQuery();
+			void					checkAllowedMethods();
+			void					matchLocation(std::vector<Location> locations);
+			void					checkCgi();
+			void					checkPath();
+			std::string				getIndex(std::string newPath);
+			void					listDirectory();
+			std::vector<Location>	getLocations(std::vector<Location> locations);
+
 			void	handleGet(int type, std::string newPath);
-			// void	handleDelete();
-			// void	handlePost();
-		
-			std::string	getIndex(std::string newPath);
-			void	listDirectory();
+
+			void	listDirectory(std::string	newPath, DIR *dir);
+			void	sendFile(std::string newPath);
+
+			void	handleDelete(std::string newPath);
+			void	handlePost();
+			void	handleMultipart();
 };
 
 class Client

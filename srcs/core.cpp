@@ -92,7 +92,6 @@ void Core::handleConnections()
 
         fd.fd = it->get_sockfd();
         fd.events = POLLIN;
-        setsockopt(fd.fd, SOL_SOCKET, SO_REUSEADDR, NULL, 0);
         this->pollFds.push_back(fd);
     }
     while (true)
@@ -120,9 +119,21 @@ void Core::handleConnections()
                     this->pollFds.push_back(this->clients.back().pollfd_);
                 }
                 else
-                {
+                {	
                     this->map_clients[this->pollFds[i].fd].handleRequest();
                 }
+            }
+            else if (this->pollFds[i].revents & POLLHUP)
+            {
+                std::cout << "Client disconnected\n";
+                // this->pollFds.erase(this->pollFds.begin() + i);
+                // this->clients.erase(this->clients.begin() + i);
+            }
+            else if (this->pollFds[i].revents & POLLERR)
+            {
+                std::cout << "Error\n";
+                // this->pollFds.erase(this->pollFds.begin() + i);
+                // this->clients.erase(this->clients.begin() + i);
             }
         }
     }

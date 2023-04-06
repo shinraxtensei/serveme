@@ -59,6 +59,7 @@ Client::Client(SocketWrapper &sock)
     {
         throw std::runtime_error("Failed to accept connection");
     }
+
     this->request->client_fd = fd;
     this->response->client_fd = fd;
     // this->request->core = Servme::getCore();
@@ -106,7 +107,7 @@ void Client::handleRequest()
         else if (ret == 0)
         {
             std::cout << "disconnection" << std::endl;
-            return;
+            this->pollfd_.fd = -1;
         }
         line += buffer[0];
         this->request->buffer += buffer[0];
@@ -122,8 +123,8 @@ void Client::handleRequest()
         {
             if (line == "\r\n" || line == "\n")
             {
-                if (this->request->method == "GET")
-                    this->response->GENERATE_RES = true;
+                // if (this->request->method == "GET")
+                this->response->GENERATE_RES = true;
                 this->request->state = Stat::BODY;
             }
             if (this->request->state & Stat::FIRSTLINE)
@@ -144,15 +145,12 @@ void Client::handleRequest()
     else if (this->request->state & Stat::BODY)
     {
 
-
+        
         static int flag = 0;
+
+        this->request->ParseBody();
         if (this->request->bodyType == BodyType::CHUNKED)
         {
-            // if (!(this->request->state & (Stat::CHUNKED_SIZE | Stat::CHUNKED_DATA)))
-            // {
-            //     std::cout << RED << "this should be printed only once" << RESET << std::endl;
-            //     this->request->state = Stat::CHUNKED_SIZE;
-            // }
             if (flag == 0)
             {
                 flag = 1;
@@ -172,8 +170,7 @@ void Client::handleRequest()
             }
             this->request->ParseMultiPartBody(); // ! : this function is not working ,still working on ti
         }
-        else
-            this->request->ParseBody();
+        // else
 
 
         // writeResponse();
@@ -181,32 +178,26 @@ void Client::handleRequest()
     }
     else if (this->request->state == Stat::END)
     {
-        
-        this->pollfd_.events &= ~POLLOUT;
+		
+		// this->pollfd_.events &= ~POLLIN;
+        // this->pollfd_.events &= ~POLLOUT;
     }
-    if (this->response->GENERATE_RES && this->request->method == "GET")
-    {
-        std::cout << "generate response" << std::endl;
+
+    if (this->response->GENERATE_RES )
         this->generateResponse();
-        // this->response->GENERATE_RES = false;
-    }
-    if (this->request->method == "POST" || this->request->method == "DELETE")
-        this->generateResponse();
+
 }
 
 
 
 void Client::generateResponse()
 {
-
+	
 	this->response->client = &Servme::getCore()->map_clients[this->response->client_fd];
 	// this->response->checkAllowedMethods(); // error here aborted
 	this->response->checkCgi();
 	if (this->cgiFlag == 1)
-	{
-		// cgi matching
         cgi_handler();
-	}
 	else
 		this->response->handleNormalReq();
 }
@@ -230,11 +221,10 @@ void	Client::selectServer()
 		{
 			if (it->server_name == this->request->host)
 			{
-				this->server = new  Server(*it);
+				this->server = new Server(*it);
 				return ;
 			}
 		}
 		this->server = new  Server(candidates[0]);
   }
-
 }

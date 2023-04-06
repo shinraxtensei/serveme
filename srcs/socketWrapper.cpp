@@ -22,6 +22,9 @@ SocketWrapper::SocketWrapper(int domain, int type, int protocol)
         throw std::runtime_error("Failed to create socket");
     }
     fcntl(sockfd_, F_SETFL, O_NONBLOCK);
+    int reuse = 1;
+    setsockopt(sockfd_, SOL_SOCKET, SO_REUSEADDR, &reuse, sizeof(reuse));
+
 }
 
 SocketWrapper::~SocketWrapper()

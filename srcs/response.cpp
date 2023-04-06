@@ -1,5 +1,85 @@
 #include "../inc/client.hpp"
+#include "../inc/macros.hpp"
 
+
+Response::~Response()
+{
+	
+}
+
+void	Response::storeMimeTypes()
+{
+    std::vector<std::pair<std::string, std::string>> keyValuePairs = {
+        {"html", "text/html"},
+        {"htm", "text/html"},
+        {"shtml", "shtml"},
+        {"css", "text/css"},
+        {"xml", "text/xml"},
+        {"rss", "text/xml"},
+        {"gif", "image/gif"},
+        {"jpeg", "image/jpeg"},
+        {"jpg", "image/jpeg"},
+        {"js", "application/x-javascript"},
+        {"txt", "text/plain"},
+        {"htc", "text/x-component"},
+        {"mml", "text/mathml"},
+        {"png", "image/png"},
+        {"ico", "image/x-icon"},
+        {"jng", "image/x-jng"},
+        {"wbmp", "image/vnd.wap.wbmp"},
+        {"jar", "application/java-archive"},
+        {"war", "application/java-archive"},
+        {"ear", "application/java-archive"},
+        {"hqx", "application/mac-binhex40"},
+        {"pdf", "application/pdf"},
+        {"cco", "application/x-cocoa"},
+        {"jardiff", "application/x-java-archive-diff"},
+        {"jnlp", "application/x-java-jnlp-file"},
+        {"run", "application/x-makeself"},
+        {"pl", "application/x-perl"},
+        {"pm", "application/x-perl"},
+        {"prc", "application/x-pilot"},
+        {"pdb", "application/x-pilot"},
+        {"rar", "application/x-rar-compressed"},
+        {"rpm", "application/x-redhat-package-manager"},
+        {"sea", "application/x-sea"},
+        {"swf", "application/x-shockwave-flash"},
+        {"sit", "application/x-stuffit"},
+        {"tcl", "application/x-tcl"},
+        {"tk", "application/x-tcl"},
+        {"der", "application/x-x509-ca-cert"},
+        {"pem", "application/x-x509-ca-cert"},
+        {"crt", "application/x-x509-ca-cert"},
+        {"xpi", "application/x-xpinstall"},
+        {"zip", "application/zip"},
+        {"deb", "application/octet-stream"},
+        {"bin", "application/octet-stream"},
+        {"exe", "application/octet-stream"},
+        {"dll", "application/octet-stream"},
+        {"dmg", "application/octet-stream"},
+        {"eot", "application/octet-stream"},
+        {"iso", "application/octet-stream"},
+        {"img", "application/octet-stream"},
+        {"msi", "application/octet-stream"},
+        {"msp", "application/octet-stream"},
+        {"msm", "application/octet-stream"},
+        {"mp3", "audio/mpeg"},
+		{"mp4", "video/mp4"},
+        {"ra", "audio/x-realaudio"},
+        {"mpeg", "video/mpeg"},
+        {"mpg", "video/mpeg"},
+        {"mov", "video/quicktime"},
+        {"flv", "video/x-flv"},
+        {"avi", "video/x-msvideo"},
+        {"wmv", "video/x-ms-wmv"},
+        {"asx", "video/x-ms-asf"},
+        {"asf", "video/x-ms-asf"},
+        {"mng", "video/x-mng"}
+    };
+    
+	for (std::vector<std::pair<std::string, std::string>>:: iterator it = keyValuePairs.begin(); it < keyValuePairs.end(); it++)
+		this->contentTypes[it->first] = it->second;
+}
 
 Response::Response()
 {
@@ -11,11 +91,8 @@ void	Response::checkAllowedMethods()
 	std::vector<std::string>			methods;
 	std::vector<std::string>::iterator	iter;
 
-	std::cout << "htal hna mzyan" << std::endl;
 	this->client = &Servme::getCore()->map_clients[this->client_fd];
-	std::cout << "htal hnaa mzyan" << std::endl;
-	methods = this->client->server->allowed_methods;
-	std::cout << "htal hnaaa mzyan" << std::endl;
+	methods = this->client->location->allowed_methods;
 	if (methods.size() == 0 && this->client->request->method == "GET")
 		return ;
 	for (iter = methods.begin(); iter < methods.end(); iter++)
@@ -24,13 +101,17 @@ void	Response::checkAllowedMethods()
 			break ;
 	}
 	if (iter == methods.end())
-		std::cout << "method not allowed" << std::endl;
+	{
+		this->responseStr = generateError(E405);
+		send(this->client_fd, this->responseStr.c_str(), this->responseStr.length(), 0);
+		this->responseSent = 1;
+		this->client->request->state = DONE;
+		return ;
+	}
 }
 
 int		LocationFound(std::string locationPaths, std::string	path)
 {
-	// std::cout << "locationPaths: " << locationPaths << std::endl;
-	std::cout << "in location found" << std::endl;
 	if (locationPaths == path)
 			return (1) ;
 	while (!path.empty() && path != "/")
@@ -38,6 +119,8 @@ int		LocationFound(std::string locationPaths, std::string	path)
 		if (locationPaths == path)
 			return (1) ;
 		path = path.substr(0, path.find_last_of("/"));
+		if (path == "")
+			path = "/";
 		if (locationPaths == path)
 			return (1) ;
 	}
@@ -78,26 +161,51 @@ std::vector<Location>	Response::getLocations(std::vector<Location> locations)
 	return (candidates);
 }
 
+int		countFields(std::string	path)
+{
+	int count = 0;
+    for (std::string::const_iterator it = path.begin(); it != path.end(); ++it) {
+        if (*it == '/') {
+            ++count;
+        }
+    }
+    return count;
+}
+
+bool	compareFields(const Location& loc1, const Location& loc2)
+{
+	return (countFields(loc1.path) > countFields(loc2.path));
+}
+
 void	Response::matchLocation(std::vector<Location> locations)
 {
 	std::vector<Location>	candidates;
 	std::vector<Location>::iterator	iter;
 
-	std::cout << "matching location" << std::endl;
 	this->client = &Servme::getCore()->map_clients[this->client_fd];
 	candidates = this->getLocations(locations);
+	if (candidates.empty())
+	{
+		this->responseStr = generateError(E404);
+		send(this->client_fd, this->responseStr.c_str(), this->responseStr.length(), 0);
+		this->responseSent = 1;
+		this->client->request->state = DONE;
+		return ;
+	}
+	std::sort(candidates.begin(), candidates.end(), compareFields);
 	for (iter = candidates.begin(); iter < candidates.end(); iter++)
 	{
 		if (LocationFound(iter->path, this->client->request->url))
 		{
 			this->client->location = new Location(*iter);
-			std::cout << "location found" << std::endl;
 			return ;
 		}
 	}
 	this->responseStr = generateError(E404);
 	send(this->client_fd, this->responseStr.c_str(), this->responseStr.length(), 0);
-
+	this->responseSent = 1;
+	this->client->request->state = DONE;
+	return ;
 }
 
 void	Response::checkCgi()
@@ -107,111 +215,44 @@ void	Response::checkCgi()
 	std::string	imaginaryPath = this->client->request->url;
 	if (imaginaryPath.find(cgiPath) != std::string::npos)
 	{
-		// std::cout << "cgi request" << std::endl;
 		this->client->cgiFlag = 1;
 		return ;
 	}
 	else
-	{
-		std::cout << "not a cgi request" << std::endl;
+
 		this->client->cgiFlag = 0;
-	}
 }
 
 void	Response::handleGet(int type, std::string newPath)
 {
 	if (type == DIRE)
 	{
-		std::cout << "handling directory listing" << std::endl;
-    	DIR	*dir = opendir(this->client->path.c_str());
-		if (dir == NULL)
+		if (this->responseSent == 0)
 		{
-			std::cout << "error opening directory";
-			return ;
-		}
-		std::string	html = 
-			"<html>\n"
-			"<head><title>Index of " + newPath + "</title></head>\n"
-			"<body>\n"
-			"<h1>Index of " + newPath + "</h1>\n"
-			"<table style=\"width: 50%\">\n"
-			"<tr><td>Name</td><td>Last Modified</td><td>Size</td></tr>\n";
-			struct	dirent *dirent;
-			while ((dirent = readdir(dir)) != NULL)
+    		DIR	*dir = opendir(this->client->path.c_str());
+			if (dir == NULL)
 			{
-				std::cout << "stuck hna" << std::endl;
-				std::string	filename = dirent->d_name;
-				if (filename == "." || filename == "..")
-					continue ;
-				// std::string statPath = 
-				std::string	filePath = "/" + newPath + "/" + filename;
-				std::cout << filePath << std::endl;
-				struct stat	fileinfo;
-				if (stat(filePath.c_str(), &fileinfo) < 0)
-				{
-					std::cout << "stat problem" << std::endl;
-					continue ;
-				}
-				std::string	size;
-				if (S_ISREG(fileinfo.st_mode))
-					size = std::to_string(fileinfo.st_size);
-				else
-					size = "-";
-				time_t last_modified_timestamp = fileinfo.st_mtime;
-				std::string	time = std::string(ctime(&last_modified_timestamp));
-            	html += "<tr><td><a href=\"";
-            	html += filename;
-            	html += "\">";
-            	html += filename;
-            	html += "</a></td><td>";
-				html += time;
-				html += "</td><td>";
-            	html += size;
-            	html += "</td></tr>\n";				
-			}
-			html += "</table>\n"
-			"</body>\n"
-			"</html>\n";
-			this->body = html;
-			std::stringstream ss;
-    		ss << this->body.size();
-			this->responseStr =
-				"HTTP/1.1 200 OK\r\n"
-				"Content-Type: text/html\r\n"
-				"Content-Length:" + ss.str() + " \r\n"
-				"Connection: close\r\n\r\n" + this->body;
-			std::cout << "----------------------------" << std::endl;
-			std::cout << this->responseStr << std::endl;
-			std::cout << "----------------------------" << std::endl;
-			closedir(dir);
-			send(this->client_fd, this->responseStr.c_str(), this->responseStr.length(), 0);
+				this->responseStr = generateError(E500);
+				send(this->client_fd, this->responseStr.c_str(), this->responseStr.length(), 0);
+				this->responseSent = 1;
+				this->client->request->state = DONE;
+				return ;
+			}		
+			this->listDirectory(newPath, dir);
+		}
 	}
 	if (type == FILE)
 	{
-		std::cout << "hnaa" << std::endl;
         if (access(newPath.c_str(), R_OK) == 0)
-        {
-			std::ifstream file(newPath.c_str());
-			if (!file.good()) {
-    			std::cerr << "Error opening file\n";
-    			return ;
-			}
-    		std::stringstream buffer;
-    		buffer << file.rdbuf();
-    		this->body = buffer.str();
-    		file.close();
-			this->responseStr =
-    			"HTTP/1.1 200 OK\r\n"
-    			"Content-Type: text/html\r\n"
-    			"Content-Length: \r\n"
-				"Connection: close\r\n\r\n" + this->body;
-			std::cout << "----------------------------" << std::endl;
-			std::cout << "response: " << this->responseStr << std::endl;
-			std::cout << "----------------------------" << std::endl;
-			send(this->client_fd, this->responseStr.c_str(), this->responseStr.length(), 0);
-		}
+			this->sendFile(newPath);
 		else
-			std::cout << "access denied" << std::endl;
+		{
+			this->responseStr = generateError(E403);
+			send(this->client_fd, this->responseStr.c_str(), this->responseStr.length(), 0);
+			this->responseSent = 1;
+			this->client->request->state = DONE;
+			return ;
+		}
 	}
 }
 
@@ -228,80 +269,149 @@ std::string	Response::getIndex(std::string newPath)
 	return ("");
 }
 
-
 void    Response::checkPath()
 {
     struct    stat    infos;
 
-	std::cout << "in check path" << std::endl;
-	std::cout << "path: " << this->client->path << std::endl;
-    if (stat(this->client->location->path.c_str(), &infos) == 0)
-        std::cout << "File found" << std::endl;
 	std::string	newPath = this->client->path.substr(this->client->path.find_first_of('/') + 1, this->client->path.length() - this->client->path.find_first_of('/') + 1);
-	std::cout << "newPath: " << newPath << std::endl;
+    if ((stat(newPath.c_str(), &infos) != 0))
+	{
+		this->responseStr = generateError(E404);
+		send(this->client_fd, this->responseStr.c_str(), this->responseStr.length(), 0);
+		this->responseSent = 1;
+		this->client->request->state = DONE;
+		return ;
+	}
     if (S_ISDIR(infos.st_mode))
 	{
-        std::cout << "It's a directory" << std::endl;
-		if ((this->client->location->index[0] != ""))
+		if (this->client->request->method == "DELETE")
 		{
-			std::cout << "index is here" << std::endl;
-			std::string	file = this->getIndex(newPath);
-			std::cout << "file: " << file << std::endl;
-			if (file == "")
+			this->responseStr = generateError(E405);
+			send(this->client_fd, this->responseStr.c_str(), this->responseStr.length(), 0);
+			this->responseSent = 1;
+			this->client->request->state = DONE;
+		}
+		else if (this->client->request->method == "POST")
+			this->handlePost();
+		else if (this->client->request->method == "GET")
+		{
+			if ((this->client->location->index[0] != ""))
 			{
-				std::cout << "Forbidden" << std::endl;
-				return ;
+				std::string	file = this->getIndex(newPath);
+				if (file == "")
+				{
+					this->responseStr = generateError(E404);
+					send(this->client_fd, this->responseStr.c_str(), this->responseStr.length(), 0);
+					this->responseSent = 1;
+					this->client->request->state = DONE;
+					return ;
+				}
+				else
+				{
+					newPath = newPath + "/" + file;
+					this->handleGet(FILE, newPath);
+				}
 			}
 			else
 			{
-				std::cout << "index found" << std::endl;
-				newPath = newPath + "/" + file;
-				this->handleGet(FILE, newPath);
+				if (this->client->location->autoindex == true)
+					this->handleGet(DIRE, newPath);
+				else
+				{
+					this->responseStr = generateError(E403);
+					send(this->client_fd, this->responseStr.c_str(), this->responseStr.length(), 0);
+					this->responseSent = 1;
+					this->client->request->state = DONE;
+					return ;
+				}
 			}
 		} 
-		else
-		{
-			// if (this->client->location->autoindex == true)
-			// {
-				std::cout << "autoindex" << std::endl;
-				this->handleGet(DIRE, newPath);
-			// }
-		}
 	}
     else if (S_ISREG(infos.st_mode))
     {
-        std::cout << "It's a file" << std::endl;
 		if (this->client->request->method == "GET")
 			this->handleGet(FILE, newPath);
-        else
-            std::cout << "Forbidden " << std::endl;
-    }
+        else if (this->client->request->method == "POST")
+			this->handlePost();
+		else if (this->client->request->method == "DELETE")
+			this->handleDelete(newPath);
+		else
+		{
+			this->responseStr = generateError(E405);
+			send(this->client_fd, this->responseStr.c_str(), this->responseStr.length(), 0);
+			this->responseSent = 1;
+			this->client->request->state = DONE;
+			return ;
+		}
+	}
 }
 
 std::string	removeBackSlashes(std::string url)
 {
-	if (url.size() != 1)
-	{
-		while (url.back() == '/')
-			url.pop_back();
-	}
+	while (url.back() == '/' && url.size() != 1)
+		url.pop_back();
 	return (url);
+}
+
+void	Response::getQuery()
+{
+	std::string				query;
+	size_t					pos;
+
+	pos = this->client->request->url.find('?');
+	if (pos != std::string::npos)
+	{
+		query = this->client->request->url.substr(pos + 1, this->client->request->url.length() - pos + 1);
+		this->client->request->query = query;
+		this->client->request->url = this->client->request->url.substr(0, pos);
+	}
+}
+
+void	Response::checkReturn()
+{
+	if (this->client->location->returned != 0)
+	{
+		if (this->client->location->returnType == "permanently")
+			this->responseStr = "HTTP/1.1 308 Permanent Redirect\r\n"
+								"Location: " + this->client->location->returnUrl + "\r\n"
+								"Content-Type: text/html\r\n"
+								"Content-Length: 0\r\n"
+								"Connection: close\r\n\r\n";
+		else
+			this->responseStr = "HTTP/1.1 307 Temporary Redirect\r\n"
+								"Location: " + this->client->location->returnUrl + "\r\n"
+								"Content-Type: text/html\r\n"
+								"Content-Length: 0\r\n"
+								"Connection: close\r\n\r\n";
+		send(this->client_fd, this->responseStr.c_str(), this->responseStr.length(), 0);
+		exit (1);
+	}
 }
 
 void    Response::handleNormalReq()
 {
-	std::cout << "in handle normal req" << std::endl;
-    this->client = &Servme::getCore()->map_clients[this->client_fd];
-	this->client->request->url = removeBackSlashes(this->client->request->url);
-    this->matchLocation(this->client->server->locations);
-	if (this->client->server->locations.empty())
-		return ;
-	if (this->client->request->url != this->client->location->path)
+	std::cout << "content type : " << this->client->request->contentType << std::endl;
+	std::cout << "body : " << this->client->request->bodyString << std::endl;
+	std::cout << "body size = " << this->client->request->bodyString.length() << std::endl;
+	std::cout << "request state : " << this->client->request->state << std::endl;
+	if (this->responseSent == 0)
 	{
-		this->client->request->url = this->client->request->url.erase(this->client->request->url.find(this->client->location->path), this->client->location->path.length());
-		this->client->path = this->client->location->root + this->client->request->url;
+		this->storeMimeTypes();
+		this->client->selectServer();
+    	this->client = &Servme::getCore()->map_clients[this->client_fd];
+		this->getQuery();
+		this->client->request->url = removeBackSlashes(this->client->request->url);
+    	this->matchLocation(this->client->server->locations);
+		// this->checkReturn();
+		this->checkAllowedMethods();
+		if (this->client->request->url != this->client->location->path)
+		{
+			if (this->client->location->path != "/")
+				this->client->request->url = this->client->request->url.erase(this->client->request->url.find(this->client->location->path), this->client->location->path.length());
+			this->client->path = this->client->location->root + this->client->request->url;
+		}
+		else
+			this->client->path = this->client->location->root;
 	}
-	else
-		this->client->path = this->client->location->root;
-    this->checkPath();
+	this->checkPath();
 }
