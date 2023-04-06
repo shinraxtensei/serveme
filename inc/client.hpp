@@ -140,6 +140,8 @@ class Response
 
 			size_t	readPos = 0;
 			int		responseSent = 0;
+			size_t	sendPos = 0;
+			int		started = 0;
 			
 			void	handleNormalReq();
 			void	storeMimeTypes();
@@ -155,8 +157,8 @@ class Response
 			void					listDirectory();
 			std::vector<Location>	getLocations(std::vector<Location> locations);
 
-			void	handleGet(int type, std::string newPath);
 
+			void	handleGet(int type, std::string newPath);
 			void	listDirectory(std::string	newPath, DIR *dir);
 			void	sendFile(std::string newPath);
 
@@ -193,14 +195,13 @@ class Client
         //**  methods
     	void handleRequest();
     	void cgi_handler();
-    // void generateResponse();
-    // void writeResponse();
-    // void checkInactivity();
+    	// void generateResponse();
+    	// void writeResponse();
+    	// void checkInactivity();
 		void	selectServer();
     	void	generateResponse();
         
     	// void writeResponse();
     	// void checkInactivity();
-
 
 };

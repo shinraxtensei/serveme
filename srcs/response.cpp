@@ -273,6 +273,7 @@ void    Response::checkPath()
 {
     struct    stat    infos;
 
+	this->client = &Servme::getCore()->map_clients[this->client_fd];
 	std::string	newPath = this->client->path.substr(this->client->path.find_first_of('/') + 1, this->client->path.length() - this->client->path.find_first_of('/') + 1);
     if ((stat(newPath.c_str(), &infos) != 0))
 	{
@@ -390,10 +391,13 @@ void	Response::checkReturn()
 
 void    Response::handleNormalReq()
 {
+	std::cout << "in handleNormalReq" << std::endl;
+	// std::cout << "ha mrra" << std::endl;
 	// std::cout << "content type : " << this->client->request->contentType << std::endl;
 	// std::cout << "body : " << this->client->request->bodyString << std::endl;
 	// std::cout << "body size = " << this->client->request->bodyString.length() << std::endl;
 	// std::cout << "request state : " << this->client->request->state << std::endl;
+	this->client = &Servme::getCore()->map_clients[this->client_fd];
 	if (this->responseSent == 0)
 	{
 		this->storeMimeTypes();
@@ -414,4 +418,6 @@ void    Response::handleNormalReq()
 			this->client->path = this->client->location->root;
 	}
 	this->checkPath();
+	std::cout << "salina lpart lwla" << std::endl;
+	std::cout << "request state : " << this->client->request->state << std::endl;
 }
