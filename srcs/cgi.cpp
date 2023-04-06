@@ -90,31 +90,17 @@ std::string Cgi::parseSurfix(std::string path_info){
 // 10. check if the file is a file
 // 11. check which compiler to use
 
-// std::vector<Location>    Response::getLocations(std::vector<Location> locations)
-// {
-//     std::vector<Location>    candidates;
-//     std::vector<Location>::iterator    iter;
-
-//     this->client = &Servme::getCore()->map_clients[this->client_fd];
-//     iter = locations.begin();
-//     for (iter = this->client->server->locations.begin(); iter < this->client->server->locations.end(); iter++)
-//     {
-//         candidates.push_back(*iter);
-//         candidates = getNested(candidates, *iter);
-//     }
-//     return (candidates);
-// }
-
 void Client::cgi_handler(){
 
     std::vector<Location>   candidates;
 
-    
 	if (this->request->method == "GET" || (this->request->method == "POST" && (unsigned long)this->request->contentLength == this->request->bodyString.size())){
         candidates = this->response->getLocations(this->server->locations);
 		/****************************************************************/
-        std::vector<Location>::iterator                     iter;
-		std::map<std::string, std::string>::iterator		it;
+		std::vector<std::string> 							allowed_meth;
+        std::vector<Location>::iterator                     iter_cand;
+		std::vector<std::string>::iterator					iter_meth;
+		std::map<std::string, std::string>::iterator		iter_query;
 		std::map<std::string, std::string>	querys_map		= this->cgi->parseQuery(this->request->url);
 		std::string query_string							= this->request->url.find_first_of("?") != std::string::npos ? this->request->url.substr(this->request->url.find_first_of("?") + 1) : "";
 		std::string file_path								= this->cgi->parseUrl(this->request->url);
@@ -123,18 +109,31 @@ void Client::cgi_handler(){
 		std::string compiler								= this->cgi->CompilerPathsByLanguage[surfix];
 		//--------------------------------------------------------------
         surfix = "\\." + surfix + "$";
-        for (iter = candidates.begin(); iter < candidates.end(); iter++)
+        for (iter_cand = candidates.begin(); iter_cand < candidates.end(); iter_cand++)
         {
-            std::cout << "location path = " << iter->path << std::endl;
-            if (!strcmp(surfix.c_str(), iter->path.c_str()))
+			std::cout << iter_cand->path << std::endl;
+			std::cout << surfix << std::endl;
+            if (!strcmp(surfix.c_str(), iter_cand->path.c_str()))
+			{
+				allowed_meth = iter_cand->allowed_methods;
+				for (std::map<std::string, std::vector<std::string>>::iterator iter_compiler = iter_cand->location_directives.begin(); iter_compiler != iter_cand->location_directives.end(); iter_compiler++){
+					std::cout << "key : " << iter_compiler->first << " " << iter_compiler->second[0] << std::endl;
+				}
                 break;
-        }
-        // if allowed method
-            // iter->allowed_methods
-		
-        // for (iter->location_directives)
-		auto dir_itr = iter->location_directives.find("cgi_root");
-		std::cout << "cgi_root = " << dir_itr->first << std::endl;
+        	}
+		}
+		if (iter_cand == candidates.end())
+			throw std::runtime_error("CGI : No matching location");
+		/*	**************************************	*/
+		for (iter_meth = allowed_meth.begin(); iter_meth != allowed_meth.end(); iter_meth++){
+			if (this->request->method == *iter_meth)
+				break;
+		}
+		if (iter_meth == allowed_meth.end()){
+			throw std::runtime_error("CGI : Method not allowed");
+			return;
+		}
+		/*	**************************************	*/
 		int		pipefd[2];
 		pid_t	pid = -1;
 
@@ -143,21 +142,18 @@ void Client::cgi_handler(){
 		if ((pid = fork()) == -1)
 			throw std::runtime_error("CGI : Fork failed");
 		/*child process*/
+		std::string tmp_filename =  std::string("tmp/serveme-") + std::to_string(rand()) + ".tmp";
 		if (pid == 0) {
 			if (this->request->method == "POST"){
-				std::cout << "[ contentLength = " << this->request->contentLength << " ] [ body size " << this->request->bodyString.size() << "]" << std::endl;
 				srand(time(NULL));
-				std::string tmp_filename =  std::string("tmp/serveme-") + std::to_string(rand()) + ".tmp";
 				std::ofstream ofs(tmp_filename);
 				if (!ofs.is_open())
 					throw std::runtime_error("CGI : Can't open tmp file");
 				ofs << this->request->bodyString;
-				std::cout << "body = " << this->request->bodyString << std::endl;
 				ofs.close();
 				int fdf = open(tmp_filename.c_str(), O_RDWR);
 				if (fdf == -1)
 					throw std::runtime_error("CGI : Can't open tmp file");
-				std::cout << "fdf = " << fdf << std::endl;
 				if (dup2(fdf, STDIN_FILENO) == -1)
 					throw std::runtime_error("CGI : Dup2 failed");
 				close(fdf);
@@ -174,8 +170,8 @@ void Client::cgi_handler(){
 			setenv("GATEWAY_INTERFACE", "CGI/1.1", 1);
 			setenv("PATH_INFO", this->request->url.c_str(), 1);
 			setenv("REDIRECT_STATUS", "1", 1); // for later
-			for (it = this->cgi->QUERY_MAP.begin(); it != this->cgi->QUERY_MAP.end(); ++it)
-			     setenv(it->first.c_str(), it->second.c_str(), 1);
+			for (iter_query = this->cgi->QUERY_MAP.begin(); iter_query != this->cgi->QUERY_MAP.end(); ++iter_query)
+			     setenv(iter_query->first.c_str(), iter_query->second.c_str(), 1);
 			/*++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
 			if (dup2(pipefd[1], STDOUT_FILENO) == -1)
 				throw std::runtime_error("CGI : Dup2 failed");
@@ -187,9 +183,7 @@ void Client::cgi_handler(){
 			file_path.erase(0, 1);
             char*	arg[] = {strdup(compiler.c_str()), strdup(file_path.c_str()), NULL};
             char*	path = strdup(compiler.c_str());
-			std::cerr << "path: " << path << std::endl;
-			std::cerr << "arg[0]: " << arg[0] << std::endl;
-			std::cerr << "arg[1]: " << arg[1] << std::endl;
+			unlink(tmp_filename.c_str());
 			if (execve(path, arg, env) == -1)
 				throw std::runtime_error("CGI : Execve failed");
 			exit(1);
@@ -215,10 +209,10 @@ void Client::cgi_handler(){
             header += "Server: serveme/1.0\r\n";
             header += "Connection: close\r\n\r\n";
             header += body;
-			std::cout << "------------\n-> BODY <-\n-------------\n" << header << std::endl;
             int bytes = send(this->request->client_fd, header.c_str(), header.size(), 0);
 			if (bytes == -1)
 				std::cout << "Return 503 ERROR" << std::endl;
+			unlink(tmp_filename.c_str());
 			close(pipefd[0]);
 		}
 	}
