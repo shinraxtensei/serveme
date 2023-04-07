@@ -1,117 +1,222 @@
 # include "../inc/cgi.hpp"
+#include <algorithm>
 #include <atomic>
 #include <cstddef>
+#include <cstdio>
 #include <cstdlib>
+#include <cstring>
+#include <fstream>
+#include <iostream>
+#include <istream>
+#include <ostream>
 #include <stdlib.h>
 #include <string>
+#include <sys/_types/_pid_t.h>
+#include <sys/fcntl.h>
+#include <unistd.h>
+#include <vector>
 
 
 Cgi::Cgi(){
-    this->CONTENT_LENGTH = "";
-    this->PATH_INFO = "";
-    this->SCRIPT_FILENAME = "";
-    this->CONTENT_TYPE = "";
-    this->BODY = "";
-    this->QUERY_MAP = std::map<std::string, std::string>();
+	this->CONTENT_LENGTH = 0;
+	this->PATH_INFO = "";
+	this->SCRIPT_FILENAME = "";
+	this->CONTENT_TYPE = "";
+	this->BODY = "";
+	// this->FULLBODY = make;
+	this->QUERY_MAP = std::map<std::string, std::string>();
 
-    this->CompilerPathsByLanguage = std::map<std::string, std::string>{
-        {"py", "/usr/bin/python"},
-        {"php", "/usr/bin/php"}
-    };    
-
-}
-// void Cgi::cgi_handler(){
-
-    
-//     std::string REQUEST_METHOD = "GET";
-//     std::string CONTENT_LENGTH = "88";
-//     std::string PATH_INFO = "/with/additional/path";
-//     std::string SCRIPT_FILENAME = "Hello.py";
-//     // std::string REDIRECT_STATUS = ;
-//     std::string CONTENT_TYPE = "text/html";
-
-//     // set env [ REQ ]
-
-//     setenv("REQUEST_METHOD", REQUEST_METHOD.c_str(), 1);
-//     setenv("CONTENT_LENGTH", CONTENT_LENGTH.c_str(), 1);
-//     setenv("PATH_INFO", PATH_INFO.c_str(), 1);
-//     setenv("SCRIPT_FILENAME", SCRIPT_FILENAME.c_str(), 1);
-//     // setenv("REDIRECT_STATUS", REDIRECT_STATUS.c_str(), 1);
-//     setenv("CONTENT_TYPE", CONTENT_TYPE.c_str(), 1);
-
-
-//     char *env = getenv("PATH_INFO");
-//     std::cout << env << std::endl;
-
-
-
-// }
-
-void Cgi::setEnv(std::string &Method){
-
-    std::map<std::string, std::string>::iterator it;
-
-    setenv("REQUEST_METHOD", Method.c_str(), 1);
-    setenv("CONTENT_LENGTH", this->CONTENT_LENGTH.c_str(), 1);
-    setenv("PATH_INFO", this->PATH_INFO.c_str(), 1);
-    setenv("SCRIPT_FILENAME", this->SCRIPT_FILENAME.c_str(), 1);
-    setenv("CONTENT_TYPE", this->CONTENT_TYPE.c_str(), 1);
-    setenv("CONTENT_BODY", this->BODY.c_str(), 1);
-
-    // this loop seting the env vars from the query map
-    setenv("QUERY_STRING", this->QUERY_STRING.c_str(), 1);
-    for (it = this->QUERY_MAP.begin(); it != this->QUERY_MAP.end(); ++it)
-         setenv(it->first.c_str(), it->second.c_str(), 1);
+	this->CompilerPathsByLanguage = std::map<std::string, std::string>{
+		{"py", "/usr/bin/python3"},
+		{"php", "/usr/bin/php"}
+	};    
 
 }
 
 
 // this function parse the url and return the path
 std::string Cgi::parseUrl(std::string url){
-    std::string parsedUrl = url;
-    std::string::size_type pos = parsedUrl.find("?");
-    if (pos != std::string::npos)
-        parsedUrl = parsedUrl.substr(0, pos);
-    return parsedUrl;
+	std::string parsedUrl = url;
+	std::string::size_type pos = parsedUrl.find("?");
+	if (pos != std::string::npos)
+		parsedUrl = parsedUrl.substr(0, pos);
+	return parsedUrl;
 }
 
 // this function parse the query and return a map of key value
 std::map<std::string, std::string> Cgi::parseQuery(std::string query){
 
+	std::map<std::string, std::string> querymap;
 
-    std::map<std::string, std::string> querymap;
-
-    std::string::size_type pos = query.find("?");
-    if (pos != std::string::npos) {
-        query = query.substr(pos + 1);
-        this->QUERY_STRING = query;
-        while (!query.empty()) {
-            std::string::size_type pos2 = query.find("&");
-            std::string keyvalue = query.substr(0, pos2);
-            std::string::size_type pos3 = keyvalue.find("=");
-            if (pos3 != std::string::npos) {
-                querymap[keyvalue.substr(0, pos3)] = keyvalue.substr(pos3 + 1);
-            }
-            if (pos2 == std::string::npos) {
-                break;
-            }
-            query = query.substr(pos2 + 1);
-        }
-    }
-    return querymap;
+	std::string::size_type pos = query.find("?");
+	if (pos != std::string::npos) {
+		query = query.substr(pos + 1);
+		this->QUERY_STRING = query;
+		while (!query.empty()) {
+			std::string::size_type pos2 = query.find("&");
+			std::string keyvalue = query.substr(0, pos2);
+			std::string::size_type pos3 = keyvalue.find("=");
+			if (pos3 != std::string::npos) {
+				querymap[keyvalue.substr(0, pos3)] = keyvalue.substr(pos3 + 1);
+			}
+			if (pos2 == std::string::npos) {
+				break;
+			}
+			query = query.substr(pos2 + 1);
+		}
+	}
+	return querymap;
 }
 
 std::string Cgi::parseSurfix(std::string path_info){
-    std::string surfix;
-    std::size_t found = path_info.find_last_of(".");
-    surfix = path_info.substr(found + 1);
-    return surfix;
+	std::string surfix;
+	std::size_t found = path_info.find_last_of(".");
+	surfix = path_info.substr(found + 1);
+	return surfix;
 }
-// int main()
-// {
-//     std::string url;
-//     Cgi cgi;
-//     url = cgi.parseUrl("/with/additional/path?query=string");
-//     std::cout << url << std::endl;
-//     return 0;
-// }
+
+
+/*     TO DO	*/
+// 0. check the macthing location
+// 1. check if the file is executable
+// 2. check if the file is a cgi file
+// 3. check if the file is a python file
+// 4. check if the file is a php file
+// 5. check if the file is a bash file
+// 6. check if the file is a c file
+// 7. check if the file is a c++ file
+// 8. check if method is allowed
+// 9. check if the file is a directory
+// 10. check if the file is a file
+// 11. check which compiler to use
+
+void Client::cgi_handler(){
+
+    std::vector<Location>   candidates;
+
+	if (this->request->method == "GET" || (this->request->method == "POST" && (unsigned long)this->request->contentLength == this->request->bodyString.size())){
+        candidates = this->response->getLocations(this->server->locations);
+		/****************************************************************/
+		std::vector<std::string> 							allowed_meth;
+        std::vector<Location>::iterator                     iter_cand;
+		std::vector<std::string>::iterator					iter_meth;
+		std::map<std::string, std::string>::iterator		iter_query;
+		std::string 										compiler;
+		std::map<std::string, std::string>	querys_map		= this->cgi->parseQuery(this->request->url);
+		std::string query_string							= this->request->url.find_first_of("?") != std::string::npos ? this->request->url.substr(this->request->url.find_first_of("?") + 1) : "";
+		std::string file_path								= this->cgi->parseUrl(this->request->url);
+		std::string server_path								= "/Users/rsaf/Desktop/serveme/cgi-bin" + file_path;
+		std::string surfix									= this->cgi->parseSurfix(file_path);
+		// std::string compiler								= this->cgi->CompilerPathsByLanguage[surfix];
+		//--------------------------------------------------------------
+        surfix = "\\." + surfix + "$";
+        for (iter_cand = candidates.begin(); iter_cand < candidates.end(); iter_cand++)
+        {
+            if (!strcmp(surfix.c_str(), iter_cand->path.c_str()))
+			{
+				allowed_meth = iter_cand->allowed_methods;
+				for (std::map<std::string, std::vector<std::string>>::iterator iter_compiler = iter_cand->location_directives.begin(); iter_compiler != iter_cand->location_directives.end(); iter_compiler++){
+					if (iter_compiler->first == "fastcgi_pass"){
+						compiler = iter_compiler->second[0];
+					}
+				}
+                break;
+        	}
+		}
+		if (compiler == "")
+			throw std::runtime_error("CGI : No compiler found");
+		if (iter_cand == candidates.end())
+			throw std::runtime_error("CGI : No matching location");
+		/*	**************************************	*/
+		for (iter_meth = allowed_meth.begin(); iter_meth != allowed_meth.end(); iter_meth++){
+			if (this->request->method == *iter_meth)
+				break;
+		}
+		if (iter_meth == allowed_meth.end()){
+			throw std::runtime_error("CGI : Method not allowed");
+			return;
+		}
+		/*	**************************************	*/
+		int		pipefd[2];
+		pid_t	pid = -1;
+
+		if (pipe(pipefd) == -1)
+			throw std::runtime_error("CGI : Pipe failed");
+		if ((pid = fork()) == -1)
+			throw std::runtime_error("CGI : Fork failed");
+		/*child process*/
+		std::string tmp_filename =  std::string("tmp/serveme-") + std::to_string(rand()) + ".tmp";
+		if (pid == 0) {
+			if (this->request->method == "POST"){
+				srand(time(NULL));
+				std::ofstream ofs(tmp_filename);
+				if (!ofs.is_open())
+					throw std::runtime_error("CGI : Can't open tmp file");
+				ofs << this->request->bodyString;
+				ofs.close();
+				int fdf = open(tmp_filename.c_str(), O_RDWR);
+				if (fdf == -1)
+					throw std::runtime_error("CGI : Can't open tmp file");
+				if (dup2(fdf, STDIN_FILENO) == -1)
+					throw std::runtime_error("CGI : Dup2 failed");
+				close(fdf);
+			}
+			/*++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
+			setenv("REQUEST_METHOD", this->request->method.c_str(), 1);
+			setenv("REQUEST_URI", this->request->url.c_str(), 1);
+			setenv("CONTENT_LENGTH", std::to_string(this->request->contentLength).c_str(), 1);
+			setenv("SCRIPT_FILENAME", server_path.c_str(), 1);
+			setenv("SCRIPT_NAME", file_path.c_str(), 1);
+			setenv("CONTENT_TYPE", this->request->contentType.c_str(), 1); // empty [FIXED]
+			setenv("CONTENT_BODY", this->request->bodyString.c_str(), 1);
+			setenv("QUERY_STRING", query_string.c_str(), 1);
+			setenv("GATEWAY_INTERFACE", "CGI/1.1", 1);
+			setenv("PATH_INFO", this->request->url.c_str(), 1);
+			setenv("REDIRECT_STATUS", "1", 1); // for later
+			for (iter_query = this->cgi->QUERY_MAP.begin(); iter_query != this->cgi->QUERY_MAP.end(); ++iter_query)
+			     setenv(iter_query->first.c_str(), iter_query->second.c_str(), 1);
+			/*++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
+			if (dup2(pipefd[1], STDOUT_FILENO) == -1)
+				throw std::runtime_error("CGI : Dup2 failed");
+			close(pipefd[0]);
+			close(pipefd[1]);
+
+            extern	char**	environ;
+            char**	env	= environ;
+			file_path.erase(0, 1);
+            char*	arg[] = {strdup(compiler.c_str()), strdup(file_path.c_str()), NULL};
+            char*	path = strdup(compiler.c_str());
+			unlink(tmp_filename.c_str());
+			if (execve(path, arg, env) == -1)
+				throw std::runtime_error("CGI : Execve failed");
+			exit(1);
+		} if (pid != 0) {
+			char buff;
+			std::string body;
+			int error_status;
+			wait(&error_status);
+			if (error_status != 0) {
+				close(pipefd[0]);
+				exit(99);
+			}
+			// waitpid(-1, 0, 0);
+			close(pipefd[1]);
+			while (read(pipefd[0], &buff, 1) > 0){
+				body.push_back(buff);
+			}
+
+            std::string header = "HTTP/1.1 200 OK\r\n";
+            body = body.substr(body.find("\r\n\r\n") + 4);
+            header += "Content-Type: text/html\r\n";
+            header += "Content-Length: " + std::to_string(body.size()) + "\r\n";
+            header += "Server: serveme/1.0\r\n";
+            header += "Connection: keep alive\r\n\r\n";
+            header += body;
+            int bytes = send(this->request->client_fd, header.c_str(), header.size(), 0);
+			if (bytes == -1)
+				std::cout << "Return 503 ERROR" << std::endl;
+			unlink(tmp_filename.c_str());
+			close(pipefd[0]);
+		}
+	}
+}

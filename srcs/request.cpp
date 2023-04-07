@@ -193,8 +193,11 @@ void Request::ParseHeaders(std::string &line)
             this->boundary = value.substr(value.find("boundary=") + 9);
             Parser::lex()->set_input(this->boundary);
             boundary = Parser::lex()->next_token(true);
-            this->bodyType = BodyType::MULTIPART;       
+            this->bodyType = BodyType::MULTIPART;
 
+        }
+        else {
+            this->contentType = value;
         }
     }
 
