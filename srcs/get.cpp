@@ -52,6 +52,7 @@ void	Response::listDirectory(std::string	newPath, DIR *dir)
 
 void	Response::sendChunked(std::ifstream &file)
 {
+	std::cout << "in sendChunked" << std::endl;
     this->responseStr = "";
 	int	buffer_size = 1024;
     char buffer[buffer_size];
@@ -85,39 +86,82 @@ void	Response::sendChunked(std::ifstream &file)
     // this->responseStr << "0\r\n\r\n";	
 }
 
+int getpollfd(pollfd clientPollfd)
+{
+	for (size_t i = 0; i < Servme::getCore()->pollFds.size() ; i++)
+	{
+		if (Servme::getCore()->pollFds[i].fd == clientPollfd.fd)
+			return i;
+	}
+	return (-1);
+}
+
+
+
 void	Response::sendFile(std::string newPath)
 {
-	std::ifstream file(newPath.c_str());
-	if (!file.good())
+	std::cout << "in sendFile" << std::endl;
+	if (this->started == 0)
 	{
-		this->responseStr = generateError(E500);
-		send(this->client_fd, this->responseStr.c_str(), this->responseStr.length(), 0);
-		this->responseSent = 1;
-		this->client->request->state = DONE;
-		return ;
-	}
-	std::string	extension;
-	std::string	contentType;
-	std::string::size_type dotIndex = newPath.rfind('.');
-	if (dotIndex != std::string::npos)
-	{
-    	extension = newPath.substr(dotIndex + 1);
-		contentType = this->contentTypes[extension];
-		if (contentType == "")
+		std::cout << "hna mzyan" << std::endl;
+		this->file.open(newPath.c_str(), std::ios::binary);
+		std::cout << "hna mzyan" << std::endl;
+		if (!this->file.good())
+		{
+			this->responseStr = generateError(E500);
+			send(this->client_fd, this->responseStr.c_str(), this->responseStr.length(), 0);
+			this->responseSent = 1;
+			this->client->request->state = DONE;
+			return ;
+		}
+		std::string	extension;
+		std::string	contentType;
+		std::string::size_type dotIndex = newPath.rfind('.');
+		if (dotIndex != std::string::npos)
+		{
+    		extension = newPath.substr(dotIndex + 1);
+			contentType = this->contentTypes[extension];
+			if (contentType == "")
+				contentType = "text/plain";
+		}
+		else
 			contentType = "text/plain";
-	}
-	else
-		contentType = "text/plain";
-		std::cout << "content type : " << contentType << std::endl; 
+		std::cout << "content type : " << contentType << std::endl;
 		this->responseStr =
     	"HTTP/1.1 200 OK\r\n"
 		"Content-Type: "
 		+ contentType + "\r\n"
-		// "Content-Length: 10589111\r\n"
-		"Connection: keep-alive\r\n"
-		"Transfer-Encoding: chunked\r\n\r\n";
+		"Content-Length: "
+		+ std::to_string(this->contentLength) + "\r\n"
+		"Connection: keep-alive\r\n\r\n";
+		// std::cout << "first line + headers : " << std::endl << this->responseStr << std::endl;
 		send(this->client_fd, this->responseStr.c_str(), this->responseStr.length(), 0);
-		this->sendChunked(file);
+		this->started = 1;
+	}
+	if (this->sendPos < this->contentLength)
+	{
+		std::cout << "ba9i masalinach" << std::endl;
+		int	size;
+		if (this->contentLength - this->sendPos > 1024)
+		{
+			std::cout << "dkhlna lhna" << std::endl;
+			size = 1024;
+		}
+		else
+			size = this->contentLength - this->sendPos;
+		char	buffer[size];
+		std::cout << "before reading" << std::endl;
+		this->file.read(buffer, sizeof(buffer));
+		this->sendPos += size;
+		send(this->client_fd, buffer, sizeof(buffer), 0);
+		// this->body = std::string(buffer);
+		// std::cout << "le body is this->body : " << this->body << std::endl;
+	}
+	if (this->sendPos == this->body.length())
+	{
 		this->responseSent = 1;
-		std::cout << "response sent" << std::endl;
+		this->client->request->state = DONE;
+	}
+	std::cout << "7na hna" << std::endl;
+	std::cout << "request state : " << this->client->request->state << std::endl;
 }

@@ -92,13 +92,15 @@ std::string Request::checkType(std::string path)
 
 void Client::handleRequest()
 {
+
     // if (this->request->state == START || this->request->state == Stat::FIRSTLINE || this->request->state == Stat::HEADERS)
     if (this->request->state & (Stat::START | Stat::FIRSTLINE | Stat::HEADERS))
     {
         static std::string line = "";
         char buffer[1];
         int ret;
-        ret = recv(this->fd, buffer, 1, 0);
+        // ret = recv(this->fd, buffer, 1, 0);
+        ret = read(this->fd, buffer, 1);
         if (ret == -1)
         {
             std::cerr << "Error: recv() failed" << std::endl;
@@ -106,8 +108,8 @@ void Client::handleRequest()
         }
         else if (ret == 0)
         {
-            std::cout << "disconnection" << std::endl;
             this->pollfd_.fd = -1;
+            std::cout << "disconnection" << std::endl;
         }
         line += buffer[0];
         this->request->buffer += buffer[0];
@@ -165,7 +167,8 @@ void Client::handleRequest()
             if (flag == 0)
             {
                 flag = 1;
-                std::cout << BLUE <<"this is the start of multipart body" << RESET << std::endl;
+                
+                exit(0);
                 this->request->state = Stat::MULTI_PART_START;
             }
             this->request->ParseMultiPartBody(); // ! : this function is not working ,still working on ti
@@ -176,24 +179,32 @@ void Client::handleRequest()
         // writeResponse();
     	// this->generateResponse();
     }
+
     else if (this->request->state == Stat::END)
     {
+		// Servme::getCore()->pollFds.
 		
 		// this->pollfd_.events &= ~POLLIN;
-        // this->pollfd_.events &= ~POLLOUT;
-    }
+		// this->pollfd_.events &= ~POLLOUT;
+	}
 
-    if (this->response->GENERATE_RES )
-        this->generateResponse();
-
+    // if (this->response->GENERATE_RES || this->request->state == BODY)
+	// {
+	// 	std::cout << "here " << std::endl;
+    //     this->generateResponse();
+	// }
+	// std::cout << "rj3na lhna" << std::endl;
 }
 
 
 
 void Client::generateResponse()
 {
-	
+	std::cout << "in generateResponse" << std::endl;
+	std::cout << "request state : " << this->request->state << std::endl;
 	this->response->client = &Servme::getCore()->map_clients[this->response->client_fd];
+	if (this->request->multipart_env.empty())
+		std::cout << "hadchi khawiiiiiiiiiiiii" << std::endl;
 	// this->response->checkAllowedMethods(); // error here aborted
 	this->response->checkCgi();
 	if (this->cgiFlag == 1)

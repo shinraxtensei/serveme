@@ -243,6 +243,21 @@ void	Response::handleGet(int type, std::string newPath)
 	}
 	if (type == FILE)
 	{
+		if (this->started == 0)
+		{
+			struct    stat    infos;
+    		if ((stat(newPath.c_str(), &infos) != 0))
+			{
+				this->responseStr = generateError(E404);
+				send(this->client_fd, this->responseStr.c_str(), this->responseStr.length(), 0);
+				this->responseSent = 1;
+				this->client->request->state = DONE;
+				return ;
+			}
+			if (S_ISREG(infos.st_mode))
+				this->contentLength = infos.st_size;
+		}
+		std::cout << "He wants a file" << std::endl;
         if (access(newPath.c_str(), R_OK) == 0)
 			this->sendFile(newPath);
 		else
@@ -273,6 +288,8 @@ void    Response::checkPath()
 {
     struct    stat    infos;
 
+	std::cout << "IN CHECK PATH" << std::endl;
+	this->client = &Servme::getCore()->map_clients[this->client_fd];
 	std::string	newPath = this->client->path.substr(this->client->path.find_first_of('/') + 1, this->client->path.length() - this->client->path.find_first_of('/') + 1);
     if ((stat(newPath.c_str(), &infos) != 0))
 	{
@@ -284,6 +301,7 @@ void    Response::checkPath()
 	}
     if (S_ISDIR(infos.st_mode))
 	{
+		std::cout << "IT'S A DIRECTORY" << std::endl;
 		if (this->client->request->method == "DELETE")
 		{
 			this->responseStr = generateError(E405);
@@ -297,6 +315,7 @@ void    Response::checkPath()
 		{
 			if ((this->client->location->index[0] != ""))
 			{
+				std::cout << "there are indexes" << std::endl;
 				std::string	file = this->getIndex(newPath);
 				if (file == "")
 				{
@@ -308,7 +327,9 @@ void    Response::checkPath()
 				}
 				else
 				{
+					std::cout << "index is : " << file << std::endl;
 					newPath = newPath + "/" + file;
+					std::cout << "the file path is : " << newPath << std::endl;
 					this->handleGet(FILE, newPath);
 				}
 			}
@@ -329,6 +350,7 @@ void    Response::checkPath()
 	}
     else if (S_ISREG(infos.st_mode))
     {
+		std::cout << "IT'S A FILE" << std::endl;
 		if (this->client->request->method == "GET")
 			this->handleGet(FILE, newPath);
         else if (this->client->request->method == "POST")
@@ -390,10 +412,8 @@ void	Response::checkReturn()
 
 void    Response::handleNormalReq()
 {
-	std::cout << "content type : " << this->client->request->contentType << std::endl;
-	std::cout << "body : " << this->client->request->bodyString << std::endl;
-	std::cout << "body size = " << this->client->request->bodyString.length() << std::endl;
-	std::cout << "request state : " << this->client->request->state << std::endl;
+	std::cout << "in handleNormalReq" << std::endl;
+	this->client = &Servme::getCore()->map_clients[this->client_fd];
 	if (this->responseSent == 0)
 	{
 		this->storeMimeTypes();
