@@ -167,8 +167,6 @@ void Client::handleRequest()
             if (flag == 0)
             {
                 flag = 1;
-                
-                exit(0);
                 this->request->state = Stat::MULTI_PART_START;
             }
             this->request->ParseMultiPartBody(); // ! : this function is not working ,still working on ti

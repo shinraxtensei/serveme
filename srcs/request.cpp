@@ -1,5 +1,6 @@
 #include "../inc/core.hpp"
 
+
 Multipart_ENV::Multipart_ENV()
 {
 
@@ -229,7 +230,7 @@ void Request::ParseBody()
         // throw std::runtime_error("Error: read() returned 0.");
     this->bodyString += std::string(buffer, bytesRead);
 
-    if (this->bodyType != BodyType::CHUNKED)
+    if (this->bodyType != BodyType::CHUNKED && this->bodyType != BodyType::MULTIPART)
     {
         if ((int)this->bodyString.size() >= this->contentLength)
         {
@@ -240,7 +241,7 @@ void Request::ParseBody()
         }
     }
 
-    std::cout << this->bodyString << std::endl;
+    std::cout << BLUE << this->bodyString <<   RESET << std::endl;
 }
 
 
@@ -410,7 +411,7 @@ void Request::ParseMultiPartBody()
 
 
 
-    else if (this->state & Stat::MULTI_PART_HEADERS)
+    if (this->state & Stat::MULTI_PART_HEADERS)
     {
         static std::string line;
 
@@ -418,24 +419,14 @@ void Request::ParseMultiPartBody()
         // std::cout << "line : " << line << std::endl;
 
         line = nextLine(pos , this->bodyString);
+        std::cout << "line : "  << line << std::endl;
         Parser::lex()->set_input(line);
         
-        if (line == "")
+
+
+        if (Parser::match("Content-Disposition:") && Parser::match("form-data;"))
         {
-            std::cout  << "fieldname: " << fieldname << std::endl;
-            std::cout << "filename: " << filename << std::endl;
-            std::cout << "ContentType: " << ContentType <<RESET<< std::endl;
-            this->multipart_env[fieldname] = Multipart_ENV(filename , ContentType);
-
-
-            std::cout << BLUE << "switching to MULTI_PART_DATA" << RESET << std::endl;
-            this->state = Stat::MULTI_PART_DATA;
-            return;
-        }
-
-
-        else if (Parser::match("Content-Disposition:") && Parser::match("form-data;"))
-        {
+                std::cout << YELLOW << "Content-Disposition: form-data;"  << RESET << std::endl;
                 fieldname = Parser::lex()->next_token(true);
                 filename = Parser::lex()->next_token(true);
 // 
@@ -464,14 +455,25 @@ void Request::ParseMultiPartBody()
             if (ContentType == "EOF")
                 ContentType = "";
         }
-        
 
+        if (line == "")
+        {
+            std::cout  << "fieldname: " << fieldname << std::endl;
+            std::cout << "filename: " << filename << std::endl;
+            std::cout << "ContentType: " << ContentType <<RESET<< std::endl;
+            this->multipart_env[fieldname] = Multipart_ENV(filename , ContentType);
+
+
+            std::cout << BLUE << "switching to MULTI_PART_DATA" << RESET << std::endl;
+            this->state = Stat::MULTI_PART_DATA;
+            // return;
+        }
     }
     
 
 
     
-    else if (this->state & Stat::MULTI_PART_DATA)
+    if (this->state & Stat::MULTI_PART_DATA)
     {
         std::cout << "STATE: MULTI_PART_DATA" << std::endl;
 
@@ -483,37 +485,39 @@ void Request::ParseMultiPartBody()
 
             if (data.find(this->boundary) != std::string::npos)
             {
-                delimiter += this->bodyString[pos+1];
-                delimiter += this->bodyString[pos+2];
-                std::cout << "delimiter: " << delimiter << std::endl;
-                if (delimiter == this->bodyString + "--")
-                {
-                    data = data.substr(0 , data.find(this->boundary));
-                    this->multipart_env[fieldname].data = data;
-                    // std::cout << GREEN << "DATA: " << data << RESET << std::endl;
-                    for (auto part: this->multipart_env)
-                    {   std::cout << "---------------------------------" << std::endl;
-                        std::cout << "fieldname: " << part.first << std::endl;
-                        std::cout << "filename: " << part.second.file_name << std::endl;
-                        std::cout << "ContentType: " << part.second.content_type << std::endl;
-                        std::cout << "data: " << part.second.data << std::endl;
-                    }
-                    this->state = Stat::END;
-                    return;
-                }
-                else 
-                {
-
+                // delimiter += this->bodyString[pos+1];
+                // delimiter += this->bodyString[pos+2];
+                // std::cout << "delimiter: " << delimiter << std::endl;
+                // if (delimiter == this->bodyString + "--")
+                // {
+                //     data = data.substr(0 , data.find(this->boundary));
+                //     this->multipart_env[fieldname].data = data;
+                //     // std::cout << GREEN << "DATA: " << data << RESET << std::endl;
+                //     for (auto part: this->multipart_env)
+                //     {   std::cout << "---------------------------------" << std::endl;
+                //         std::cout << "fieldname: " << part.first << std::endl;
+                //         std::cout << "filename: " << part.second.file_name << std::endl;
+                //         std::cout << "ContentType: " << part.second.content_type << std::endl;
+                //         std::cout << "data: " << part.second.data << std::endl;
+                //     }
+                //     this->state = Stat::END;
+                //     return;
+                // }
+                // else 
+                // {
                     data  = data.substr(0 , data.find(this->boundary));
                     this->multipart_env[fieldname].data = data;
                     std::cout << GREEN << "DATA: " << data << RESET << std::endl;
                     this->state = Stat::MULTI_PART_BOUNDARY;
                     return;
-                }
+                // }
             }
-    
             pos++;
         }
     }
 }
+
+
+
+
 
