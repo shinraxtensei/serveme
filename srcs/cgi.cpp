@@ -101,23 +101,23 @@ void Client::cgi_handler(){
         std::vector<Location>::iterator                     iter_cand;
 		std::vector<std::string>::iterator					iter_meth;
 		std::map<std::string, std::string>::iterator		iter_query;
+		std::string 										compiler;
 		std::map<std::string, std::string>	querys_map		= this->cgi->parseQuery(this->request->url);
 		std::string query_string							= this->request->url.find_first_of("?") != std::string::npos ? this->request->url.substr(this->request->url.find_first_of("?") + 1) : "";
 		std::string file_path								= this->cgi->parseUrl(this->request->url);
 		std::string server_path								= "/Users/rsaf/Desktop/serveme/cgi-bin" + file_path;
 		std::string surfix									= this->cgi->parseSurfix(file_path);
-		std::string compiler								= this->cgi->CompilerPathsByLanguage[surfix];
+		// std::string compiler								= this->cgi->CompilerPathsByLanguage[surfix];
 		//--------------------------------------------------------------
         surfix = "\\." + surfix + "$";
         for (iter_cand = candidates.begin(); iter_cand < candidates.end(); iter_cand++)
         {
-			std::cout << iter_cand->path << std::endl;
-			std::cout << surfix << std::endl;
             if (!strcmp(surfix.c_str(), iter_cand->path.c_str()))
 			{
 				allowed_meth = iter_cand->allowed_methods;
 				for (std::map<std::string, std::vector<std::string>>::iterator iter_compiler = iter_cand->location_directives.begin(); iter_compiler != iter_cand->location_directives.end(); iter_compiler++){
-					std::cout << "key : " << iter_compiler->first << " " << iter_compiler->second[0] << std::endl;
+					if (iter_compiler->first == "fastcgi_pass")
+						compiler = iter_compiler->second[0];
 				}
                 break;
         	}
