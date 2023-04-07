@@ -146,6 +146,9 @@ class Response
 			size_t	contentLength;
 
 			std::ifstream	file;
+			std::ofstream	file1;
+
+			std::ofstream 	multipart;
 			
 			void	handleNormalReq();
 			void	storeMimeTypes();

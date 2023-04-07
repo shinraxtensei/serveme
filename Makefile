@@ -49,7 +49,7 @@ run: $(NAME)
 	@ ./$(NAME)
 
 clean:
-	@rm -rf $(OBJ_DIR) parse_tree.dot
+	@rm -rf $(OBJ_DIR) parse_tree.dot tmp/*.tmp
 
 fclean: clean
 	@rm -f $(NAME)

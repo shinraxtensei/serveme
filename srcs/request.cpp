@@ -194,8 +194,11 @@ void Request::ParseHeaders(std::string &line)
             this->boundary = value.substr(value.find("boundary=") + 9);
             Parser::lex()->set_input(this->boundary);
             boundary = Parser::lex()->next_token(true);
-            this->bodyType = BodyType::MULTIPART;       
+            this->bodyType = BodyType::MULTIPART;
 
+        }
+        else {
+            this->contentType = value;
         }
     }
 
@@ -241,7 +244,9 @@ void Request::ParseBody()
         }
     }
 
-    std::cout << BLUE << this->bodyString <<   RESET << std::endl;
+
+    // std::cout << RED << this->bodyString << RESET << std::endl;
+
 }
 
 
@@ -368,6 +373,7 @@ void Request::ParseMultiPartBody()
 {
     std::cout << CYAN << "STATE: " << (this->state & BODY ? "BODY multiPart" : "weird") << RESET << std::endl;
 
+	std::cout << "in Parse multipart body" << std::endl;
     static int pos = 0;
     static std::string data = "";
     static std::string fieldname = "";
