@@ -116,12 +116,15 @@ void Client::cgi_handler(){
 			{
 				allowed_meth = iter_cand->allowed_methods;
 				for (std::map<std::string, std::vector<std::string>>::iterator iter_compiler = iter_cand->location_directives.begin(); iter_compiler != iter_cand->location_directives.end(); iter_compiler++){
-					if (iter_compiler->first == "fastcgi_pass")
+					if (iter_compiler->first == "fastcgi_pass"){
 						compiler = iter_compiler->second[0];
+					}
 				}
                 break;
         	}
 		}
+		if (compiler == "")
+			throw std::runtime_error("CGI : No compiler found");
 		if (iter_cand == candidates.end())
 			throw std::runtime_error("CGI : No matching location");
 		/*	**************************************	*/
@@ -207,7 +210,7 @@ void Client::cgi_handler(){
             header += "Content-Type: text/html\r\n";
             header += "Content-Length: " + std::to_string(body.size()) + "\r\n";
             header += "Server: serveme/1.0\r\n";
-            header += "Connection: close\r\n\r\n";
+            header += "Connection: keep alive\r\n\r\n";
             header += body;
             int bytes = send(this->request->client_fd, header.c_str(), header.size(), 0);
 			if (bytes == -1)
