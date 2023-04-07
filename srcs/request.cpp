@@ -240,7 +240,8 @@ void Request::ParseBody()
         }
     }
 
-    std::cout << this->bodyString << std::endl;
+    // std::cout << RED << this->bodyString << RESET << std::endl;
+
 }
 
 
@@ -367,6 +368,7 @@ void Request::ParseMultiPartBody()
 {
     std::cout << CYAN << "STATE: " << (this->state & BODY ? "BODY multiPart" : "weird") << RESET << std::endl;
 
+	std::cout << "in Parse multipart body" << std::endl;
     static int pos = 0;
     static std::string data = "";
     static std::string fieldname = "";

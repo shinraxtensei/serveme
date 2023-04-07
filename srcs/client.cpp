@@ -153,6 +153,8 @@ void Client::handleRequest()
         this->request->ParseBody();
         if (this->request->bodyType == BodyType::CHUNKED)
         {
+			// std::cout << "body type : chunked" << std::endl;
+			
             if (flag == 0)
             {
                 flag = 1;
@@ -164,11 +166,12 @@ void Client::handleRequest()
 
         else if (this->request->bodyType == BodyType::MULTIPART)
         {
+			std::cout << "state : " << this->request->state << std::endl;
+			std::cout << "body type : multipart" << std::endl;
             if (flag == 0)
             {
                 flag = 1;
                 
-                exit(0);
                 this->request->state = Stat::MULTI_PART_START;
             }
             this->request->ParseMultiPartBody(); // ! : this function is not working ,still working on ti
@@ -367,14 +370,13 @@ void Client::generateResponse()
 	std::cout << "in generateResponse" << std::endl;
 	std::cout << "request state : " << this->request->state << std::endl;
 	this->response->client = &Servme::getCore()->map_clients[this->response->client_fd];
-	if (this->request->multipart_env.empty())
-		std::cout << "hadchi khawiiiiiiiiiiiii" << std::endl;
 	// this->response->checkAllowedMethods(); // error here aborted
 	this->response->checkCgi();
 	if (this->cgiFlag == 1)
         cgi_handler();
 	else
 		this->response->handleNormalReq();
+	std::cout << "done with generate response" << std::endl;
 }
 
 void	Client::selectServer()
