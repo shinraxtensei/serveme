@@ -208,16 +208,16 @@ void Request::ParseHeaders(std::string &line)
 
 void Request::ParseBody()
 {
-    if (this->state == Stat::END)
+    if (this->state == Stat::END || this->method == "GET")
         return;
     // std::cout << CYAN << "STATE: " << (this->state == BODY ? "BODY normal" : "weird") << RESET << std::endl;
     static int bodySize = 0;
     char buffer[1024];
 
-    // std::cout << YELLOW  << "content-length: " << this->contentLength << RESET << std::endl;
-    int bytesRead = read(this->client_fd, buffer, std::min((this->contentLength - bodySize), 1024));
+    int bytesRead = recv(this->client_fd, buffer, std::min((this->contentLength - bodySize) , 1024), 0);
+
     if (bytesRead == -1)
-        throw std::runtime_error("Error: read() failed.");
+        throw std::runtime_error("Error: read() failed. from ParseBody");
     if (bytesRead == 0)
     {
         Servme::getCore()->map_clients[this->client_fd].pollfd_.fd = -1;
