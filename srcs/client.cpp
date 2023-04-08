@@ -210,7 +210,7 @@ void Client::generateResponse()
 	if (this->cgiFlag == 1)
         cgi_handler();
 	else
-		this->response->handleNormalReq();
+		// this->response->handleNormalReq();
 	std::cout << "done with generate response" << std::endl;
 }
 
