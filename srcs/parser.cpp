@@ -11,6 +11,33 @@ bool Parser::match(std::string token)
     return false;
 }
 
+bool checkDup(std::multimap<std::string, std::vector<std::string> > map, std::string key)
+{
+    // if (map.equal_range(key).first == map.equal_range(key).second)
+        // return false;
+    // if ((map.equal_range(key).second - map.equal_range(key).first) > 1)
+        // return true;
+    int counter = 0;
+    for (std::multimap<std::string, std::vector<std::string> >::iterator it = map.begin(); it != map.end(); it++)
+    {
+        if (it->first == key)
+            counter++;
+    }
+    if (counter > 1)
+        return true;
+    return false;
+}
+
+bool directiveDuplicable(std::string directive)
+{
+    if (directive == "error_page")
+        return true;
+    return false;
+}
+
+
+
+
 void Parser::parse_directives(int type)
 {
     // std::cout <<" parse_directives : " << type << std::endl;
@@ -45,17 +72,42 @@ void Parser::parse_directives(int type)
 
     if (type == 0)
     {
-        Parser::getHttp()->http_directives[directive] = values;
+        // Parser::getHttp()->http_directives[directive] = values;
+        Parser::getHttp()->http_directives.insert(pair);
+
+        // std::cout << RED << Parser::getHttp()->http_directives.find(directive)->second[0] << RESET << std::endl;
+
+        if (checkDup(Parser::getHttp()->http_directives, pair.first) && directiveDuplicable(directive) == false )
+        {   
+
+            std::cout << "Error: duplicate directive : " << std::endl;
+            std::cout << directive << " with a value of : " << pair.second[0]  << std::endl;
+            exit(1);
+        }
+        
 
     }
 
     else if (type == 1)
     {
-        Parser::getHttp()->servers.back().server_directives[directive] = values;
+        // Parser::getHttp()->servers.back().server_directives[directive] = values;
+        Parser::getHttp()->servers.back().server_directives.insert(pair);
+        if (checkDup(Parser::getHttp()->servers.back().server_directives, directive) && directiveDuplicable(directive) == false)
+        {
+            std::cout << "Error: duplicate directive : " << std::endl;
+            std::cout << directive << " with a value of : " << values[0]  << std::endl;
+            exit(1);
+        }
     }
     else if (type == 2)
     {
-        Parser::getHttp()->servers.back().locations.back().location_directives[directive] = values;
+        // Parser::getHttp()->servers.back().locations.back().location_directives[directive] = values;
+        Parser::getHttp()->servers.back().locations.back().location_directives.insert(pair);
+        // if (checkDup(Parser::getHttp()->servers.back().locations.back().location_directives, directive) && directiveDuplicable(directive) == false)
+        // {
+        //     std::cout << "Error: duplicate directive: " << directive << std::endl;
+        //     exit(1);
+        // }
         if (pair.first == "return")
         {       
                 if (pair.second.size() > 3)
@@ -77,7 +129,14 @@ void Parser::parse_directives(int type)
     }
     else if (type == 3)
     {
-        Parser::getHttp()->servers.back().locations.back().locations.back().location_directives[directive] = values;
+        // Parser::getHttp()->servers.back().locations.back().locations.back().location_directives[directive] = values;
+        Parser::getHttp()->servers.back().locations.back().locations.back().location_directives.insert(pair);
+        
+        // if (checkDup(Parser::getHttp()->servers.back().locations.back().locations.back().location_directives, directive) && directiveDuplicable(directive) == false )
+        // {
+        //     std::cout << "Error: duplicate directive :" << directive << std::endl;
+        //     exit(1);
+        // }
         if (pair.first == "return")
         {
                 if (pair.second.size() > 3)
@@ -221,9 +280,14 @@ void Parser::parse()
     //     std::cout << "server_name : " << server.server_name << std::endl;
     //     std::cout << "root : " << server.root << std::endl;
     //     std::cout << "index : " << server.index[0] << std::endl;
-    //     std::cout << "error_page : "<< server.error_page.first ;
-    //     for (auto error : server.error_page.second)
-    //         std::cout << " " << error; std::cout << std::endl;
+    //     // std::cout << "error_page : "<< server.error_page.first ;
+    //     for(auto page : server.error_page)
+    //     {
+    //         std::cout << "error_page : "<< page.first << " "  << std::endl;
+    //         for(auto p : page.second)
+    //             std::cout << p << std::endl;
+    //     }
+
     //     // std::cout << "error_page : "<< server.error_page.first << " " << server.error_page.second[0]  << std::endl;
     //     std::cout << "autoindex : " << server.autoindex << std::endl;
     //     std::cout << "client_max_body_size : " << server.client_max_body_size << std::endl;

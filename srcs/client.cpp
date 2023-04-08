@@ -214,6 +214,7 @@ void Client::generateResponse()
 	std::cout << "done with generate response" << std::endl;
 }
 
+
 void	Client::selectServer()
 {
     std::vector<Server>::iterator it;
