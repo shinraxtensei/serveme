@@ -17,7 +17,10 @@ void	Response::listDirectory(std::string	newPath, DIR *dir)
 				struct stat	fileinfo;
 				if (stat(filePath.c_str(), &fileinfo) < 0)
 				{
-					this->responseStr = generateError(E500);
+					if (checkError(500))
+						this->responseStr = generateError(E500, DEFAULT);
+					else
+						this->responseStr = generateError(E500, MINE);
 					send(this->client_fd, this->responseStr.c_str(), this->responseStr.length(), 0);
 					this->responseSent = 1;
 					this->client->request->state = DONE;
@@ -68,7 +71,10 @@ void	Response::sendFile(std::string newPath)
 		this->file.open(newPath.c_str(), std::ios::binary);
 		if (!this->file.good())
 		{
-			this->responseStr = generateError(E500);
+			if (checkError(500))
+				this->responseStr = generateError(E500, DEFAULT);
+			else
+				this->responseStr = generateError(E500, MINE);
 			send(this->client_fd, this->responseStr.c_str(), this->responseStr.length(), 0);
 			this->responseSent = 1;
 			this->client->request->state = DONE;

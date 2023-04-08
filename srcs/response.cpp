@@ -7,6 +7,45 @@ Response::~Response()
 	
 }
 
+int	Response::checkAccess(std::string path)
+{
+    std::ifstream file(path);
+    if (!file.good())
+        return 0;
+	std::stringstream content;
+	content << file.rdbuf();
+	this->body = content.str();
+	return 1;
+}
+
+int	Response::checkError(int error)
+{
+	std::vector<std::string>	candidates;
+	std::map<int, std::vector<std::string> >	member;
+	std::string	path;
+	std::string	root;
+
+	member = this->client->server->error_page;
+	root = this->client->server->root;
+	if (this->location)
+	{
+		member = this->location->error_page;
+		root = this->location->root;
+	}
+	member.find(error);
+	if (member.find(error) != member.end())
+	{
+		candidates = member[error];
+		for (std::vector<std::string>::iterator it = candidates.begin(); it != candidates.end(); it++)
+		{
+			path = this->client->server->root + *it;
+			if (checkAccess(path))
+				return 1;
+		}
+	}
+	return 0;
+}
+
 void	Response::storeMimeTypes()
 {
     std::vector<std::pair<std::string, std::string>> keyValuePairs = {
@@ -102,7 +141,10 @@ void	Response::checkAllowedMethods()
 	}
 	if (iter == methods.end())
 	{
-		this->responseStr = generateError(E405);
+		if (checkError(405))
+			this->responseStr = generateError(E405, DEFAULT);
+		else
+			this->responseStr = generateError(E405, MINE);
 		send(this->client_fd, this->responseStr.c_str(), this->responseStr.length(), 0);
 		this->responseSent = 1;
 		this->client->request->state = DONE;
@@ -186,7 +228,10 @@ void	Response::matchLocation(std::vector<Location> locations)
 	candidates = this->getLocations(locations);
 	if (candidates.empty())
 	{
-		this->responseStr = generateError(E404);
+		if (checkError(404))
+			this->responseStr = generateError(E404, DEFAULT);
+		else
+			this->responseStr = generateError(E404, MINE);
 		send(this->client_fd, this->responseStr.c_str(), this->responseStr.length(), 0);
 		this->responseSent = 1;
 		this->client->request->state = DONE;
@@ -201,7 +246,10 @@ void	Response::matchLocation(std::vector<Location> locations)
 			return ;
 		}
 	}
-	this->responseStr = generateError(E404);
+	if (checkError(404))
+		this->responseStr = generateError(E404, DEFAULT);
+	else
+		this->responseStr = generateError(E404, MINE);
 	send(this->client_fd, this->responseStr.c_str(), this->responseStr.length(), 0);
 	this->responseSent = 1;
 	this->client->request->state = DONE;
@@ -232,7 +280,10 @@ void	Response::handleGet(int type, std::string newPath)
     		DIR	*dir = opendir(this->client->path.c_str());
 			if (dir == NULL)
 			{
-				this->responseStr = generateError(E500);
+				if (checkError(500))
+					this->responseStr = generateError(E500, DEFAULT);
+				else
+					this->responseStr = generateError(E500, MINE);
 				send(this->client_fd, this->responseStr.c_str(), this->responseStr.length(), 0);
 				this->responseSent = 1;
 				this->client->request->state = DONE;
@@ -248,7 +299,10 @@ void	Response::handleGet(int type, std::string newPath)
 			struct    stat    infos;
     		if ((stat(newPath.c_str(), &infos) != 0))
 			{
-				this->responseStr = generateError(E404);
+				if (checkError(404))
+					this->responseStr = generateError(E404, DEFAULT);
+				else
+					this->responseStr = generateError(E404, MINE);
 				send(this->client_fd, this->responseStr.c_str(), this->responseStr.length(), 0);
 				this->responseSent = 1;
 				this->client->request->state = DONE;
@@ -262,7 +316,10 @@ void	Response::handleGet(int type, std::string newPath)
 			this->sendFile(newPath);
 		else
 		{
-			this->responseStr = generateError(E403);
+			if (checkError(403))
+				this->responseStr = generateError(E403, DEFAULT);
+			else
+				this->responseStr = generateError(E403, MINE);
 			send(this->client_fd, this->responseStr.c_str(), this->responseStr.length(), 0);
 			this->responseSent = 1;
 			this->client->request->state = DONE;
@@ -293,7 +350,10 @@ void    Response::checkPath()
 	std::string	newPath = this->client->path.substr(this->client->path.find_first_of('/') + 1, this->client->path.length() - this->client->path.find_first_of('/') + 1);
     if ((stat(newPath.c_str(), &infos) != 0))
 	{
-		this->responseStr = generateError(E404);
+		if (checkError(404))
+			this->responseStr = generateError(E404, DEFAULT);
+		else
+			this->responseStr = generateError(E404, MINE);
 		send(this->client_fd, this->responseStr.c_str(), this->responseStr.length(), 0);
 		this->responseSent = 1;
 		this->client->request->state = DONE;
@@ -304,10 +364,10 @@ void    Response::checkPath()
 		std::cout << "IT'S A DIRECTORY" << std::endl;
 		if (this->client->request->method == "DELETE")
 		{
-			this->responseStr = generateError(E405);
-			send(this->client_fd, this->responseStr.c_str(), this->responseStr.length(), 0);
-			this->responseSent = 1;
-			this->client->request->state = DONE;
+			if (checkError(405))
+				this->responseStr = generateError(E405, DEFAULT);
+			else
+				this->responseStr = generateError(E405, MINE);
 		}
 		else if (this->client->request->method == "POST")
 			this->handlePost();
@@ -319,7 +379,10 @@ void    Response::checkPath()
 				std::string	file = this->getIndex(newPath);
 				if (file == "")
 				{
-					this->responseStr = generateError(E404);
+					if (checkError(404))
+						this->responseStr = generateError(E404, DEFAULT);
+					else
+						this->responseStr = generateError(E404, MINE);
 					send(this->client_fd, this->responseStr.c_str(), this->responseStr.length(), 0);
 					this->responseSent = 1;
 					this->client->request->state = DONE;
@@ -339,7 +402,10 @@ void    Response::checkPath()
 					this->handleGet(DIRE, newPath);
 				else
 				{
-					this->responseStr = generateError(E403);
+					if (checkError(403))
+						this->responseStr = generateError(E403, DEFAULT);
+					else
+						this->responseStr = generateError(E403, MINE);
 					send(this->client_fd, this->responseStr.c_str(), this->responseStr.length(), 0);
 					this->responseSent = 1;
 					this->client->request->state = DONE;
@@ -359,7 +425,10 @@ void    Response::checkPath()
 			this->handleDelete(newPath);
 		else
 		{
-			this->responseStr = generateError(E405);
+			if (checkError(405))
+				this->responseStr = generateError(E405, DEFAULT);
+			else
+				this->responseStr = generateError(E405, MINE);
 			send(this->client_fd, this->responseStr.c_str(), this->responseStr.length(), 0);
 			this->responseSent = 1;
 			this->client->request->state = DONE;
@@ -406,7 +475,9 @@ void	Response::checkReturn()
 								"Content-Length: 0\r\n"
 								"Connection: close\r\n\r\n";
 		send(this->client_fd, this->responseStr.c_str(), this->responseStr.length(), 0);
-		exit (1);
+		this->started = 1;
+		this->responseSent = 1;
+		this->client->request->state = DONE;
 	}
 }
 
@@ -422,7 +493,7 @@ void    Response::handleNormalReq()
 		this->getQuery();
 		this->client->request->url = removeBackSlashes(this->client->request->url);
     	this->matchLocation(this->client->server->locations);
-		// this->checkReturn();
+		this->checkReturn();
 		this->checkAllowedMethods();
 		if (this->client->request->url != this->client->location->path)
 		{

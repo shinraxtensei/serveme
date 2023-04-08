@@ -1,9 +1,13 @@
 #include "../inc/macros.hpp"
 #include "../inc/servme.hpp"
 
-std::string	generateError(std::string error)
+std::string	Response::generateError(std::string error, int flag)
 {
-	std::string	body = 	"<!DOCTYPE html>\n<html>\n<head>\n<title>"
+	std::string	body;	
+	if (flag == DEFAULT)
+		body = this->body;
+	else
+		body = "<!DOCTYPE html>\n<html>\n<head>\n<title>"
 						+ error
 						+ "</title>\n</head>\n<body>\n<h1>"
 						+ error
