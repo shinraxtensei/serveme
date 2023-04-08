@@ -1,5 +1,6 @@
 #include "../inc/core.hpp"
 
+
 Multipart_ENV::Multipart_ENV()
 {
 
@@ -232,7 +233,7 @@ void Request::ParseBody()
         // throw std::runtime_error("Error: read() returned 0.");
     this->bodyString += std::string(buffer, bytesRead);
 
-    if (this->bodyType != BodyType::CHUNKED)
+    if (this->bodyType != BodyType::CHUNKED && this->bodyType != BodyType::MULTIPART)
     {
         if ((int)this->bodyString.size() >= this->contentLength)
         {
@@ -242,6 +243,7 @@ void Request::ParseBody()
             this->state = Stat::END;
         }
     }
+
 
     // std::cout << RED << this->bodyString << RESET << std::endl;
 
@@ -367,158 +369,266 @@ void Request::ParseChunkedBody() {
 
 
 
+// void Request::ParseMultiPartBody()
+// {
+//     std::cout << CYAN << "STATE: " << (this->state & BODY ? "BODY multiPart" : "weird") << RESET << std::endl;
+
+// 	std::cout << "in Parse multipart body" << std::endl;
+//     static int pos = 0;
+//     static std::string data = "";
+//     static std::string fieldname = "";
+//     static std::string filename = "";
+//     static std::string ContentType = "";
+
+
+
+//         if (this->state & Stat::END)
+//         {
+//             // std::cout << "this is the end" << std::endl;
+//             return;
+//         }
+
+
+//     if (this->state & Stat::MULTI_PART_START)
+//     {
+//         std::cout << "STATE: MULTI_PART_START" << std::endl;
+//         this->state = Stat::MULTI_PART_BOUNDARY;
+//     }
+
+
+
+//     if (this->state & Stat::MULTI_PART_BOUNDARY)
+//     {
+//         static std::string line;
+//         std::cout << "STATE: MULTI_PART_BOUNDARY" << std::endl;
+//         std::cout << "bonudary from headers is : " << this->boundary << std::endl;
+//         line += nextLine(pos , this->bodyString);
+//         if (line == "EOF" || this->bodyString == "\r\n" || this->bodyString == "\n")
+//             return;
+//         if (line.find(this->boundary) != std::string::npos)
+//         {
+//             this->state = Stat::MULTI_PART_HEADERS;
+//             std::cout << BLUE << "switching to MULTI_PART_HEADERS" << RESET << std::endl;
+//         }
+//     }
+
+
+
+
+
+
+//     if (this->state & Stat::MULTI_PART_HEADERS)
+//     {
+//         static std::string line;
+
+
+//         // std::cout << "line : " << line << std::endl;
+
+//         line = nextLine(pos , this->bodyString);
+//         std::cout << "line : "  << line << std::endl;
+//         Parser::lex()->set_input(line);
+        
+
+
+//         if (Parser::match("Content-Disposition:") && Parser::match("form-data;"))
+//         {
+//                 std::cout << YELLOW << "Content-Disposition: form-data;"  << RESET << std::endl;
+//                 fieldname = Parser::lex()->next_token(true);
+//                 filename = Parser::lex()->next_token(true);
+// // 
+//                 if (fieldname.find("name=") != std::string::npos)
+//                 {
+//                         fieldname.erase(0, fieldname.find_first_of("\"") + 1);
+//                         fieldname.erase(fieldname.find_last_of("\""));
+//                 }
+//                 else if (fieldname == "EOF")
+//                     fieldname = "";
+
+//                 if (filename.find("filename=") != std::string::npos)
+//                 {
+//                         filename.erase(0, filename.find_first_of("\"") + 1);
+//                         filename.erase(filename.find_last_of("\""));
+//                 }   
+//                 else if (filename == "EOF")
+//                     filename = "";
+
+
+//         }
+//         if (Parser::match("Content-Type:"))
+//         {
+//             ContentType = Parser::lex()->next_token(false);
+//             ContentType.pop_back();
+//             if (ContentType == "EOF")
+//                 ContentType = "";
+//         }
+
+//         if (line == "")
+//         {
+//             std::cout  << "fieldname: " << fieldname << std::endl;
+//             std::cout << "filename: " << filename << std::endl;
+//             std::cout << "ContentType: " << ContentType <<RESET<< std::endl;
+//             this->multipart_env[fieldname] = Multipart_ENV(filename , ContentType);
+
+
+//             std::cout << BLUE << "switching to MULTI_PART_DATA" << RESET << std::endl;
+//             this->state = Stat::MULTI_PART_DATA;
+//             // return;
+//         }
+//     }
+    
+
+
+    
+//     if (this->state & Stat::MULTI_PART_DATA)
+//     {
+//         std::cout << "STATE: MULTI_PART_DATA" << std::endl;
+
+//         static std::string delimiter = this->boundary;
+//         while (pos < (int)this->bodyString.size())
+//         {
+//             data += this->bodyString[pos];
+        
+
+//             if (data.find(this->boundary) != std::string::npos)
+//             {
+//                 // delimiter += this->bodyString[pos+1];
+//                 // delimiter += this->bodyString[pos+2];
+//                 // std::cout << "delimiter: " << delimiter << std::endl;
+//                 // if (delimiter == this->bodyString + "--")
+//                 // {
+//                 //     data = data.substr(0 , data.find(this->boundary));
+//                 //     this->multipart_env[fieldname].data = data;
+//                 //     // std::cout << GREEN << "DATA: " << data << RESET << std::endl;
+//                 //     for (auto part: this->multipart_env)
+//                 //     {   std::cout << "---------------------------------" << std::endl;
+//                 //         std::cout << "fieldname: " << part.first << std::endl;
+//                 //         std::cout << "filename: " << part.second.file_name << std::endl;
+//                 //         std::cout << "ContentType: " << part.second.content_type << std::endl;
+//                 //         std::cout << "data: " << part.second.data << std::endl;
+//                 //     }
+//                 //     this->state = Stat::END;
+//                 //     return;
+//                 // }
+//                 // else 
+//                 // {
+//                     data  = data.substr(0 , data.find(this->boundary));
+//                     this->multipart_env[fieldname].data = data;
+//                     std::cout << GREEN << "DATA: " << data << RESET << std::endl;
+//                     this->state = Stat::MULTI_PART_BOUNDARY;
+//                     return;
+//                 // }
+//             }
+//             pos++;
+//         }
+//     }
+// }
+
+
+
+
+
 void Request::ParseMultiPartBody()
 {
-    std::cout << CYAN << "STATE: " << (this->state & BODY ? "BODY multiPart" : "weird") << RESET << std::endl;
-
-	std::cout << "in Parse multipart body" << std::endl;
     static int pos = 0;
     static std::string data = "";
     static std::string fieldname = "";
     static std::string filename = "";
     static std::string ContentType = "";
 
-
-
-        if (this->state & Stat::END)
-        {
-            // std::cout << "this is the end" << std::endl;
-            return;
-        }
-
-
-    if (this->state & Stat::MULTI_PART_START)
+    if (this->state & Stat::END)
     {
-        std::cout << "STATE: MULTI_PART_START" << std::endl;
-        this->state = Stat::MULTI_PART_BOUNDARY;
+        std::cout << "this is the end" << std::endl;
+        return;
     }
 
-
-
-    if (this->state & Stat::MULTI_PART_BOUNDARY)
+    while((size_t)pos < this->bodyString.size())
     {
-        static std::string line;
-        std::cout << "STATE: MULTI_PART_BOUNDARY" << std::endl;
-        std::cout << "bonudary from headers is : " << this->boundary << std::endl;
-        line += nextLine(pos , this->bodyString);
-        if (line == "EOF" || this->bodyString == "\r\n" || this->bodyString == "\n")
-            return;
-        if (line.find(this->boundary) != std::string::npos)
+        if (this->state & Stat::MULTI_PART_START)
         {
-            this->state = Stat::MULTI_PART_HEADERS;
-            std::cout << BLUE << "switching to MULTI_PART_HEADERS" << RESET << std::endl;
-        }
-    }
-
-
-
-
-
-
-    else if (this->state & Stat::MULTI_PART_HEADERS)
-    {
-        static std::string line;
-
-
-        // std::cout << "line : " << line << std::endl;
-
-        line = nextLine(pos , this->bodyString);
-        Parser::lex()->set_input(line);
-        
-        if (line == "")
-        {
-            std::cout  << "fieldname: " << fieldname << std::endl;
-            std::cout << "filename: " << filename << std::endl;
-            std::cout << "ContentType: " << ContentType <<RESET<< std::endl;
-            this->multipart_env[fieldname] = Multipart_ENV(filename , ContentType);
-
-
-            std::cout << BLUE << "switching to MULTI_PART_DATA" << RESET << std::endl;
-            this->state = Stat::MULTI_PART_DATA;
-            return;
+            std::cout << "STATE: MULTI_PART_START" << std::endl;
+            this->state = Stat::MULTI_PART_BOUNDARY;
         }
 
-
-        else if (Parser::match("Content-Disposition:") && Parser::match("form-data;"))
+        if (this->state & Stat::MULTI_PART_BOUNDARY)
         {
-                fieldname = Parser::lex()->next_token(true);
-                filename = Parser::lex()->next_token(true);
-// 
-                if (fieldname.find("name=") != std::string::npos)
-                {
-                        fieldname.erase(0, fieldname.find_first_of("\"") + 1);
-                        fieldname.erase(fieldname.find_last_of("\""));
-                }
-                else if (fieldname == "EOF")
-                    fieldname = "";
-
-                if (filename.find("filename=") != std::string::npos)
-                {
-                        filename.erase(0, filename.find_first_of("\"") + 1);
-                        filename.erase(filename.find_last_of("\""));
-                }   
-                else if (filename == "EOF")
-                    filename = "";
-
-
-        }
-        if (Parser::match("Content-Type:"))
-        {
-            ContentType = Parser::lex()->next_token(false);
-            ContentType.pop_back();
-            if (ContentType == "EOF")
-                ContentType = "";
-        }
-        
-
-    }
-    
-
-
-    
-    else if (this->state & Stat::MULTI_PART_DATA)
-    {
-        std::cout << "STATE: MULTI_PART_DATA" << std::endl;
-
-        static std::string delimiter = this->boundary;
-        while (pos < (int)this->bodyString.size())
-        {
-            data += this->bodyString[pos];
-        
-
-            if (data.find(this->boundary) != std::string::npos)
+            static std::string line;
+            std::cout << "STATE: MULTI_PART_BOUNDARY" << std::endl;
+            std::cout << "bonudary from headers is : " << this->boundary << std::endl;
+            line += nextLine(pos , this->bodyString);
+            if (line == "EOF" || this->bodyString == "\r\n" || this->bodyString == "\n")
+                return;
+            if (line.find(this->boundary) != std::string::npos)
             {
-                delimiter += this->bodyString[pos+1];
-                delimiter += this->bodyString[pos+2];
-                std::cout << "delimiter: " << delimiter << std::endl;
-                if (delimiter == this->bodyString + "--")
-                {
-                    data = data.substr(0 , data.find(this->boundary));
-                    this->multipart_env[fieldname].data = data;
-                    // std::cout << GREEN << "DATA: " << data << RESET << std::endl;
-                    for (auto part: this->multipart_env)
-                    {   std::cout << "---------------------------------" << std::endl;
-                        std::cout << "fieldname: " << part.first << std::endl;
-                        std::cout << "filename: " << part.second.file_name << std::endl;
-                        std::cout << "ContentType: " << part.second.content_type << std::endl;
-                        std::cout << "data: " << part.second.data << std::endl;
-                    }
-                    this->state = Stat::END;
-                    return;
-                }
-                else 
-                {
+                this->state = Stat::MULTI_PART_HEADERS;
+                std::cout << BLUE << "switching to MULTI_PART_HEADERS" << RESET << std::endl;
+            }
+        }
 
+
+        if (this->state & Stat::MULTI_PART_HEADERS)
+        {
+            static std::string line;
+            std::cout << "STATE: MULTI_PART_HEADERS" << std::endl;
+            line = nextLine(pos , this->bodyString);
+            std::cout << "line : "  << line << std::endl;
+            Parser::lex()->set_input(line);
+            if (Parser::match("Content-Disposition:") && Parser::match("form-data;"))
+            {
+                    std::cout << YELLOW << "Content-Disposition: form-data;"  << RESET << std::endl;
+                    fieldname = Parser::lex()->next_token(true);
+                    filename = Parser::lex()->next_token(true);
+                    if (fieldname.find("name=") != std::string::npos)
+                    {
+                            fieldname.erase(0, fieldname.find_first_of("\"") + 1);
+                            fieldname.erase(fieldname.find_last_of("\""));
+                    }
+                    else if (fieldname == "EOF")
+                        fieldname = "";
+
+                    if (filename.find("filename=") != std::string::npos)
+                    {
+                            filename.erase(0, filename.find_first_of("\"") + 1);
+                            filename.erase(filename.find_last_of("\""));
+                    }   
+                    else if (filename == "EOF")
+                        filename = "";
+            }
+            if (Parser::match("Content-Type:"))
+            {
+                ContentType = Parser::lex()->next_token(false);
+                ContentType.pop_back();
+                if (ContentType == "EOF")
+                    ContentType = "";
+            }
+
+            if (line == "")
+            {
+                std::cout  << "fieldname: " << fieldname << std::endl;
+                std::cout << "filename: " << filename << std::endl;
+                std::cout << "ContentType: " << ContentType <<RESET<< std::endl;
+                this->multipart_env[fieldname] = Multipart_ENV(filename , ContentType);
+                std::cout << BLUE << "switching to MULTI_PART_DATA" << RESET << std::endl;
+                this->state = Stat::MULTI_PART_DATA;
+            }
+        }
+
+        if (this->state & Stat::MULTI_PART_DATA)
+        {
+            std::cout << "STATE: MULTI_PART_DATA" << std::endl;
+            static std::string delimiter = this->boundary;
+            while (pos < (int)this->bodyString.size())
+            {
+                data += this->bodyString[pos];
+                if (data.find(this->boundary) != std::string::npos)
+                {
                     data  = data.substr(0 , data.find(this->boundary));
                     this->multipart_env[fieldname].data = data;
                     std::cout << GREEN << "DATA: " << data << RESET << std::endl;
                     this->state = Stat::MULTI_PART_BOUNDARY;
-                    return;
+                    // return;
                 }
+                pos++;
             }
-    
-            pos++;
         }
     }
 }
-

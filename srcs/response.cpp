@@ -9,9 +9,12 @@ Response::~Response()
 
 int	Response::checkAccess(std::string path)
 {
-    std::ifstream file(path);
+    std::ifstream file(path.substr(1));
     if (!file.good())
+	{
+		std::cout << "hadchi mal9inach" << std::endl;
         return 0;
+	}
 	std::stringstream content;
 	content << file.rdbuf();
 	this->body = content.str();
@@ -25,22 +28,44 @@ int	Response::checkError(int error)
 	std::string	path;
 	std::string	root;
 
-	member = this->client->server->error_page;
-	root = this->client->server->root;
-	if (this->location)
+	this->client = &Servme::getCore()->map_clients[this->client_fd];
+	std::cout << "in checkError" << std::endl;
+
+	if (this->client->location)
 	{
-		member = this->location->error_page;
-		root = this->location->root;
+		root = this->client->location->root;
+		if (!this->client->location->error_page.empty())
+			member = this->client->location->error_page;
+		else
+		{
+			std::cout << "location kaayna wlkn error pages dyalha khawyin" << std::endl;
+			exit (1);
+			if (!this->client->server->error_page.empty())
+				member = this->client->server->error_page;
+		}
+	}
+	else
+		root = this->client->server->root;
+	if (member.empty())
+	{
+		std::cout << "makayna fhta w7da fihom" << std::endl;
+		return 0;
 	}
 	member.find(error);
 	if (member.find(error) != member.end())
 	{
+		std::cout << "l9inaahaa" << std::endl;
 		candidates = member[error];
 		for (std::vector<std::string>::iterator it = candidates.begin(); it != candidates.end(); it++)
 		{
-			path = this->client->server->root + *it;
+			std::cout << "ha7na ghanchoufo" << std::endl;
+			path = root + "/" + *it;
+			std::cout << "khasna nl9aaw" << path << std::endl;
 			if (checkAccess(path))
+			{
+				std::cout << "kaaayna" << std::endl;
 				return 1;
+			}
 		}
 	}
 	return 0;
@@ -242,6 +267,7 @@ void	Response::matchLocation(std::vector<Location> locations)
 	{
 		if (LocationFound(iter->path, this->client->request->url))
 		{
+			std::cout << "location fouuund" << std::endl;
 			this->client->location = new Location(*iter);
 			return ;
 		}
@@ -348,8 +374,12 @@ void    Response::checkPath()
 	std::cout << "IN CHECK PATH" << std::endl;
 	this->client = &Servme::getCore()->map_clients[this->client_fd];
 	std::string	newPath = this->client->path.substr(this->client->path.find_first_of('/') + 1, this->client->path.length() - this->client->path.find_first_of('/') + 1);
-    if ((stat(newPath.c_str(), &infos) != 0))
+	std::cout << "new path is : " << newPath << std::endl;
+	// exit (1);
+	if ((stat(newPath.c_str(), &infos) != 0))
 	{
+		std::cout << "hna fin tra lmouchkil" << std::endl;
+		// exit (1);
 		if (checkError(404))
 			this->responseStr = generateError(E404, DEFAULT);
 		else
@@ -493,6 +523,8 @@ void    Response::handleNormalReq()
 		this->getQuery();
 		this->client->request->url = removeBackSlashes(this->client->request->url);
     	this->matchLocation(this->client->server->locations);
+		std::cout << "matchina m3aa : " << this->client->location->path << std::endl;
+		// exit (1);
 		this->checkReturn();
 		this->checkAllowedMethods();
 		if (this->client->request->url != this->client->location->path)

@@ -73,8 +73,6 @@ void Core::startup()
         else
             sock->bind(it->first, it->second);
         sock->listen(100);
-        // setsocko
-        // setsockopt(server_fd , SOL_SOCKET, SO_REUSEADDR, &tr, sizeof(int)) == -1
         this->serverSockets.push_back(*sock);
     }
 

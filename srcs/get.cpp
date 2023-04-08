@@ -102,7 +102,7 @@ void	Response::sendFile(std::string newPath)
 		"Connection: keep-alive\r\n\r\n";
 		send(this->client_fd, this->responseStr.c_str(), this->responseStr.length(), 0);
 		this->started = 1;
-		return ;
+		return;
 	}
 	if (this->sendPos < this->contentLength)
 	{

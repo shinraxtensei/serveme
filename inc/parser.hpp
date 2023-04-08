@@ -31,7 +31,7 @@ class Http
 	public:
 		Http();
 		~Http();
-		std::map<std::string, std::vector<std::string> > http_directives;
+		std::multimap<std::string, std::vector<std::string> > http_directives;
 		std::vector<Server> servers;
 
 		// **** mandatory directives ****
@@ -40,7 +40,7 @@ class Http
 		std::vector<std::string> index;
 		std::vector<std::string> allowed_methods;
 		// std::vector<std::string> error_page;
-		std::pair<int, std::vector<std::string> > error_page;
+		std::map<int, std::vector<std::string> > error_page;
 		bool autoindex;
 		int client_max_body_size;
 };
@@ -51,7 +51,7 @@ class Server : public Http
 		Server();
 		~Server();
 
-		std::map<std::string, std::vector<std::string> > server_directives;
+		std::multimap<std::string, std::vector<std::string> > server_directives;
 		std::vector<Location> locations;
 		std::vector<int> fds;
 		std::unordered_map<std::string, std::vector<std::string> > request;
@@ -76,7 +76,7 @@ class Location : public Server
 
 		Location();
 		~Location();
-		std::map<std::string, std::vector<std::string> > location_directives;
+		std::multimap<std::string, std::vector<std::string> > location_directives;
 		std::vector<Location> locations;
 		// **** mandatory directives ****
 		// std::string Return ;
