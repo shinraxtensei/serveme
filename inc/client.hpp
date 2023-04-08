@@ -24,6 +24,9 @@ enum BodyType
 #define FILE 1
 #define DIRE 2
 
+#define DEFAULT 1
+#define MINE 2
+
 enum Stat
 {
     // these are the state of the request
@@ -154,6 +157,12 @@ class Response
 			void	storeMimeTypes();
 			void	checkReturn();
 			void	sendChunked(std::ifstream &file);
+
+			std::string	generateError(std::string error, int flag);
+
+			int	checkAccess(std::string path);
+
+			int		checkError(int	error);
 
 			void					getQuery();
 			void					checkAllowedMethods();

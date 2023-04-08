@@ -19,15 +19,20 @@ void	Response::handleDelete(std::string newPath)
 		}
 		else
 		{
-			std::cout << "ma3ndekch l7ee99" << std::endl;
-			this->responseStr = generateError(E403);
+			if (checkError(403))
+				this->responseStr = generateError(E403, DEFAULT);
+			else
+				this->responseStr = generateError(E403, MINE);
 			send(this->client_fd, this->responseStr.c_str(), this->responseStr.length(), 0);
 			exit (1);
 		}
 	}
 	else
 	{
-		this->responseStr = generateError(E404);
+		if (checkError(404))
+			this->responseStr = generateError(E404, DEFAULT);
+		else
+			this->responseStr = generateError(E404, MINE);
 		send(this->client_fd, this->responseStr.c_str(), this->responseStr.length(), 0);
 		exit (1);
 	}

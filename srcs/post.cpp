@@ -45,7 +45,10 @@ void	Response::handleMultipart()
 			}
 			else
 			{
-				this->responseStr = generateError(E500);
+				if (checkError(500))
+					this->responseStr = generateError(E500, DEFAULT);
+				else
+					this->responseStr = generateError(E500, MINE);
 				send(this->client_fd, this->responseStr.c_str(), this->responseStr.length(), 0);
 				this->responseSent = 1;
 				this->client->request->state = DONE;
@@ -98,7 +101,10 @@ void	Response::handlePost()
 				file1.open(path, std::ios::binary);
 				if (!file1.good())
 				{
-					this->responseStr = generateError(E500);
+					if (checkError(500))
+						this->responseStr = generateError(E500, DEFAULT);
+					else
+						this->responseStr = generateError(E500, MINE);
 					send(this->client_fd, this->responseStr.c_str(), this->responseStr.length(), 0);
 					this->responseSent = 1;
 					this->client->request->state = DONE;

@@ -15,7 +15,6 @@ SocketWrapper::SocketWrapper()
 SocketWrapper::SocketWrapper(int domain, int type, int protocol)
 {
     sockfd_ = socket(domain, type, protocol);
-
     if (sockfd_ < 0)
     {
         throw std::runtime_error("Failed to create socket");

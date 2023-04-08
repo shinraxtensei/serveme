@@ -102,8 +102,8 @@ void Core::handleConnections()
         }
         for (size_t i = 0; i < this->pollFds.size(); i++)
         {
-            // if (this->map_clients[this->pollFds[i].fd].response->GENERATE_RES)
-            //     this->map_clients[this->pollFds[i].fd].generateResponse();
+            if (this->map_clients[this->pollFds[i].fd].response->GENERATE_RES)
+                this->map_clients[this->pollFds[i].fd].generateResponse();
                 
             if (this->pollFds[i].revents & POLLIN)
             {

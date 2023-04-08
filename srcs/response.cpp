@@ -7,6 +7,70 @@ Response::~Response()
 	
 }
 
+int	Response::checkAccess(std::string path)
+{
+    std::ifstream file(path.substr(1));
+    if (!file.good())
+	{
+		std::cout << "hadchi mal9inach" << std::endl;
+        return 0;
+	}
+	std::stringstream content;
+	content << file.rdbuf();
+	this->body = content.str();
+	return 1;
+}
+
+int	Response::checkError(int error)
+{
+	std::vector<std::string>	candidates;
+	std::map<int, std::vector<std::string> >	member;
+	std::string	path;
+	std::string	root;
+
+	this->client = &Servme::getCore()->map_clients[this->client_fd];
+	std::cout << "in checkError" << std::endl;
+
+	if (this->client->location)
+	{
+		root = this->client->location->root;
+		if (!this->client->location->error_page.empty())
+			member = this->client->location->error_page;
+		else
+		{
+			std::cout << "location kaayna wlkn error pages dyalha khawyin" << std::endl;
+			exit (1);
+			if (!this->client->server->error_page.empty())
+				member = this->client->server->error_page;
+		}
+	}
+	else
+		root = this->client->server->root;
+	if (member.empty())
+	{
+		std::cout << "makayna fhta w7da fihom" << std::endl;
+		return 0;
+	}
+	member.find(error);
+	if (member.find(error) != member.end())
+	{
+		std::cout << "l9inaahaa" << std::endl;
+		candidates = member[error];
+		for (std::vector<std::string>::iterator it = candidates.begin(); it != candidates.end(); it++)
+		{
+			std::cout << "ha7na ghanchoufo" << std::endl;
+			path = root + "/" + *it;
+			std::cout << "khasna nl9aaw" << path << std::endl;
+			if (checkAccess(path))
+			{
+				std::cout << "kaaayna" << std::endl;
+				return 1;
+			}
+		}
+	}
+	return 0;
+}
+
 void	Response::storeMimeTypes()
 {
     std::vector<std::pair<std::string, std::string>> keyValuePairs = {
@@ -102,7 +166,10 @@ void	Response::checkAllowedMethods()
 	}
 	if (iter == methods.end())
 	{
-		this->responseStr = generateError(E405);
+		if (checkError(405))
+			this->responseStr = generateError(E405, DEFAULT);
+		else
+			this->responseStr = generateError(E405, MINE);
 		send(this->client_fd, this->responseStr.c_str(), this->responseStr.length(), 0);
 		this->responseSent = 1;
 		this->client->request->state = DONE;
@@ -186,7 +253,10 @@ void	Response::matchLocation(std::vector<Location> locations)
 	candidates = this->getLocations(locations);
 	if (candidates.empty())
 	{
-		this->responseStr = generateError(E404);
+		if (checkError(404))
+			this->responseStr = generateError(E404, DEFAULT);
+		else
+			this->responseStr = generateError(E404, MINE);
 		send(this->client_fd, this->responseStr.c_str(), this->responseStr.length(), 0);
 		this->responseSent = 1;
 		this->client->request->state = DONE;
@@ -197,11 +267,15 @@ void	Response::matchLocation(std::vector<Location> locations)
 	{
 		if (LocationFound(iter->path, this->client->request->url))
 		{
+			std::cout << "location fouuund" << std::endl;
 			this->client->location = new Location(*iter);
 			return ;
 		}
 	}
-	this->responseStr = generateError(E404);
+	if (checkError(404))
+		this->responseStr = generateError(E404, DEFAULT);
+	else
+		this->responseStr = generateError(E404, MINE);
 	send(this->client_fd, this->responseStr.c_str(), this->responseStr.length(), 0);
 	this->responseSent = 1;
 	this->client->request->state = DONE;
@@ -232,7 +306,10 @@ void	Response::handleGet(int type, std::string newPath)
     		DIR	*dir = opendir(this->client->path.c_str());
 			if (dir == NULL)
 			{
-				this->responseStr = generateError(E500);
+				if (checkError(500))
+					this->responseStr = generateError(E500, DEFAULT);
+				else
+					this->responseStr = generateError(E500, MINE);
 				send(this->client_fd, this->responseStr.c_str(), this->responseStr.length(), 0);
 				this->responseSent = 1;
 				this->client->request->state = DONE;
@@ -248,7 +325,10 @@ void	Response::handleGet(int type, std::string newPath)
 			struct    stat    infos;
     		if ((stat(newPath.c_str(), &infos) != 0))
 			{
-				this->responseStr = generateError(E404);
+				if (checkError(404))
+					this->responseStr = generateError(E404, DEFAULT);
+				else
+					this->responseStr = generateError(E404, MINE);
 				send(this->client_fd, this->responseStr.c_str(), this->responseStr.length(), 0);
 				this->responseSent = 1;
 				this->client->request->state = DONE;
@@ -262,7 +342,10 @@ void	Response::handleGet(int type, std::string newPath)
 			this->sendFile(newPath);
 		else
 		{
-			this->responseStr = generateError(E403);
+			if (checkError(403))
+				this->responseStr = generateError(E403, DEFAULT);
+			else
+				this->responseStr = generateError(E403, MINE);
 			send(this->client_fd, this->responseStr.c_str(), this->responseStr.length(), 0);
 			this->responseSent = 1;
 			this->client->request->state = DONE;
@@ -291,9 +374,16 @@ void    Response::checkPath()
 	std::cout << "IN CHECK PATH" << std::endl;
 	this->client = &Servme::getCore()->map_clients[this->client_fd];
 	std::string	newPath = this->client->path.substr(this->client->path.find_first_of('/') + 1, this->client->path.length() - this->client->path.find_first_of('/') + 1);
-    if ((stat(newPath.c_str(), &infos) != 0))
+	std::cout << "new path is : " << newPath << std::endl;
+	// exit (1);
+	if ((stat(newPath.c_str(), &infos) != 0))
 	{
-		this->responseStr = generateError(E404);
+		std::cout << "hna fin tra lmouchkil" << std::endl;
+		// exit (1);
+		if (checkError(404))
+			this->responseStr = generateError(E404, DEFAULT);
+		else
+			this->responseStr = generateError(E404, MINE);
 		send(this->client_fd, this->responseStr.c_str(), this->responseStr.length(), 0);
 		this->responseSent = 1;
 		this->client->request->state = DONE;
@@ -304,10 +394,10 @@ void    Response::checkPath()
 		std::cout << "IT'S A DIRECTORY" << std::endl;
 		if (this->client->request->method == "DELETE")
 		{
-			this->responseStr = generateError(E405);
-			send(this->client_fd, this->responseStr.c_str(), this->responseStr.length(), 0);
-			this->responseSent = 1;
-			this->client->request->state = DONE;
+			if (checkError(405))
+				this->responseStr = generateError(E405, DEFAULT);
+			else
+				this->responseStr = generateError(E405, MINE);
 		}
 		else if (this->client->request->method == "POST")
 			this->handlePost();
@@ -319,7 +409,10 @@ void    Response::checkPath()
 				std::string	file = this->getIndex(newPath);
 				if (file == "")
 				{
-					this->responseStr = generateError(E404);
+					if (checkError(404))
+						this->responseStr = generateError(E404, DEFAULT);
+					else
+						this->responseStr = generateError(E404, MINE);
 					send(this->client_fd, this->responseStr.c_str(), this->responseStr.length(), 0);
 					this->responseSent = 1;
 					this->client->request->state = DONE;
@@ -339,7 +432,10 @@ void    Response::checkPath()
 					this->handleGet(DIRE, newPath);
 				else
 				{
-					this->responseStr = generateError(E403);
+					if (checkError(403))
+						this->responseStr = generateError(E403, DEFAULT);
+					else
+						this->responseStr = generateError(E403, MINE);
 					send(this->client_fd, this->responseStr.c_str(), this->responseStr.length(), 0);
 					this->responseSent = 1;
 					this->client->request->state = DONE;
@@ -359,7 +455,10 @@ void    Response::checkPath()
 			this->handleDelete(newPath);
 		else
 		{
-			this->responseStr = generateError(E405);
+			if (checkError(405))
+				this->responseStr = generateError(E405, DEFAULT);
+			else
+				this->responseStr = generateError(E405, MINE);
 			send(this->client_fd, this->responseStr.c_str(), this->responseStr.length(), 0);
 			this->responseSent = 1;
 			this->client->request->state = DONE;
@@ -406,7 +505,9 @@ void	Response::checkReturn()
 								"Content-Length: 0\r\n"
 								"Connection: close\r\n\r\n";
 		send(this->client_fd, this->responseStr.c_str(), this->responseStr.length(), 0);
-		exit (1);
+		this->started = 1;
+		this->responseSent = 1;
+		this->client->request->state = DONE;
 	}
 }
 
@@ -422,7 +523,9 @@ void    Response::handleNormalReq()
 		this->getQuery();
 		this->client->request->url = removeBackSlashes(this->client->request->url);
     	this->matchLocation(this->client->server->locations);
-		// this->checkReturn();
+		std::cout << "matchina m3aa : " << this->client->location->path << std::endl;
+		// exit (1);
+		this->checkReturn();
 		this->checkAllowedMethods();
 		if (this->client->request->url != this->client->location->path)
 		{
