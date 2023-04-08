@@ -7,25 +7,28 @@
 
 
 
+
+
+
 Http::Http()
 {
     // std::cout << "Http constructor called : " << this << std::endl;
-    this->http_directives.insert(std::pair<std::string, std::vector<std::string> >("root", std::vector<std::string> (1 , "/html")));
-    this->http_directives.insert(std::pair<std::string, std::vector<std::string> >("", std::vector<std::string> (1, "index.html")));
-    this->http_directives.insert(std::pair<std::string, std::vector<std::string> >("error_page", std::vector<std::string> (1 , "404")));
-    this->http_directives.insert(std::pair<std::string, std::vector<std::string> >("autoindex", std::vector<std::string> (1 , "off")));
-    this->http_directives.insert(std::pair<std::string, std::vector<std::string> >("client_max_body_size", std::vector<std::string> (1 , "1024")));
-    this->http_directives.insert(std::pair<std::string, std::vector<std::string> >("allowed_methods", std::vector<std::string> ( 1 , "GET")));
+    // this->http_directives.insert(std::pair<std::string, std::vector<std::string> >("root", std::vector<std::string> (1 , "/html")));
+    // this->http_directives.insert(std::pair<std::string, std::vector<std::string> >("", std::vector<std::string> (1, "index.html")));
+    // // this->http_directives.insert(std::pair<std::string, std::vector<std::string> >("error_page", std::vector<std::string> (1 , "404")));
+    // this->http_directives.insert(std::pair<std::string, std::vector<std::string> >("autoindex", std::vector<std::string> (1 , "off")));
+    // this->http_directives.insert(std::pair<std::string, std::vector<std::string> >("client_max_body_size", std::vector<std::string> (1 , "1024")));
+    // this->http_directives.insert(std::pair<std::string, std::vector<std::string> >("allowed_methods", std::vector<std::string> ( 1 , "GET")));
 
+    this->index.push_back("");
+    this->root = "/html";
+    this->autoindex = false;
+    this->client_max_body_size = 1024;
     this->allowed_methods.push_back("GET");
     this->allowed_methods.push_back("POST");
     this->allowed_methods.push_back("DELETE");
 
-    this->autoindex = false;
-    this->client_max_body_size = 1024;
-    this->error_page = std::pair<int, std::vector<std::string> > (404, std::vector<std::string> (1, "404.html"));
-    this->index.push_back("");
-    this->root = "/html";
+    // this->error_page.insert(std::pair<int, std::string> (404, "404.html"));
 
 
     // this->http_directives["root"] = std::vector<std::string> (1 , "/html") ;
@@ -39,22 +42,37 @@ Http::Http()
 void Parser::init_http()
 {
     if (Parser::getHttp()->http_directives.find("root") != Parser::getHttp()->http_directives.end())
-        Parser::getHttp()->root = Parser::getHttp()->http_directives["root"][0];
-    if (Parser::getHttp()->http_directives.find("") != Parser::getHttp()->http_directives.end())
-        Parser::getHttp()->index = Parser::getHttp()->http_directives["index"];
+        Parser::getHttp()->root = Parser::getHttp()->http_directives.find("root")->second[0];
+
+    
+
+    if (Parser::getHttp()->http_directives.find("index") != Parser::getHttp()->http_directives.end())
+        Parser::getHttp()->index = Parser::getHttp()->http_directives.find("index")->second;
+    
+
+
     if (Parser::getHttp()->http_directives.find("client_max_body_size") != Parser::getHttp()->http_directives.end())
-        Parser::getHttp()->client_max_body_size = atoi(Parser::getHttp()->http_directives["client_max_body_size"][0].c_str());
+        Parser::getHttp()->client_max_body_size = atoi(Parser::getHttp()->http_directives.find("client_max_body_size")->second[0].c_str());
+    
+
     if (Parser::getHttp()->http_directives.find("error_page") != Parser::getHttp()->http_directives.end())
     {
-        Parser::getHttp()->error_page.first = atoi(Parser::getHttp()->http_directives["error_page"][0].c_str());
-        Parser::getHttp()->http_directives["error_page"].erase(Parser::getHttp()->http_directives["error_page"].begin());
-        Parser::getHttp()->error_page.second = Parser::getHttp()->http_directives["error_page"];
+        std::pair<std::multimap<std::string, std::vector<std::string> >::iterator, std::multimap<std::string, std::vector<std::string> >::iterator> ret;
+        ret = Parser::getHttp()->http_directives.equal_range("error_page");
+        while(ret.first != ret.second)
+        {
+
+            Parser::getHttp()->error_page[atoi(ret.first->second[0].c_str())] = ret.first->second;   
+            Parser::getHttp()->error_page[atoi(ret.first->second[0].c_str())].erase(Parser::getHttp()->error_page[atoi(ret.first->second[0].c_str())].begin());
+            ret.first++;
+        }
     }
+
     if (Parser::getHttp()->http_directives.find("autoindex") != Parser::getHttp()->http_directives.end())
     {
-        if (Parser::getHttp()->http_directives["autoindex"][0] == "on")
+        if (Parser::getHttp()->http_directives.find("autoindex")->second[0] == "on")
             Parser::getHttp()->autoindex = true;
-        else if (Parser::getHttp()->http_directives["autoindex"][0] == "off")
+        else if (Parser::getHttp()->http_directives.find("autoindex")->second[0] == "off")
             Parser::getHttp()->autoindex = false;
         else
         {
@@ -62,8 +80,12 @@ void Parser::init_http()
             exit(1);
         }
     }
+
     if (Parser::getHttp()->http_directives.find("allowed_methods") != Parser::getHttp()->http_directives.end())
-        Parser::getHttp()->allowed_methods = Parser::getHttp()->http_directives["allowed_methods"];
+        Parser::getHttp()->allowed_methods = Parser::getHttp()->http_directives.find("allowed_methods")->second;
+
+
+ 
 }
 
 Http::~Http()
@@ -83,15 +105,15 @@ Server::Server()
     // std::cout << "Server constructor called" << std::endl;
 
 
-    this->server_directives.insert(std::pair<std::string, std::vector<std::string> >("root", std::vector<std::string> (1 , "/html")));
-    this->server_directives.insert(std::pair<std::string, std::vector<std::string> >("", std::vector<std::string> (1, "index.html")));
-    this->server_directives.insert(std::pair<std::string, std::vector<std::string> >("error_page", std::vector<std::string> (1 , "404")));
-    this->server_directives.insert(std::pair<std::string, std::vector<std::string> >("autoindex", std::vector<std::string> (1 , "off")));
-    this->server_directives.insert(std::pair<std::string, std::vector<std::string> >("client_max_body_size", std::vector<std::string> (1 , "1024")));
-    this->server_directives.insert(std::pair<std::string, std::vector<std::string> >("allowed_methods", std::vector<std::string> ( 1 , "GET")));
+    // this->server_directives.insert(std::pair<std::string, std::vector<std::string> >("root", std::vector<std::string> (1 , "/html")));
+    // this->server_directives.insert(std::pair<std::string, std::vector<std::string> >("", std::vector<std::string> (1, "index.html")));
+    // this->server_directives.insert(std::pair<std::string, std::vector<std::string> >("error_page", std::vector<std::string> (1 , "404")));
+    // this->server_directives.insert(std::pair<std::string, std::vector<std::string> >("autoindex", std::vector<std::string> (1 , "off")));
+    // this->server_directives.insert(std::pair<std::string, std::vector<std::string> >("client_max_body_size", std::vector<std::string> (1 , "1024")));
+    // this->server_directives.insert(std::pair<std::string, std::vector<std::string> >("allowed_methods", std::vector<std::string> ( 1 , "GET")));
 
-    this->server_directives.insert(std::pair<std::string, std::vector<std::string> >("listen", std::vector<std::string> (1 , "6969")));
-    this->server_directives.insert(std::pair<std::string, std::vector<std::string> >("server_name", std::vector<std::string> (1 , "localhost")));
+    // this->server_directives.insert(std::pair<std::string, std::vector<std::string> >("listen", std::vector<std::string> (1 , "6969")));
+    // this->server_directives.insert(std::pair<std::string, std::vector<std::string> >("server_name", std::vector<std::string> (1 , "localhost")));
 
     this->ipPort.first = "NONE";
     this->ipPort.second = 6969;
@@ -107,7 +129,7 @@ void Parser::init_servers()
     {
         // server_name
         if (Parser::getHttp()->servers[i].server_directives.find("server_name") != Parser::getHttp()->servers[i].server_directives.end())
-            Parser::getHttp()->servers[i].server_name = Parser::getHttp()->servers[i].server_directives["server_name"][0];
+            Parser::getHttp()->servers[i].server_name = Parser::getHttp()->servers[i].server_directives.find("server_name")->second[0];
 
         // listen
         if (Parser::getHttp()->servers[i].server_directives.find("listen") != Parser::getHttp()->servers[i].server_directives.end())
@@ -132,35 +154,42 @@ void Parser::init_servers()
 
         // root
         if (Parser::getHttp()->servers[i].server_directives.find("root") != Parser::getHttp()->servers[i].server_directives.end())
-            Parser::getHttp()->servers[i].root = Parser::getHttp()->servers[i].server_directives["root"][0];
+            Parser::getHttp()->servers[i].root = Parser::getHttp()->servers[i].server_directives.find("root")->second[0];
         else
            Parser::getHttp()->servers[i].root = Parser::getHttp()->root;
         
         // index
         if (Parser::getHttp()->servers[i].server_directives.find("index") != Parser::getHttp()->servers[i].server_directives.end())
-            Parser::getHttp()->servers[i].index = Parser::getHttp()->servers[i].server_directives["index"];
+            Parser::getHttp()->servers[i].index = Parser::getHttp()->servers[i].server_directives.find("index")->second;
         else
             Parser::getHttp()->servers[i].index = Parser::getHttp()->index;
 
 
         // error_page
-        if (Parser::getHttp()->servers[i].server_directives.find("error_page") != Parser::getHttp()->servers[i].server_directives.end())
+
+
+    if (Parser::getHttp()->servers[i].server_directives.find("error_page") != Parser::getHttp()->servers[i].server_directives.end())
+    {
+        std::pair<std::multimap<std::string, std::vector<std::string> >::iterator, std::multimap<std::string, std::vector<std::string> >::iterator> ret;
+        ret = Parser::getHttp()->servers[i].server_directives.equal_range("error_page");
+        while(ret.first != ret.second)
         {
-            Parser::getHttp()->servers[i].error_page.first = atoi(Parser::getHttp()->servers[i].server_directives["error_page"][0].c_str());
-            Parser::getHttp()->servers[i].server_directives["error_page"].erase(Parser::getHttp()->servers[i].server_directives["error_page"].begin());
-            Parser::getHttp()->servers[i].error_page.second = Parser::getHttp()->servers[i].server_directives["error_page"];
+            Parser::getHttp()->servers[i].error_page[atoi(ret.first->second[0].c_str())] = ret.first->second;
+            Parser::getHttp()->servers[i].error_page[atoi(ret.first->second[0].c_str())].erase(Parser::getHttp()->servers[i].error_page[atoi(ret.first->second[0].c_str())].begin());
+            ret.first++;
         }
-        else
-        {
-            Parser::getHttp()->servers[i].error_page.first = Parser::getHttp()->error_page.first;
-            Parser::getHttp()->servers[i].error_page.second = Parser::getHttp()->error_page.second;
-        }
+    }
+    else
+        Parser::getHttp()->servers[i].error_page = Parser::getHttp()->error_page;
+
+
+
 
         // autoindex
         if (Parser::getHttp()->servers[i].server_directives.find("autoindex") != Parser::getHttp()->servers[i].server_directives.end())
         {
             // std::cout << RED << "autoindex: " << Parser::getHttp()->servers[i].server_directives["autoindex"][1] << RESET <<std::endl;
-            if (Parser::getHttp()->servers[i].server_directives["autoindex"][0] == "on")
+            if (Parser::getHttp()->servers[i].server_directives.find("autoindex")->second[0] == "on")
                 Parser::getHttp()->servers[i].autoindex = true;
             else
                 Parser::getHttp()->servers[i].autoindex = false;
@@ -170,14 +199,14 @@ void Parser::init_servers()
 
         // client_max_body_size
         if (Parser::getHttp()->servers[i].server_directives.find("client_max_body_size") != Parser::getHttp()->servers[i].server_directives.end())
-            Parser::getHttp()->servers[i].client_max_body_size = std::stoi(Parser::getHttp()->servers[i].server_directives["client_max_body_size"][0]);
+            Parser::getHttp()->servers[i].client_max_body_size = std::stoi(Parser::getHttp()->servers[i].server_directives.find("client_max_body_size")->second[0]);
         else
             Parser::getHttp()->servers[i].client_max_body_size = Parser::getHttp()->client_max_body_size;
 
 
         // allowed_methods
         if  (Parser::getHttp()->servers[i].server_directives.find("allowed_methods") != Parser::getHttp()->servers[i].server_directives.end())
-            Parser::getHttp()->servers[i].allowed_methods = Parser::getHttp()->servers[i].server_directives["allowed_methods"];
+            Parser::getHttp()->servers[i].allowed_methods = Parser::getHttp()->servers[i].server_directives.find("allowed_methods")->second;
         else
             Parser::getHttp()->servers[i].allowed_methods = Parser::getHttp()->allowed_methods;
 
@@ -235,18 +264,18 @@ void Parser::init_locations(int index)
         // }
         //root
         if (server->locations[i].location_directives.find("root") != server->locations[i].location_directives.end())
-            server->locations[i].root = server->locations[i].location_directives["root"][0];
+            server->locations[i].root = server->locations[i].location_directives.find("root")->second[0];
         else
             server->locations[i].root = server->root;
         //index
         if (server->locations[i].location_directives.find("index") != server->locations[i].location_directives.end())
-            server->locations[i].index = server->locations[i].location_directives["index"];
+            server->locations[i].index = server->locations[i].location_directives.find("index")->second;
         else
             server->locations[i].index = server->index;
         //autoindex
         if (server->locations[i].location_directives.find("autoindex") != server->locations[i].location_directives.end())
         {
-            if (server->locations[i].location_directives["autoindex"][0] == "on")
+            if (server->locations[i].location_directives.find("autoindex")->second[0] == "on")
                 server->locations[i].autoindex = true;
             else
                 server->locations[i].autoindex = false;
@@ -255,18 +284,15 @@ void Parser::init_locations(int index)
             server->locations[i].autoindex = server->autoindex;
         //client_max_body_size
         if (server->locations[i].location_directives.find("client_max_body_size") != server->locations[i].location_directives.end())
-            server->locations[i].client_max_body_size = std::stoi(server->locations[i].location_directives["client_max_body_size"][0]);
+            server->locations[i].client_max_body_size = std::stoi(server->locations[i].location_directives.find("client_max_body_size")->second[0]);
         else
             server->locations[i].client_max_body_size = server->client_max_body_size;
         //allowed_methods
         if  (server->locations[i].location_directives.find("allowed_methods") != server->locations[i].location_directives.end())
-            server->locations[i].allowed_methods = server->locations[i].location_directives["allowed_methods"];
+            server->locations[i].allowed_methods = server->locations[i].location_directives.find("allowed_methods")->second;
         else
             server->locations[i].allowed_methods = server->allowed_methods;
-        
     }
-
-
 }
 
 

@@ -171,7 +171,6 @@ void Client::handleRequest()
             if (flag == 0)
             {
                 flag = 1;
-                
                 this->request->state = Stat::MULTI_PART_START;
             }
             this->request->ParseMultiPartBody(); // ! : this function is not working ,still working on ti
@@ -214,6 +213,7 @@ void Client::generateResponse()
 		this->response->handleNormalReq();
 	std::cout << "done with generate response" << std::endl;
 }
+
 
 void	Client::selectServer()
 {

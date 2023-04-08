@@ -15,8 +15,7 @@ SocketWrapper::SocketWrapper()
 SocketWrapper::SocketWrapper(int domain, int type, int protocol)
 {
     sockfd_ = socket(domain, type, protocol);
-    int enable = 1;
-    setsockopt(sockfd_, SOL_SOCKET, SO_REUSEADDR, &enable, sizeof(enable)); // bind problem
+
     if (sockfd_ < 0)
     {
         throw std::runtime_error("Failed to create socket");
@@ -50,17 +49,18 @@ void SocketWrapper::bind(int port)
 
 void SocketWrapper::bind(std::string ip, int port)
 {
+ 
     sockaddr_in addr;
     addr.sin_port = htons(port);
     if (inet_pton(AF_INET, ip.c_str(), &addr.sin_addr) <= 0)
     {
         throw std::runtime_error("Invalid IP address");
     }
+    // std::cout << "ip: " << ip << " port: " << port << std::endl;
     int res = ::bind(sockfd_, (struct sockaddr *)&addr, sizeof(addr));
     if (res == -1)
     {
-        std::cerr << "bind error: " << strerror(errno) << std::endl;
-        throw std::runtime_error("Failed to bind socket");
+        throw std::runtime_error(strerror(errno));
     }
     this->listenPair.first = ip;
     this->listenPair.second = port;
