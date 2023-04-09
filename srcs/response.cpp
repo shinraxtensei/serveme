@@ -39,13 +39,16 @@ int	Response::checkError(int error)
 		else
 		{
 			std::cout << "location kaayna wlkn error pages dyalha khawyin" << std::endl;
-			exit (1);
 			if (!this->client->server->error_page.empty())
 				member = this->client->server->error_page;
 		}
 	}
 	else
+	{
+		if (!this->client->server->error_page.empty())
+			member = this->client->server->error_page;
 		root = this->client->server->root;
+	}
 	if (member.empty())
 	{
 		std::cout << "makayna fhta w7da fihom" << std::endl;
@@ -374,12 +377,8 @@ void    Response::checkPath()
 	std::cout << "IN CHECK PATH" << std::endl;
 	this->client = &Servme::getCore()->map_clients[this->client_fd];
 	std::string	newPath = this->client->path.substr(this->client->path.find_first_of('/') + 1, this->client->path.length() - this->client->path.find_first_of('/') + 1);
-	std::cout << "new path is : " << newPath << std::endl;
-	// exit (1);
 	if ((stat(newPath.c_str(), &infos) != 0))
 	{
-		std::cout << "hna fin tra lmouchkil" << std::endl;
-		// exit (1);
 		if (checkError(404))
 			this->responseStr = generateError(E404, DEFAULT);
 		else
@@ -514,6 +513,10 @@ void	Response::checkReturn()
 void    Response::handleNormalReq()
 {
 	std::cout << "in handleNormalReq" << std::endl;
+	// Parser::lex()->set_input(this->client->request->contentType);
+	// this->client->request->contentType = Parser::lex()->next_token(false);
+
+
 	this->client = &Servme::getCore()->map_clients[this->client_fd];
 	if (this->responseSent == 0)
 	{
@@ -524,7 +527,6 @@ void    Response::handleNormalReq()
 		this->client->request->url = removeBackSlashes(this->client->request->url);
     	this->matchLocation(this->client->server->locations);
 		std::cout << "matchina m3aa : " << this->client->location->path << std::endl;
-		// exit (1);
 		this->checkReturn();
 		this->checkAllowedMethods();
 		if (this->client->request->url != this->client->location->path)

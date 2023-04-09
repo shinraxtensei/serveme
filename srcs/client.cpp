@@ -46,6 +46,7 @@ Client::Client(SocketWrapper &sock)
 
     this->request->core = this->core;
     this->server = nullptr;
+	this->location = nullptr;
     // this->request->client = this;
 
     this->response = new Response();

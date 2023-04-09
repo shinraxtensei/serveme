@@ -80,14 +80,18 @@ void	Response::handlePost()
 	else
 	{
 		std::cout << "le body is : " << this->client->request->bodyString << std::endl;
+		// exit (1);
 		if (this->readPos < this->client->request->bodyString.length())
 		{
 			if (this->started == 0)
 			{
+				this->client->request->contentType = "text/html";
+				std::cout << "content type is : " << this->client->request->contentType << std::endl;
 				std::map<std::string, std::string>::iterator	i;
 				std::string	extension;
 				for (i = this->contentTypes.begin(); i != this->contentTypes.end(); i++)
 				{
+					std::cout << "looking for types" << std::endl;
 					if (this->client->request->contentType == (*i).second)
 					{
 						extension = (*i).first;
@@ -96,6 +100,8 @@ void	Response::handlePost()
 				}
 				if (i == this->contentTypes.end())
 					extension = "txt";
+				std::cout << "extension is : " << extension << std::endl;
+				exit (1);
 				std::string	filename = "random." + extension;
 				std::string	path = "upload/" + filename;
 				file1.open(path, std::ios::binary);
