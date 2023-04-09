@@ -151,6 +151,8 @@ class Response
 			std::ifstream	file;
 			std::ofstream	file1;
 
+			int	step = 0;
+
 			std::ofstream 	multipart;
 			
 			void	handleNormalReq();
@@ -215,6 +217,7 @@ class Client
     	// void checkInactivity();
 		void	selectServer();
     	void	generateResponse();
+        time_t lastActivity;
         
     	// void writeResponse();
     	// void checkInactivity();

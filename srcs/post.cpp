@@ -4,6 +4,10 @@
 void	Response::handleMultipart()
 {
 	std::cout << "in handleMultipart" << std::endl;
+
+
+
+	// exit (1);
 	this->client = &Servme::getCore()->map_clients[this->client_fd];
 	std::multimap<std::string, Multipart_ENV>::iterator	iter;
 	for (iter = this->client->request->multipart_env.begin(); iter != this->client->request->multipart_env.end(); iter++)
@@ -17,12 +21,14 @@ void	Response::handleMultipart()
 				std::string	extension;
 				for (i = this->contentTypes.begin(); i != this->contentTypes.end(); i++)
 				{
-					if ((*i).second == (*iter).second.content_type)
+					if ((*i).second.find((*iter).second.content_type) != std::string::npos)
 					{
 						extension = (*i).first;
 						break;
 					}
 				}
+				// std::cout << "extension: " << extension << std::endl;
+				// exit(0);
 				if (i == this->contentTypes.end())
 					extension = "txt";
 				(*iter).second.file_name = "random." + extension;
@@ -65,7 +71,7 @@ void	Response::handleMultipart()
 		this->responseStr = "HTTP/1.1 200 OK\r\n"
 				"Content-Type: text/html\r\n"
 				"Content-Length:" + ss.str() + "\r\n\r\n" + this->body;
-		send(this->client_fd, this->responseStr.c_str(), this->responseStr.length(), 0);
+		// send(this->client_fd, this->responseStr.c_str(), this->responseStr.length(), 0);
 		this->responseSent = 1;
 		std::cout << "reponse mchat" << std::endl;
 	}
@@ -84,18 +90,23 @@ void	Response::handlePost()
 		{
 			if (this->started == 0)
 			{
+				this->client->request->contentType = "text/html";
+				std::cout << "content type is : " << this->client->request->contentType << std::endl;
 				std::map<std::string, std::string>::iterator	i;
 				std::string	extension;
 				for (i = this->contentTypes.begin(); i != this->contentTypes.end(); i++)
 				{
+					std::cout << "looking for types" << std::endl;
 					if (this->client->request->contentType == (*i).second)
 					{
+						std::cout << "lvalue hiya " << (*i).first << std::endl;
 						extension = (*i).first;
 						break ;
 					}
 				}
 				if (i == this->contentTypes.end())
 					extension = "txt";
+				std::cout << "extension is : " << extension << std::endl;
 				std::string	filename = "random." + extension;
 				std::string	path = "upload/" + filename;
 				file1.open(path, std::ios::binary);

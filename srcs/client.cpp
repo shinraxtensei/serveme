@@ -17,6 +17,8 @@
 
 Client::Client()
 {
+    this->lastActivity = time(NULL);
+
     this->addr = new sockaddr_in;
 
     this->request = new Request();
@@ -41,11 +43,14 @@ Client::~Client()
 Client::Client(SocketWrapper &sock)
 {
 
+    this->lastActivity = time(NULL);
+    
     this->cgi = new Cgi();
     this->request = new Request();
 
     this->request->core = this->core;
     this->server = nullptr;
+	this->location = nullptr;
     // this->request->client = this;
 
     this->response = new Response();
@@ -94,6 +99,8 @@ void Client::handleRequest()
 {
 
     // if (this->request->state == START || this->request->state == Stat::FIRSTLINE || this->request->state == Stat::HEADERS)
+    this->lastActivity = time(NULL);
+
     if (this->request->state & (Stat::START | Stat::FIRSTLINE | Stat::HEADERS))
     {
         static std::string line = "";
@@ -210,7 +217,7 @@ void Client::generateResponse()
 	if (this->cgiFlag == 1)
         cgi_handler();
 	else
-		// this->response->handleNormalReq();
+		this->response->handleNormalReq();
 	std::cout << "done with generate response" << std::endl;
 }
 

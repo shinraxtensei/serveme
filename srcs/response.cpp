@@ -31,7 +31,7 @@ int	Response::checkError(int error)
 	this->client = &Servme::getCore()->map_clients[this->client_fd];
 	std::cout << "in checkError" << std::endl;
 
-	if (this->client->location)
+	if (this->client->location != nullptr)
 	{
 		root = this->client->location->root;
 		if (!this->client->location->error_page.empty())
@@ -39,13 +39,16 @@ int	Response::checkError(int error)
 		else
 		{
 			std::cout << "location kaayna wlkn error pages dyalha khawyin" << std::endl;
-			exit (1);
 			if (!this->client->server->error_page.empty())
 				member = this->client->server->error_page;
 		}
 	}
 	else
+	{
+		if (!this->client->server->error_page.empty())
+			member = this->client->server->error_page;
 		root = this->client->server->root;
+	}
 	if (member.empty())
 	{
 		std::cout << "makayna fhta w7da fihom" << std::endl;
@@ -73,76 +76,24 @@ int	Response::checkError(int error)
 
 void	Response::storeMimeTypes()
 {
-    std::vector<std::pair<std::string, std::string>> keyValuePairs = {
-        {"html", "text/html"},
-        {"htm", "text/html"},
-        {"shtml", "shtml"},
-        {"css", "text/css"},
-        {"xml", "text/xml"},
-        {"rss", "text/xml"},
-        {"gif", "image/gif"},
-        {"jpeg", "image/jpeg"},
-        {"jpg", "image/jpeg"},
-        {"js", "application/x-javascript"},
-        {"txt", "text/plain"},
-        {"htc", "text/x-component"},
-        {"mml", "text/mathml"},
-        {"png", "image/png"},
-        {"ico", "image/x-icon"},
-        {"jng", "image/x-jng"},
-        {"wbmp", "image/vnd.wap.wbmp"},
-        {"jar", "application/java-archive"},
-        {"war", "application/java-archive"},
-        {"ear", "application/java-archive"},
-        {"hqx", "application/mac-binhex40"},
-        {"pdf", "application/pdf"},
-        {"cco", "application/x-cocoa"},
-        {"jardiff", "application/x-java-archive-diff"},
-        {"jnlp", "application/x-java-jnlp-file"},
-        {"run", "application/x-makeself"},
-        {"pl", "application/x-perl"},
-        {"pm", "application/x-perl"},
-        {"prc", "application/x-pilot"},
-        {"pdb", "application/x-pilot"},
-        {"rar", "application/x-rar-compressed"},
-        {"rpm", "application/x-redhat-package-manager"},
-        {"sea", "application/x-sea"},
-        {"swf", "application/x-shockwave-flash"},
-        {"sit", "application/x-stuffit"},
-        {"tcl", "application/x-tcl"},
-        {"tk", "application/x-tcl"},
-        {"der", "application/x-x509-ca-cert"},
-        {"pem", "application/x-x509-ca-cert"},
-        {"crt", "application/x-x509-ca-cert"},
-        {"xpi", "application/x-xpinstall"},
-        {"zip", "application/zip"},
-        {"deb", "application/octet-stream"},
-        {"bin", "application/octet-stream"},
-        {"exe", "application/octet-stream"},
-        {"dll", "application/octet-stream"},
-        {"dmg", "application/octet-stream"},
-        {"eot", "application/octet-stream"},
-        {"iso", "application/octet-stream"},
-        {"img", "application/octet-stream"},
-        {"msi", "application/octet-stream"},
-        {"msp", "application/octet-stream"},
-        {"msm", "application/octet-stream"},
-        {"mp3", "audio/mpeg"},
-		{"mp4", "video/mp4"},
-        {"ra", "audio/x-realaudio"},
-        {"mpeg", "video/mpeg"},
-        {"mpg", "video/mpeg"},
-        {"mov", "video/quicktime"},
-        {"flv", "video/x-flv"},
-        {"avi", "video/x-msvideo"},
-        {"wmv", "video/x-ms-wmv"},
-        {"asx", "video/x-ms-asf"},
-        {"asf", "video/x-ms-asf"},
-        {"mng", "video/x-mng"}
-    };
-    
-	for (std::vector<std::pair<std::string, std::string>>:: iterator it = keyValuePairs.begin(); it < keyValuePairs.end(); it++)
-		this->contentTypes[it->first] = it->second;
+	std::ifstream	file("mime.types");
+	std::map<std::string, std::string>	mimetypes;
+
+	if (!file.is_open())
+	{
+		std::cout << "Error opening file" << std::endl;
+		return ;
+	}
+	std::string	line;
+	while (getline(file, line))
+	{
+		std::string	extension;
+		std::string type;
+		Parser::lex()->set_input(line);
+		extension = Parser::lex()->next_token(true);
+		type = Parser::lex()->next_token(true);
+		this->contentTypes[extension] = type;
+	}
 }
 
 Response::Response()
@@ -374,12 +325,8 @@ void    Response::checkPath()
 	std::cout << "IN CHECK PATH" << std::endl;
 	this->client = &Servme::getCore()->map_clients[this->client_fd];
 	std::string	newPath = this->client->path.substr(this->client->path.find_first_of('/') + 1, this->client->path.length() - this->client->path.find_first_of('/') + 1);
-	std::cout << "new path is : " << newPath << std::endl;
-	// exit (1);
 	if ((stat(newPath.c_str(), &infos) != 0))
 	{
-		std::cout << "hna fin tra lmouchkil" << std::endl;
-		// exit (1);
 		if (checkError(404))
 			this->responseStr = generateError(E404, DEFAULT);
 		else
@@ -514,7 +461,22 @@ void	Response::checkReturn()
 void    Response::handleNormalReq()
 {
 	std::cout << "in handleNormalReq" << std::endl;
+	// Parser::lex()->set_input(this->client->request->contentType);
+	// this->client->request->contentType = Parser::lex()->next_token(false);
 	this->client = &Servme::getCore()->map_clients[this->client_fd];
+
+        //    for (auto part: this->client->request->multipart_env)
+        //     {   std::cout << GREEN << "---------------------------------" << std::endl;
+        //         std::cout << "fieldname: " << part.first << std::endl;
+        //         std::cout << "filename: " << part.second.file_name << std::endl;
+        //         std::cout << "ContentType: " << part.second.content_type << std::endl;
+        //         std::cout << "data: " << part.second.data  << std::endl;
+		// 		std::cout << "pos: " << part.second.pos<< RESET << std::endl;
+        //     }
+		// this->step++;
+		// if (this->step == 5)
+		// 	exit (1);
+
 	if (this->responseSent == 0)
 	{
 		this->storeMimeTypes();
@@ -524,7 +486,6 @@ void    Response::handleNormalReq()
 		this->client->request->url = removeBackSlashes(this->client->request->url);
     	this->matchLocation(this->client->server->locations);
 		std::cout << "matchina m3aa : " << this->client->location->path << std::endl;
-		// exit (1);
 		this->checkReturn();
 		this->checkAllowedMethods();
 		if (this->client->request->url != this->client->location->path)
@@ -538,3 +499,7 @@ void    Response::handleNormalReq()
 	}
 	this->checkPath();
 }
+
+
+
+
