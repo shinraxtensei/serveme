@@ -46,6 +46,7 @@ Client::Client(SocketWrapper &sock)
 
     this->request->core = this->core;
     this->server = nullptr;
+    this->location = nullptr;
     // this->request->client = this;
 
     this->response = new Response();
@@ -210,7 +211,7 @@ void Client::generateResponse()
 	if (this->cgiFlag == 1)
         cgi_handler();
 	else
-		// this->response->handleNormalReq();
+		this->response->handleNormalReq();
 	std::cout << "done with generate response" << std::endl;
 }
 
