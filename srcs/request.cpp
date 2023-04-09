@@ -463,8 +463,7 @@ void Request::ParseMultiPartBody()
                 data = "";
                 std::cout << "end " << std::endl;
                 this->state = Stat::END;
-                // break;
-                // return;
+
             }
             else if (line.find(this->boundary) != std::string::npos)
             {
@@ -472,7 +471,6 @@ void Request::ParseMultiPartBody()
                 std::cout << GREEN << "DATA: " << data << RESET << std::endl;
                 data = "";
                 this->state = Stat::MULTI_PART_HEADERS;
-                // break;
             }
             else
                 data += line;   
@@ -481,13 +479,13 @@ void Request::ParseMultiPartBody()
         if (this->state & Stat::END)
         {
             std::cout << "this is the end" << std::endl;
-            for (auto part: this->multipart_env)
-            {   std::cout << "---------------------------------" << std::endl;
-                std::cout << "fieldname: " << part.first << std::endl;
-                std::cout << "filename: " << part.second.file_name << std::endl;
-                std::cout << "ContentType: " << part.second.content_type << std::endl;
-                std::cout << "data: " << part.second.data << std::endl;
-            }
+            // for (auto part: this->multipart_env)
+            // {   std::cout << "---------------------------------" << std::endl;
+            //     std::cout << "fieldname: " << part.first << std::endl;
+            //     std::cout << "filename: " << part.second.file_name << std::endl;
+            //     std::cout << "ContentType: " << part.second.content_type << std::endl;
+            //     std::cout << "data: " << part.second.data << std::endl;
+            // }
             return;
         }
         

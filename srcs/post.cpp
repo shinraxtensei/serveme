@@ -21,12 +21,14 @@ void	Response::handleMultipart()
 				std::string	extension;
 				for (i = this->contentTypes.begin(); i != this->contentTypes.end(); i++)
 				{
-					if ((*i).second == (*iter).second.content_type)
+					if ((*i).second.find((*iter).second.content_type) != std::string::npos)
 					{
 						extension = (*i).first;
 						break;
 					}
 				}
+				std::cout << "extension: " << extension << std::endl;
+				exit(0);
 				if (i == this->contentTypes.end())
 					extension = "txt";
 				(*iter).second.file_name = "random." + extension;
@@ -69,7 +71,7 @@ void	Response::handleMultipart()
 		this->responseStr = "HTTP/1.1 200 OK\r\n"
 				"Content-Type: text/html\r\n"
 				"Content-Length:" + ss.str() + "\r\n\r\n" + this->body;
-		send(this->client_fd, this->responseStr.c_str(), this->responseStr.length(), 0);
+		// send(this->client_fd, this->responseStr.c_str(), this->responseStr.length(), 0);
 		this->responseSent = 1;
 		std::cout << "reponse mchat" << std::endl;
 	}

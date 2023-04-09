@@ -204,11 +204,16 @@ std::string Lexer::next_token(bool consume)
             break;
         token += input_stream.get();
     }
-    // token.erase(std::remove(token.begin(), token.end(), '\r'), token.end());
-    // token.erase(std::remove(token.begin(), token.end(), '\n'), token.end());
+    char last = token.back();
+    if (last == -1)
+        token.pop_back();
+
+    token.erase(std::remove(token.begin(), token.end(), '\r'), token.end());
+    token.erase(std::remove(token.begin(), token.end(), '\n'), token.end());
     if (consume == false)
         input_stream.seekg(pos);
-        
+    
+
 
     this->tokens.push_back(token);
     return token;
