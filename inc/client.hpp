@@ -166,6 +166,8 @@ class Response
 
 			int		checkError(int	error);
 
+			void	parseUrl();
+
 			void					getQuery();
 			void					checkAllowedMethods();
 			void					matchLocation(std::vector<Location> locations);

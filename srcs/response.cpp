@@ -1,7 +1,6 @@
 #include "../inc/client.hpp"
 #include "../inc/macros.hpp"
 
-
 Response::~Response()
 {
 	
@@ -113,19 +112,17 @@ void	Response::checkAllowedMethods()
 	for (iter = methods.begin(); iter < methods.end(); iter++)
 	{
 		if (*iter == this->client->request->method)
-			break ;
+			return ;
 	}
-	if (iter == methods.end())
-	{
-		if (checkError(405))
-			this->responseStr = generateError(E405, DEFAULT);
-		else
-			this->responseStr = generateError(E405, MINE);
-		send(this->client_fd, this->responseStr.c_str(), this->responseStr.length(), 0);
-		this->responseSent = 1;
-		this->client->request->state = DONE;
-		return ;
-	}
+	//throw exception
+	if (checkError(405))
+		this->responseStr = generateError(E405, DEFAULT);
+	else
+		this->responseStr = generateError(E405, MINE);
+	send(this->client_fd, this->responseStr.c_str(), this->responseStr.length(), 0);
+	this->responseSent = 1;
+	this->client->request->state = DONE;
+	return ;
 }
 
 int		LocationFound(std::string locationPaths, std::string	path)
@@ -145,23 +142,23 @@ int		LocationFound(std::string locationPaths, std::string	path)
 	return (0);
 }
 
-std::vector<Location>	getNested(std::vector<Location>	candidates, Location location)
-{
-	std::vector<Location>::iterator	iter;
+// std::vector<Location>	getNested(std::vector<Location>	candidates, Location location)
+// {
+// 	std::vector<Location>::iterator	iter;
 
-	iter = location.locations.begin();
-	for (iter = location.locations.begin(); iter < location.locations.end(); iter++)
-	{
-		if (location.locations.empty())
-			candidates.push_back(*iter);
-		else
-		{
-			candidates.push_back(*iter);
-			getNested(candidates, *iter);
-		}
-	}
-	return (candidates);	
-}
+// 	iter = location.locations.begin();
+// 	for (iter = location.locations.begin(); iter < location.locations.end(); iter++)
+// 	{
+// 		if (location.locations.empty())
+// 			candidates.push_back(*iter);
+// 		else
+// 		{
+// 			candidates.push_back(*iter);
+// 			getNested(candidates, *iter);
+// 		}
+// 	}
+// 	return (candidates);	
+// }
 
 std::vector<Location>	Response::getLocations(std::vector<Location> locations)
 {
@@ -172,10 +169,8 @@ std::vector<Location>	Response::getLocations(std::vector<Location> locations)
 	iter = locations.begin();
 	
 	for (iter = this->client->server->locations.begin(); iter < this->client->server->locations.end(); iter++)
-	{
 		candidates.push_back(*iter);
-		candidates = getNested(candidates, *iter);
-	}
+		// candidates = getNested(candidates, *iter);
 	return (candidates);
 }
 
@@ -187,7 +182,7 @@ int		countFields(std::string	path)
             ++count;
         }
     }
-    return count;
+    return (count);
 }
 
 bool	compareFields(const Location& loc1, const Location& loc2)
@@ -202,27 +197,20 @@ void	Response::matchLocation(std::vector<Location> locations)
 
 	this->client = &Servme::getCore()->map_clients[this->client_fd];
 	candidates = this->getLocations(locations);
-	if (candidates.empty())
+	if (!candidates.empty())
 	{
-		if (checkError(404))
-			this->responseStr = generateError(E404, DEFAULT);
-		else
-			this->responseStr = generateError(E404, MINE);
-		send(this->client_fd, this->responseStr.c_str(), this->responseStr.length(), 0);
-		this->responseSent = 1;
-		this->client->request->state = DONE;
-		return ;
-	}
-	std::sort(candidates.begin(), candidates.end(), compareFields);
-	for (iter = candidates.begin(); iter < candidates.end(); iter++)
-	{
-		if (LocationFound(iter->path, this->client->request->url))
+		std::sort(candidates.begin(), candidates.end(), compareFields);
+		for (iter = candidates.begin(); iter < candidates.end(); iter++)
 		{
-			std::cout << "location fouuund" << std::endl;
-			this->client->location = new Location(*iter);
-			return ;
+			if (LocationFound(iter->path, this->client->request->url))
+			{
+				// std::cout << "location fouuund" << std::endl;
+				this->client->location = new Location(*iter);
+				return ;
+			}
 		}
 	}
+	// throw exception
 	if (checkError(404))
 		this->responseStr = generateError(E404, DEFAULT);
 	else
@@ -414,26 +402,26 @@ void    Response::checkPath()
 	}
 }
 
-std::string	removeBackSlashes(std::string url)
-{
-	while (url.back() == '/' && url.size() != 1)
-		url.pop_back();
-	return (url);
-}
+// std::string	removeBackSlashes(std::string url)
+// {
+// 	while (url.back() == '/' && url.size() != 1)
+// 		url.pop_back();
+// 	return (url);
+// }
 
-void	Response::getQuery()
-{
-	std::string				query;
-	size_t					pos;
+// void	Response::getQuery()
+// {
+// 	std::string				query;
+// 	size_t					pos;
 
-	pos = this->client->request->url.find('?');
-	if (pos != std::string::npos)
-	{
-		query = this->client->request->url.substr(pos + 1, this->client->request->url.length() - pos + 1);
-		this->client->request->query = query;
-		this->client->request->url = this->client->request->url.substr(0, pos);
-	}
-}
+// 	pos = this->client->request->url.find('?');
+// 	if (pos != std::string::npos)
+// 	{
+// 		query = this->client->request->url.substr(pos + 1, this->client->request->url.length() - pos + 1);
+// 		this->client->request->query = query;
+// 		this->client->request->url = this->client->request->url.substr(0, pos);
+// 	}
+// }
 
 void	Response::checkReturn()
 {
@@ -451,6 +439,7 @@ void	Response::checkReturn()
 								"Content-Type: text/html\r\n"
 								"Content-Length: 0\r\n"
 								"Connection: close\r\n\r\n";
+		// do not send reponse
 		send(this->client_fd, this->responseStr.c_str(), this->responseStr.length(), 0);
 		this->started = 1;
 		this->responseSent = 1;
@@ -476,18 +465,18 @@ void    Response::handleNormalReq()
 		// this->step++;
 		// if (this->step == 5)
 		// 	exit (1);
-
 	if (this->responseSent == 0)
 	{
 		this->storeMimeTypes();
-		this->client->selectServer();
-    	this->client = &Servme::getCore()->map_clients[this->client_fd];
-		this->getQuery();
-		this->client->request->url = removeBackSlashes(this->client->request->url);
+		// this->client->selectServer();
+		// this->getQuery();
+		// this->client->request->url = removeBackSlashes(this->client->request->url);
+		this->parseUrl();
     	this->matchLocation(this->client->server->locations);
-		std::cout << "matchina m3aa : " << this->client->location->path << std::endl;
+		// std::cout << "matchina m3aa : " << this->client->location->path << std::endl;
 		this->checkReturn();
 		this->checkAllowedMethods();
+		// this->getPath();
 		if (this->client->request->url != this->client->location->path)
 		{
 			if (this->client->location->path != "/")
@@ -500,6 +489,18 @@ void    Response::handleNormalReq()
 	this->checkPath();
 }
 
+void	Response::parseUrl()
+{
+	std::string				query;
+	size_t					pos;
 
-
-
+	pos = this->client->request->url.find('?');
+	if (pos != std::string::npos)
+	{
+		query = this->client->request->url.substr(pos + 1, this->client->request->url.length() - pos + 1);
+		this->client->request->query = query;
+		this->client->request->url = this->client->request->url.substr(0, pos);
+	}
+	while (this->client->request->url.size() != 1 && this->client->request->url.back() == '/')
+		this->client->request->url.pop_back();	
+}
