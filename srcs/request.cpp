@@ -117,11 +117,16 @@ void Request::ParseFirstLine(std::string &line)
 {
     std::cout << CYAN << "STATE: " << (this->state == FIRSTLINE ? "FIRSTLINE" : "weird") << RESET << std::endl;
 
+    this->client = &Servme::getCore()->map_clients[this->client_fd];
+    this->client->selectServer();
+
+
+
 
     // std::cout << "last char: " << line.back() << std::endl;
     
     std::vector<std::string> knownMethods;
-    knownMethods = getStringTokens("GET HEAD POST PUT DELETE CONNECT OPTIONS TRACE");
+    knownMethods = getStringTokens("GET POST DELETE");
 
     Parser::lex()->set_input(line);
 
@@ -129,20 +134,18 @@ void Request::ParseFirstLine(std::string &line)
     this->url = Parser::lex()->next_token(true);
     this->version = Parser::lex()->next_token(true);
 
-    // if (Parser::lex()->next_token(true) != "EOF")
-    //     std::cout << "Error: Invalid request line." << std::endl;
-        // throw std::runtime_error("Error: Invalid request line.");
 
     if (std::find(knownMethods.begin(), knownMethods.end(), this->method) == knownMethods.end())
-        
-        // std::cout << "Error: Invalid method." << std::endl;
-    if (this->url.size() > 2048 || checkValidChars(this->url) == 0)
-        std::cout << "Error: Invalid URL." << std::endl;
-        // throw std::runtime_error("Error: Invalid URL.");
-    // if (this->version != "HTTP/1.1")
+        throw std::runtime_error(E405);
+
+    if (this->url.size() > 2048)
+        throw std::runtime_error(E414);
+    if (checkValidChars(this->url) == 0)
+        throw std::runtime_error(E400);
+
     if (this->version.find("HTTP/1.1") == std::string::npos && this->version.find("HTTP/1.0") == std::string::npos)
-        std::cout << "Error: Invalid HTTP version." << std::endl;
-        // throw std::runtime_error("Error: Invalid HTTP version.");
+        throw std::runtime_error(E505);
+
 }
 
 void Request::ParseHeaders(std::string &line)
@@ -161,7 +164,7 @@ void Request::ParseHeaders(std::string &line)
     value = &line[key.size() + 1];
 
     if (key.back() != ':')
-        std::cout << "Error: Invalid header line." << std::endl;
+        throw std::runtime_error(E400);
 
     if (key == "Host:" )
     {
@@ -174,14 +177,13 @@ void Request::ParseHeaders(std::string &line)
 
     if (key == "Content-Length:")
     {
-        // this->bodyType = BodyType::NONE;
         Parser::lex()->set_input(value);
         if (Parser::lex()->next_token(false).find_first_not_of("0123456789") != std::string::npos)
-            std::cout << "Error: Invalid content-length." << std::endl;
+            throw std::runtime_error(E400);
         value = Parser::lex()->next_token(false);
         this->contentLength = atoi(value.c_str());
         if (this->contentLength > this->client->server->client_max_body_size)
-            throw std::runtime_error("Error: Content-Length is too big.");
+            throw std::runtime_error(E413);
     }
 
     if (key == "Transfer-Encoding:")

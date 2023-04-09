@@ -118,6 +118,13 @@ void Parser::parse_directives(int type)
                 Parser::getHttp()->servers.back().locations.back().returned = 1;
                 Parser::getHttp()->servers.back().locations.back().returnUrl = pair.second[0];
                 Parser::getHttp()->servers.back().locations.back().returnType = pair.second[1];
+                if (Parser::getHttp()->servers.back().locations.back().returnType != "permanent" && Parser::getHttp()->servers.back().locations.back().returnType != "temporary")
+                {
+                    std::cout << "Error: type not value"  << std::endl;
+                    std::cout << "error comming from " << Parser::getHttp()->servers.back().locations.back().returnType << std::endl;
+                    exit(1);
+                }
+
 
                 // Parser::getHttp()->servers.back().locations.back().Return.first = std::stoi(pair.second[0]);
                 // Parser::getHttp()->servers.back().locations.back().Return.second = pair.second[1];
@@ -147,7 +154,12 @@ void Parser::parse_directives(int type)
                 Parser::getHttp()->servers.back().locations.back().locations.back().returned = 1;
                 Parser::getHttp()->servers.back().locations.back().locations.back().returnUrl = pair.second[0];
                 Parser::getHttp()->servers.back().locations.back().locations.back().returnType = pair.second[1];
-                
+                if (Parser::getHttp()->servers.back().locations.back().locations.back().returnType != "permanent" && Parser::getHttp()->servers.back().locations.back().locations.back().returnType != "temporary")
+                {
+                    std::cout << "Error: type not value" << std::endl;
+                    exit(1);
+                }
+
                 // Parser::getHttp()->servers.back().locations.back().locations.back().Return.first = std::stoi(pair.second[0]);
                 // Parser::getHttp()->servers.back().locations.back().locations.back().Return.second = pair.second[1];
         }

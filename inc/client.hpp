@@ -217,6 +217,7 @@ class Client
     	// void checkInactivity();
 		void	selectServer();
     	void	generateResponse();
+        time_t lastActivity;
         
     	// void writeResponse();
     	// void checkInactivity();
