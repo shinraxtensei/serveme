@@ -6,6 +6,12 @@ Response::~Response()
 	
 }
 
+void	Response::writeResponse()
+{
+	this->client->lastActivity = time(0);
+	send(this->client_fd, this->responseStr.c_str(), this->responseStr.length(), 0);
+}
+
 int	Response::checkAccess(std::string path)
 {
     std::ifstream file(path.substr(1));
@@ -315,6 +321,7 @@ void    Response::checkPath()
 	std::string	newPath = this->client->path.substr(this->client->path.find_first_of('/') + 1, this->client->path.length() - this->client->path.find_first_of('/') + 1);
 	if ((stat(newPath.c_str(), &infos) != 0))
 	{
+		// throw an exception
 		if (checkError(404))
 			this->responseStr = generateError(E404, DEFAULT);
 		else
@@ -390,6 +397,7 @@ void    Response::checkPath()
 			this->handleDelete(newPath);
 		else
 		{
+			//throw exception
 			if (checkError(405))
 				this->responseStr = generateError(E405, DEFAULT);
 			else
@@ -476,17 +484,70 @@ void    Response::handleNormalReq()
 		// std::cout << "matchina m3aa : " << this->client->location->path << std::endl;
 		this->checkReturn();
 		this->checkAllowedMethods();
-		// this->getPath();
-		if (this->client->request->url != this->client->location->path)
-		{
-			if (this->client->location->path != "/")
-				this->client->request->url = this->client->request->url.erase(this->client->request->url.find(this->client->location->path), this->client->location->path.length());
-			this->client->path = this->client->location->root + this->client->request->url;
-		}
-		else
-			this->client->path = this->client->location->root;
+		this->getPath();	
 	}
+	if (this->checkResourseType() == FILE)
+		this->handleFile();
+	else if (this->checkResourseType() == DIRE)
+		this->handleDirectory();
 	this->checkPath();
+}
+
+int		Response::checkResourseType()
+{
+    struct    stat    infos;
+
+	// std::string	newPath = this->client->path.substr(this->client->path.find_first_of('/') + 1, this->client->path.length() - this->client->path.find_first_of('/') + 1);
+	this->newPath = this->client->path.substr(1);
+	if (stat(this->newPath.c_str(), &infos) == -1)
+	{
+		// throw an exception
+		if (checkError(404))
+			this->responseStr = generateError(E404, DEFAULT);
+		else
+			this->responseStr = generateError(E404, MINE);
+		send(this->client_fd, this->responseStr.c_str(), this->responseStr.length(), 0);
+		this->responseSent = 1;
+		this->client->request->state = DONE;
+		return ;
+	}
+	else if (S_ISDIR(infos.st_mode))
+		return (DIRE);
+	else if (S_ISREG(infos.st_mode))
+		return (FILE);
+}
+
+void	Response::handleFile()
+{
+	if (this->client->request->method == "GET")
+		this->handleGet(FILE, this->newPath);
+	// else if (this->client->request->method == "POST")
+	// 	this->handlePost(FILE, this->newPath);
+	// else if (this->client->request->method == "DELETE")
+	// 	this->handleDelete(FILE, this->newPath);
+	else
+	{
+		// throw an exception
+		if (checkError(405))
+			this->responseStr = generateError(E405, DEFAULT);
+		else
+			this->responseStr = generateError(E405, MINE);
+		send(this->client_fd, this->responseStr.c_str(), this->responseStr.length(), 0);
+		this->responseSent = 1;
+		this->client->request->state = DONE;
+	}
+}
+
+void	Response::getPath()
+{
+	if (this->client->request->url != this->client->location->path)
+	{
+		if (this->client->location->path != "/")
+			this->client->request->url = this->client->request->url.erase(this->client->request->url.find(this->client->location->path), this->client->location->path.length());
+		this->client->path = this->client->location->root + this->client->request->url;
+	}
+	else
+		this->client->path = this->client->location->root;
 }
 
 void	Response::parseUrl()

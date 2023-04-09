@@ -148,7 +148,7 @@ class Response
 
 			size_t	contentLength;
 
-			std::ifstream	file;
+			std::ifstream	fileRead;
 			std::ofstream	file1;
 
 			int	step = 0;
@@ -166,7 +166,17 @@ class Response
 
 			int		checkError(int	error);
 
+//-------new methods----------------
 			void	parseUrl();
+			void	getPath();
+			int		checkResourseType();
+			void	handleFile();
+			void	handleDirectory();
+			std::string	newPath;
+			void	handleGet(int type);
+			void	sendFile();
+			void	writeResponse();
+//----------------------------------
 
 			void					getQuery();
 			void					checkAllowedMethods();
@@ -177,9 +187,7 @@ class Response
 			void					listDirectory();
 			std::vector<Location>	getLocations(std::vector<Location> locations);
 
-			void	handleGet(int type, std::string newPath);
 			void	listDirectory(std::string	newPath, DIR *dir);
-			void	sendFile(std::string newPath);
 
 			void	handleDelete(std::string newPath);
 			void	handlePost();

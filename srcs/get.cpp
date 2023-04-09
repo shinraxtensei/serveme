@@ -122,3 +122,88 @@ void	Response::sendFile(std::string newPath)
 		this->client->request->state = DONE;
 	}
 }
+
+
+void	Response::handleGet(int type)
+{
+	if (type == FILE)
+	{
+		struct stat	infos;
+		stat(this->newPath.c_str(), &infos);
+		this->contentLength = infos.st_size;
+		if (access(this->newPath.c_str(), R_OK) == 0)
+			this->sendFile();
+		else
+		{
+			//throw exception
+			if (checkError(403))
+				this->responseStr = generateError(E403, DEFAULT);
+			else
+				this->responseStr = generateError(E403, MINE);
+			send(this->client_fd, this->responseStr.c_str(), this->responseStr.length(), 0);
+			this->responseSent = 1;
+			this->client->request->state = DONE;
+			return ;
+		}
+	}	
+}
+
+void	Response::sendFile()
+{
+	if (this->started == 0)
+	{
+	this->fileRead.open(this->newPath.c_str(), std::ios::binary);
+	if (!this->fileRead.good())
+	{
+		//throw exception
+		if (checkError(500))
+			this->responseStr = generateError(E500, DEFAULT);
+		else
+			this->responseStr = generateError(E500, MINE);
+		send(this->client_fd, this->responseStr.c_str(), this->responseStr.length(), 0);
+		this->responseSent = 1;
+		this->client->request->state = DONE;
+		return ;
+	}
+	std::string	extension;
+	std::string	contentType;
+	std::string::size_type dotIndex = this->newPath.rfind('.');
+	if (dotIndex != std::string::npos)
+	{
+		extension = this->newPath.substr(dotIndex + 1);
+		contentType = this->contentTypes[extension];
+		if (contentType == "")
+			contentType = "text/plain";
+	}
+	else
+		contentType = "text/plain";
+	this->responseStr =
+	"HTTP/1.1 200 OK\r\n"
+	"Content-Type: "
+	+ contentType + "\r\n"
+	"Content-Length: "
+	+ std::to_string(this->contentLength) + "\r\n"
+	"Connection: keep-alive\r\n\r\n";
+	send(this->client_fd, this->responseStr.c_str(), this->responseStr.length(), 0);
+	this->started = 1;
+	return;
+	}
+	if (this->sendPos == this->contentLength)
+	{
+		this->responseSent = 1;
+		this->client->request->state = DONE;
+	}
+	if (this->sendPos < this->contentLength)
+	{
+		int	size;
+		if (this->contentLength - this->sendPos > 1024)
+			size = 1024;
+		else
+			size = this->contentLength - this->sendPos;
+		char	buffer[size];
+		this->fileRead.read(buffer, sizeof(buffer));
+		this->sendPos += size;
+		send(this->client_fd, buffer, sizeof(buffer), 0);
+	}
+	//do not send here
+}
