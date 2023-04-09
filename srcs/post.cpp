@@ -6,14 +6,7 @@ void	Response::handleMultipart()
 	std::cout << "in handleMultipart" << std::endl;
 
 
-           for (auto part: this->client->request->multipart_env)
-            {   std::cout << GREEN << "---------------------------------" << std::endl;
-                std::cout << "fieldname: " << part.first << std::endl;
-                std::cout << "filename: " << part.second.file_name << std::endl;
-                std::cout << "ContentType: " << part.second.content_type << std::endl;
-                std::cout << "data: " << part.second.data  << std::endl;
-				std::cout << "pos: " << part.second.pos<< RESET << std::endl;
-            }
+
 	// exit (1);
 	this->client = &Servme::getCore()->map_clients[this->client_fd];
 	std::multimap<std::string, Multipart_ENV>::iterator	iter;
@@ -95,18 +88,23 @@ void	Response::handlePost()
 		{
 			if (this->started == 0)
 			{
+				this->client->request->contentType = "text/html";
+				std::cout << "content type is : " << this->client->request->contentType << std::endl;
 				std::map<std::string, std::string>::iterator	i;
 				std::string	extension;
 				for (i = this->contentTypes.begin(); i != this->contentTypes.end(); i++)
 				{
+					std::cout << "looking for types" << std::endl;
 					if (this->client->request->contentType == (*i).second)
 					{
+						std::cout << "lvalue hiya " << (*i).first << std::endl;
 						extension = (*i).first;
 						break ;
 					}
 				}
 				if (i == this->contentTypes.end())
 					extension = "txt";
+				std::cout << "extension is : " << extension << std::endl;
 				std::string	filename = "random." + extension;
 				std::string	path = "upload/" + filename;
 				file1.open(path, std::ios::binary);
