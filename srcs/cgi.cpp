@@ -204,9 +204,8 @@ void Client::cgi_handler(){
 				wait(&error_status);
 				if (error_status != 0) {
 					close(pipefd[0]);
-					exit(99);
+					throw this->response->generateError(E503, 0);
 				}
-				// waitpid(-1, 0, 0);
 				close(pipefd[1]);
 				while (read(pipefd[0], &buff, 1) > 0){
 					body.push_back(buff);
