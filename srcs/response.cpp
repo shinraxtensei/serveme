@@ -519,6 +519,9 @@ void    Response::handleNormalReq()
 {
 	std::cout << "in handleNormalReq" << std::endl;
 	this->client = &Servme::getCore()->map_clients[this->client_fd];
+
+
+
 	if (this->responseSent == 0)
 	{
 		this->storeMimeTypes();

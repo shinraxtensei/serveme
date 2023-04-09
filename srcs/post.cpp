@@ -4,6 +4,17 @@
 void	Response::handleMultipart()
 {
 	std::cout << "in handleMultipart" << std::endl;
+
+
+           for (auto part: this->client->request->multipart_env)
+            {   std::cout << GREEN << "---------------------------------" << std::endl;
+                std::cout << "fieldname: " << part.first << std::endl;
+                std::cout << "filename: " << part.second.file_name << std::endl;
+                std::cout << "ContentType: " << part.second.content_type << std::endl;
+                std::cout << "data: " << part.second.data  << std::endl;
+				std::cout << "pos: " << part.second.pos<< RESET << std::endl;
+            }
+	// exit (1);
 	this->client = &Servme::getCore()->map_clients[this->client_fd];
 	std::multimap<std::string, Multipart_ENV>::iterator	iter;
 	for (iter = this->client->request->multipart_env.begin(); iter != this->client->request->multipart_env.end(); iter++)
