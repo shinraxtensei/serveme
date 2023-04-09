@@ -82,6 +82,37 @@ void Core::startup()
     }
 }
 
+
+
+
+
+// bool Core::check_client_inactivity(Client &client , time_t timeout)
+// {
+//     time_t now = time(NULL);
+
+//     if (now - client.lastActivity > timeout)
+//     {
+//         std::cout << "Client with fd: timed out\n";
+//         return true;
+//         // TODO: handle client timeout
+//         // this->pollFds[getFromPollFds(this->pollFds, client.fd)].fd = -1;
+//         // return;
+//         // this->pollFds[getFromPollFds(this->pollFds, client->fd)].fd = -1;
+//         // this->clients.erase(client);
+//     }
+//     return false;
+// }
+
+
+
+
+
+
+
+
+
+
+
 void Core::handleConnections()
 {
     for (std::vector<SocketWrapper>::iterator it = this->serverSockets.begin(); it != this->serverSockets.end(); it++)
@@ -102,6 +133,14 @@ void Core::handleConnections()
         }
         for (size_t i = 0; i < this->pollFds.size(); i++)
         {
+
+            // if (check_client_inactivity(this->map_clients[this->pollFds[i].fd], 10))
+            // {
+            //     this->pollFds[i].fd = -1;
+            // }
+
+
+
             if (this->map_clients[this->pollFds[i].fd].response->GENERATE_RES)
                 this->map_clients[this->pollFds[i].fd].generateResponse();
                 
@@ -121,7 +160,24 @@ void Core::handleConnections()
                 }
                 else
                 {	
-                    this->map_clients[this->pollFds[i].fd].handleRequest();
+                    try {
+                        this->map_clients[this->pollFds[i].fd].handleRequest();
+                    }
+                    catch(const std::exception& e)
+                    {
+
+                        Parser::lex()->set_input(e.what());
+                        int code = atoi(Parser::lex()->next_token(false).c_str());
+
+                        if (this->map_clients[this->pollFds[i].fd].response->checkError(code))
+                            this->map_clients[this->pollFds[i].fd].response->responseStr = this->map_clients[this->pollFds[i].fd].response->generateError(e.what(), DEFAULT);
+                        else
+                            this->map_clients[this->pollFds[i].fd].response->responseStr = this->map_clients[this->pollFds[i].fd].response->generateError(e.what(), MINE);
+
+                        send(this->pollFds[i].fd, this->map_clients[this->pollFds[i].fd].response->responseStr.c_str(), this->map_clients[this->pollFds[i].fd].response->responseStr.size(), 0);
+                        this->map_clients[this->pollFds[i].fd].request->state = DONE;
+                        
+                    }
                 }
             }
 

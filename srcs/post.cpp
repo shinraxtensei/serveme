@@ -27,8 +27,8 @@ void	Response::handleMultipart()
 						break;
 					}
 				}
-				std::cout << "extension: " << extension << std::endl;
-				exit(0);
+				// std::cout << "extension: " << extension << std::endl;
+				// exit(0);
 				if (i == this->contentTypes.end())
 					extension = "txt";
 				(*iter).second.file_name = "random." + extension;

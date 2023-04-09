@@ -27,6 +27,7 @@
 #include <sys/stat.h>
 #include <dirent.h>
 #include <iomanip>
+#include <sys/time.h>
 
 #include "cgi.hpp"
 #include "client.hpp"

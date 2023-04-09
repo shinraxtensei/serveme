@@ -210,6 +210,24 @@ void Parser::init_servers()
         else
             Parser::getHttp()->servers[i].allowed_methods = Parser::getHttp()->allowed_methods;
 
+
+        if  (Parser::getHttp()->servers[i].server_directives.find("return") != Parser::getHttp()->servers[i].server_directives.end())
+        {
+            Parser::getHttp()->servers[i].returned = true;
+
+            Parser::getHttp()->servers[i].returnUrl = Parser::getHttp()->servers[i].server_directives.find("return")->second[0];
+            Parser::getHttp()->servers[i].returnType = Parser::getHttp()->servers[i].server_directives.find("return")->second[1];
+            if (Parser::getHttp()->servers[i].returnType != "permanent" && Parser::getHttp()->servers[i].returnType != "temporary")
+            {
+
+                std::cout << "Error: return directive can only have two values: permanent or temporary" << std::endl;
+                std::cout << "error commign from  : " << Parser::getHttp()->servers[i].returnType << std::endl;
+                exit(1);
+            }
+        }
+
+
+
         init_locations(i);
     }
 }
@@ -292,6 +310,7 @@ void Parser::init_locations(int index)
             server->locations[i].allowed_methods = server->locations[i].location_directives.find("allowed_methods")->second;
         else
             server->locations[i].allowed_methods = server->allowed_methods;
+
     }
 }
 

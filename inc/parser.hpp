@@ -67,6 +67,11 @@ class Server : public Http
 		std::string					server_name;
 
 
+
+		int	returned;
+		std::string	returnUrl;
+		std::string returnType;
+
 		//error page syntax [error_page code path]
 };
 
@@ -84,9 +89,6 @@ class Location : public Server
 
 		// return syntax [return url type]
 		// allowed type = permanently / temporary
-		int	returned;
-		std::string	returnUrl;
-		std::string returnType;
 
 
 		std::string path;
