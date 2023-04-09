@@ -31,7 +31,7 @@ int	Response::checkError(int error)
 	this->client = &Servme::getCore()->map_clients[this->client_fd];
 	std::cout << "in checkError" << std::endl;
 
-	if (this->client->location)
+	if (this->client->location != nullptr)
 	{
 		root = this->client->location->root;
 		if (!this->client->location->error_page.empty())
@@ -39,13 +39,17 @@ int	Response::checkError(int error)
 		else
 		{
 			std::cout << "location kaayna wlkn error pages dyalha khawyin" << std::endl;
-			exit (1);
+			// exit (1);
 			if (!this->client->server->error_page.empty())
 				member = this->client->server->error_page;
 		}
 	}
 	else
+	{
 		root = this->client->server->root;
+		if (!this->client->server->error_page.empty())
+			member = this->client->server->error_page;
+	}
 	if (member.empty())
 	{
 		std::cout << "makayna fhta w7da fihom" << std::endl;

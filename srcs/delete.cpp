@@ -24,7 +24,7 @@ void	Response::handleDelete(std::string newPath)
 			else
 				this->responseStr = generateError(E403, MINE);
 			send(this->client_fd, this->responseStr.c_str(), this->responseStr.length(), 0);
-			exit (1);
+			// exit (1);
 		}
 	}
 	else
@@ -34,6 +34,6 @@ void	Response::handleDelete(std::string newPath)
 		else
 			this->responseStr = generateError(E404, MINE);
 		send(this->client_fd, this->responseStr.c_str(), this->responseStr.length(), 0);
-		exit (1);
+		// exit (1);
 	}
 }
