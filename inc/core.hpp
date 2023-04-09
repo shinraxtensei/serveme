@@ -28,5 +28,6 @@ class Core
     	void 		handleConnections();
     	Http 		*get_http();
     	void 		startup();
+		bool 		check_client_inactivity(Client &client , time_t timeout);
 };
 

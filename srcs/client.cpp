@@ -17,6 +17,8 @@
 
 Client::Client()
 {
+    this->lastActivity = time(NULL);
+
     this->addr = new sockaddr_in;
 
     this->request = new Request();
@@ -41,6 +43,8 @@ Client::~Client()
 Client::Client(SocketWrapper &sock)
 {
 
+    this->lastActivity = time(NULL);
+    
     this->cgi = new Cgi();
     this->request = new Request();
 
@@ -95,6 +99,8 @@ void Client::handleRequest()
 {
 
     // if (this->request->state == START || this->request->state == Stat::FIRSTLINE || this->request->state == Stat::HEADERS)
+    this->lastActivity = time(NULL);
+
     if (this->request->state & (Stat::START | Stat::FIRSTLINE | Stat::HEADERS))
     {
         static std::string line = "";
