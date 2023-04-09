@@ -4,6 +4,10 @@
 void	Response::handleMultipart()
 {
 	std::cout << "in handleMultipart" << std::endl;
+
+
+
+	// exit (1);
 	this->client = &Servme::getCore()->map_clients[this->client_fd];
 	std::multimap<std::string, Multipart_ENV>::iterator	iter;
 	for (iter = this->client->request->multipart_env.begin(); iter != this->client->request->multipart_env.end(); iter++)
@@ -80,7 +84,6 @@ void	Response::handlePost()
 	else
 	{
 		std::cout << "le body is : " << this->client->request->bodyString << std::endl;
-		// exit (1);
 		if (this->readPos < this->client->request->bodyString.length())
 		{
 			if (this->started == 0)
@@ -94,6 +97,7 @@ void	Response::handlePost()
 					std::cout << "looking for types" << std::endl;
 					if (this->client->request->contentType == (*i).second)
 					{
+						std::cout << "lvalue hiya " << (*i).first << std::endl;
 						extension = (*i).first;
 						break ;
 					}
@@ -101,7 +105,6 @@ void	Response::handlePost()
 				if (i == this->contentTypes.end())
 					extension = "txt";
 				std::cout << "extension is : " << extension << std::endl;
-				exit (1);
 				std::string	filename = "random." + extension;
 				std::string	path = "upload/" + filename;
 				file1.open(path, std::ios::binary);
