@@ -125,6 +125,9 @@ Server::Server()
     this->ipPort.first = "NONE";
     this->ipPort.second = 6969;
 
+    this->returned = false;
+    this->returnType = "";
+    this->returnUrl = "";
     this->server_name = "localhost";
     // this->server_directives["listen"] = std::vector<std::string> (1 , "8080");
     // this->server_directives["server_name"] = std::vector<std::string> (1 , "localhost");
