@@ -37,6 +37,7 @@ Multipart_ENV::~Multipart_ENV()
 Request::Request()
 {
 
+
     this->state = Stat::START;
     this->bodyType = BodyType::NONE;
     this->host = "";

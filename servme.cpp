@@ -74,14 +74,30 @@ int main(int argc, char **argv)
     {
         std::cout << BLUE << "---------------------- Serverme  -------------------------" << RESET << std::endl;
     
-        Parser::lex("nginx.conf");
-        Parser::parse();
-        Servme::getCore()->startup();
-        Servme::getCore()->handleConnections();
+        try{
+            Parser::lex("nginx.conf");
+            Parser::parse();
+            Servme::getCore()->startup();
+            Servme::getCore()->handleConnections();
+
+            // cleaning
+            Servme::deleteCore();
+            Parser::deleteHttp();
+            Parser::deleteLex();
+
+        }
+        catch (const std::exception &e)
+        {
+            std::cerr << RED << e.what() << RESET << std::endl;
+            Servme::deleteCore();
+            Parser::deleteHttp();
+            Parser::deleteLex();
+            return 0;
+        }
     }
 
 
-   	if (argc == 2)
+   	else if (argc == 2 || argc == 3)
     {   
         if (std::string av(argv[1]) ; av == "-h")
         {
@@ -89,25 +105,78 @@ int main(int argc, char **argv)
             std::cout << YELLOW << "-h : help" << std::endl;
             std::cout <<  "-t : check the syntax of the configuration file"  << std::endl;
             std::cout <<  "-d : check the syntax of the configuration file and generate a dot file" << RESET << std::endl;   
+            std::cout << "-p :  run the server with the configuration file" << RESET << std::endl;
         }
         else if (std::string av(argv[1]) ; av == "-t")
         {
+            
 
-            Parser::lex("nginx.conf");
-            Parser::parse();
+            try
+            {
+                Parser::lex("nginx.conf");
+                Parser::parse();
+                Parser::deleteHttp();
+                Parser::deleteLex();
+            }
+            catch (const std::exception &e)
+            {
+                std::cerr << RED << e.what() << RESET << std::endl;
+                Parser::deleteHttp();
+                Parser::deleteLex();
+                return 0;
+            }
 
             std::cout << GREEN << "Syntax OK" << RESET << std::endl;
         }
         else if (std::string av(argv[1]) ; av == "-d")
         {
-            Parser::lex("nginx.conf");
-            Parser::parse();
-            std::cout << GREEN << "Syntax OK" << RESET << std::endl;
-            generate_dot(*Parser::getHttp());
+            try{
+                Parser::lex("nginx.conf");
+                Parser::parse();
+                std::cout << GREEN << "Syntax OK" << RESET << std::endl;
+                generate_dot(*Parser::getHttp());
+                Parser::deleteHttp();
+                Parser::deleteLex();
+            }
+            catch (const std::exception &e)
+            {
+                std::cerr << RED << e.what() << RESET << std::endl;
+                Parser::deleteHttp();
+                Parser::deleteLex();
+                return 0;
+            }
+
+            
+
+        }
+        else if (std::string av(argv[1]) ; av == "-p")
+        {
+            try{
+                Parser::lex(std::string(argv[2]));
+                Parser::parse();
+                Servme::getCore()->startup();
+                Servme::getCore()->handleConnections();
+
+                // cleaning
+                Servme::deleteCore();
+                Parser::deleteHttp();
+                Parser::deleteLex();
+
+            }
+            catch (const std::exception &e)
+            {
+                std::cerr << RED << e.what() << RESET << std::endl;
+                Servme::deleteCore();
+                Parser::deleteHttp();
+                Parser::deleteLex();
+                return 0;
+            }
         }
         else
             std::cout << RED << "Usage: ./serverme -h" << RESET << std::endl;
     }
+
+
     else
         std::cout << RED << "Usage: ./serverme -h" << RESET << std::endl;
     return 0;

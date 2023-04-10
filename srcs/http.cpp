@@ -42,7 +42,12 @@ Http::Http()
 void Parser::init_http()
 {
     if (Parser::getHttp()->http_directives.find("root") != Parser::getHttp()->http_directives.end())
+    {
         Parser::getHttp()->root = Parser::getHttp()->http_directives.find("root")->second[0];
+        if (Parser::getHttp()->http_directives.find("root")->second.size() != 1)
+            throw std::runtime_error("Error: Multiple root directives");
+    }
+
 
     
 
@@ -52,7 +57,11 @@ void Parser::init_http()
 
 
     if (Parser::getHttp()->http_directives.find("client_max_body_size") != Parser::getHttp()->http_directives.end())
+    {
         Parser::getHttp()->client_max_body_size = atoi(Parser::getHttp()->http_directives.find("client_max_body_size")->second[0].c_str());
+        if (Parser::getHttp()->http_directives.find("client_max_body_size")->second.size() != 1)
+            throw std::runtime_error("Error: Multiple client_max_body_size directives");
+    }
     
 
     if (Parser::getHttp()->http_directives.find("error_page") != Parser::getHttp()->http_directives.end())
@@ -70,19 +79,17 @@ void Parser::init_http()
 
     if (Parser::getHttp()->http_directives.find("autoindex") != Parser::getHttp()->http_directives.end())
     {
-        if (Parser::getHttp()->http_directives.find("autoindex")->second[0] == "on")
+        if (Parser::getHttp()->http_directives.find("autoindex")->second[0] == "on" || Parser::getHttp()->http_directives.find("autoindex")->second.size() != 1)
             Parser::getHttp()->autoindex = true;
-        else if (Parser::getHttp()->http_directives.find("autoindex")->second[0] == "off")
+        else if (Parser::getHttp()->http_directives.find("autoindex")->second[0] == "off"|| Parser::getHttp()->http_directives.find("autoindex")->second.size() != 1)
             Parser::getHttp()->autoindex = false;
         else
-        {
-            std::cout << "Error: autoindex can only be on or off" << std::endl;
-            exit(1);
-        }
+            throw std::runtime_error("Error: autoindex can only be on or off");
     }
 
     if (Parser::getHttp()->http_directives.find("allowed_methods") != Parser::getHttp()->http_directives.end())
         Parser::getHttp()->allowed_methods = Parser::getHttp()->http_directives.find("allowed_methods")->second;
+
 
 
  
@@ -123,23 +130,33 @@ Server::Server()
     // this->server_directives["server_name"] = std::vector<std::string> (1 , "localhost");
 }
 
+
+
 void Parser::init_servers()
 {
     for (size_t i = 0; i < Parser::getHttp()->servers.size(); i++)
     {
-        // server_name
+
+        
+        
+        //server_name
+
         if (Parser::getHttp()->servers[i].server_directives.find("server_name") != Parser::getHttp()->servers[i].server_directives.end())
+        {
             Parser::getHttp()->servers[i].server_name = Parser::getHttp()->servers[i].server_directives.find("server_name")->second[0];
+            if (Parser::getHttp()->servers[i].server_directives.find("server_name")->second.size() != 1)
+                throw std::runtime_error("Error: server_name directive can only have one value");
+        }
+            
+
 
         // listen
         if (Parser::getHttp()->servers[i].server_directives.find("listen") != Parser::getHttp()->servers[i].server_directives.end())
         {
             std::pair <std::string , std::vector<std::string> > listenDirective = *Parser::getHttp()->servers[i].server_directives.find("listen");
-            if (listenDirective.second.size() > 1 && listenDirective.second[1] == ";")
-            {
-                std::cout << "Error: listen directive can only have one value" << std::endl;
-                exit(1);
-            }
+            if (listenDirective.second.size() != 1)
+                throw std::runtime_error("Error: listen directive can only have one value");
+
             else if (listenDirective.second[0].find(":") != std::string::npos)
             {
                 Parser::getHttp()->servers[i].ipPort.first = listenDirective.second[0].substr(0, listenDirective.second[0].find(":"));
@@ -154,7 +171,15 @@ void Parser::init_servers()
 
         // root
         if (Parser::getHttp()->servers[i].server_directives.find("root") != Parser::getHttp()->servers[i].server_directives.end())
+        {
+            if (Parser::getHttp()->servers[i].server_directives.find("root")->second.size() != 1)
+            {
+                std::cout  << Parser::getHttp()->servers[i].server_directives.find("root")->second.size() << std::endl;
+                throw std::runtime_error("Error: root directive can only have one value");
+            }
             Parser::getHttp()->servers[i].root = Parser::getHttp()->servers[i].server_directives.find("root")->second[0];
+
+        }
         else
            Parser::getHttp()->servers[i].root = Parser::getHttp()->root;
         
@@ -189,19 +214,25 @@ void Parser::init_servers()
         if (Parser::getHttp()->servers[i].server_directives.find("autoindex") != Parser::getHttp()->servers[i].server_directives.end())
         {
             // std::cout << RED << "autoindex: " << Parser::getHttp()->servers[i].server_directives["autoindex"][1] << RESET <<std::endl;
-            if (Parser::getHttp()->servers[i].server_directives.find("autoindex")->second[0] == "on")
+            if (Parser::getHttp()->servers[i].server_directives.find("autoindex")->second[0] == "on" || Parser::getHttp()->servers[i].server_directives.find("autoindex")->second.size() != 1)
                 Parser::getHttp()->servers[i].autoindex = true;
-            else
+            else if (Parser::getHttp()->servers[i].server_directives.find("autoindex")->second[0] == "off" || Parser::getHttp()->servers[i].server_directives.find("autoindex")->second.size() != 1)
                 Parser::getHttp()->servers[i].autoindex = false;
         }
         else
             Parser::getHttp()->servers[i].autoindex = Parser::getHttp()->autoindex;
+ 
 
         // client_max_body_size
         if (Parser::getHttp()->servers[i].server_directives.find("client_max_body_size") != Parser::getHttp()->servers[i].server_directives.end())
+        {
             Parser::getHttp()->servers[i].client_max_body_size = std::stoi(Parser::getHttp()->servers[i].server_directives.find("client_max_body_size")->second[0]);
+            if (Parser::getHttp()->servers[i].server_directives.find("client_max_body_size")->second.size() != 1)
+                throw std::runtime_error("Error: client_max_body_size directive can only have one value");
+        }
         else
             Parser::getHttp()->servers[i].client_max_body_size = Parser::getHttp()->client_max_body_size;
+
 
 
         // allowed_methods
@@ -217,16 +248,9 @@ void Parser::init_servers()
 
             Parser::getHttp()->servers[i].returnUrl = Parser::getHttp()->servers[i].server_directives.find("return")->second[0];
             Parser::getHttp()->servers[i].returnType = Parser::getHttp()->servers[i].server_directives.find("return")->second[1];
-            if (Parser::getHttp()->servers[i].returnType != "permanent" && Parser::getHttp()->servers[i].returnType != "temporary")
-            {
-
-                std::cout << "Error: return directive can only have two values: permanent or temporary" << std::endl;
-                std::cout << "error commign from  : " << Parser::getHttp()->servers[i].returnType << std::endl;
-                exit(1);
-            }
+            if (Parser::getHttp()->servers[i].returnType != "permanent" && Parser::getHttp()->servers[i].returnType != "temporary" && Parser::getHttp()->servers[i].server_directives.find("return")->second.size() != 2)
+                throw std::runtime_error("Error: return directive can only have two values: permanent or temporary");
         }
-
-
 
         init_locations(i);
     }
@@ -282,7 +306,11 @@ void Parser::init_locations(int index)
         // }
         //root
         if (server->locations[i].location_directives.find("root") != server->locations[i].location_directives.end())
+        {
             server->locations[i].root = server->locations[i].location_directives.find("root")->second[0];
+            if (server->locations[i].location_directives.find("root")->second.size() != 1)
+                throw std::runtime_error("Error: root directive can only have one value");
+        }
         else
             server->locations[i].root = server->root;
         //index
@@ -293,16 +321,20 @@ void Parser::init_locations(int index)
         //autoindex
         if (server->locations[i].location_directives.find("autoindex") != server->locations[i].location_directives.end())
         {
-            if (server->locations[i].location_directives.find("autoindex")->second[0] == "on")
+            if (server->locations[i].location_directives.find("autoindex")->second[0] == "on" || server->locations[i].location_directives.find("autoindex")->second.size() != 1)
                 server->locations[i].autoindex = true;
-            else
+            else if (server->locations[i].location_directives.find("autoindex")->second[0] == "off" || server->locations[i].location_directives.find("autoindex")->second.size() != 1)
                 server->locations[i].autoindex = false;
         }
         else
             server->locations[i].autoindex = server->autoindex;
         //client_max_body_size
         if (server->locations[i].location_directives.find("client_max_body_size") != server->locations[i].location_directives.end())
+        {
             server->locations[i].client_max_body_size = std::stoi(server->locations[i].location_directives.find("client_max_body_size")->second[0]);
+            if (server->locations[i].location_directives.find("client_max_body_size")->second.size() != 1)
+                throw std::runtime_error("Error: client_max_body_size directive can only have one value");
+        }
         else
             server->locations[i].client_max_body_size = server->client_max_body_size;
         //allowed_methods
