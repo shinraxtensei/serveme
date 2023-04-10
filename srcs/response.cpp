@@ -204,6 +204,7 @@ std::string	Response::getIndex()
 
 int	Response::checkReturn()
 {
+	// if (this->client)
 	if (this->client->location)
 	{
 		if (this->client->location->returned != 0)
