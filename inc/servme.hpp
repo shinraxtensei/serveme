@@ -29,6 +29,8 @@
 #include <iomanip>
 #include <sys/time.h>
 
+
+
 #include "cgi.hpp"
 #include "client.hpp"
 #include "core.hpp"
@@ -37,7 +39,8 @@
 #include "parser.hpp"
 #include "socketWrapper.hpp"
 
-std::string	generateError(std::string error);
+
+// std::string	generateError(std::string error);
 
 class Core;
 
@@ -49,6 +52,7 @@ private:
 
 public:
 	static Core *getCore();
+	static void deleteCore();
 };
 
 

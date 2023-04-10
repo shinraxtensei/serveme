@@ -63,21 +63,12 @@ bool Lexer::errors_check()
             size += token.size();
         }
         if (!tokens.empty() && size > 0 && tokens.back().back() != ';' && (tokens[0] != "server" && tokens[0] != "location" && tokens[0] != "http" && tokens[0] != "events" && tokens[0] != "{" && tokens[0] != "}" && tokens.back().back() != '\'' && tokens.back().back() != '"'))
-        {
-            std::cout << tokens[0] << std::endl;
-            std::cout << "Error: missing ; at the end of the line" <<  std::endl;
-            // return false;
-            // TODO : throw an exception here
-            exit(1);
-        }
+            throw std::runtime_error("Error: missing ; at the end of the line: \n" + newline);
+
     }
     if (!stack.empty())
-    {
-        std::cout << "Error: unclosed curly braces" << std::endl;
-        // return false;
-        // TODO : throw an exception here
-        exit(1);
-    }
+        throw std::runtime_error("Error: unclosed curly braces");
+
 
     return true;
 }
@@ -94,12 +85,15 @@ Lexer::Lexer(std::string filename)
     std::string line;
     while (std::getline(dir, line))
         this->all_directs.push_back(line);
+    
 
     // *********************************************************
 
 
 
     std::ifstream file(filename);
+    if (!file.is_open())
+        throw std::runtime_error("Error: file not found");
     while (std::getline(file, line))
     {
 
@@ -110,6 +104,7 @@ Lexer::Lexer(std::string filename)
     }
     if (this->errors_check())
         this->input = input;
+        
 };
 
 void Lexer::print_input()

@@ -33,7 +33,7 @@ enum Stat
     START = 1 << 0,
     FIRSTLINE = 1 << 1,
     HEADERS = 1 << 2,
-    // BODY = 1 << 3, this move to be a combined state
+    // BODY = 1 << 3, this moved to be a combined state
     DONE = 1 << 4,
     // this is for chunked encoding
     
@@ -46,6 +46,7 @@ enum Stat
     MULTI_PART_BOUNDARY = 1 << 9,
     MULTI_PART_HEADERS = 1 << 10,
     MULTI_PART_DATA = 1 << 11,
+
     END = 1 << 12 ,// for both chunked and multipart
 
     // combined states

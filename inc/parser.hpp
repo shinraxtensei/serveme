@@ -106,6 +106,8 @@ class Parser
 		static Lexer *lex(std::string filename);
 		static Lexer *lex();
 		static Http *getHttp();
+		static void deleteLex();
+		static void deleteHttp();
 		static void parse();
 		static bool match(std::string token);
 		static void parse_directives(int type);
