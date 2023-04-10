@@ -129,7 +129,8 @@ void Request::ParseFirstLine(std::string &line)
     
     std::vector<std::string> knownMethods;
     knownMethods = getStringTokens("GET POST DELETE");
-
+    
+ 
     Parser::lex()->set_input(line);
 
     this->method = Parser::lex()->next_token(true);

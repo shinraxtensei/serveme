@@ -98,6 +98,8 @@ void Client::cgi_handler(){
 		std::cout << "cgi_handler" << std::endl;
         candidates = this->response->getLocations(this->server->locations);
 		/****************************************************************/
+		int		pipefd[2];
+		pid_t	pid = -1;
 		std::vector<std::string> 							allowed_meth;
         std::vector<Location>::iterator                     iter_cand;
 		std::vector<std::string>::iterator					iter_meth;
@@ -140,8 +142,6 @@ void Client::cgi_handler(){
 				throw this->response->generateError(E504, 0);
 			}
 			/*	**************************************	*/
-			int		pipefd[2];
-			pid_t	pid = -1;
 
 			if (pipe(pipefd) == -1)
 				throw this->response->generateError(E503, 0);
@@ -188,6 +188,8 @@ void Client::cgi_handler(){
         	    	extern	char**	environ;
         	    	char**	env	= environ;
 					file_path.erase(0, 1);
+					if (access(file_path.c_str(), F_OK) == -1)
+						throw this->response->generateError(E503, 0);
         	    	char*	arg[] = {strdup(compiler.c_str()), strdup(file_path.c_str()), NULL};
         	    	char*	path = strdup(compiler.c_str());
 					unlink(tmp_filename.c_str());
@@ -204,9 +206,12 @@ void Client::cgi_handler(){
 				wait(&error_status);
 				if (error_status != 0) {
 					close(pipefd[0]);
-					exit(99);
+					close(pipefd[1]);
+					this->request->url = "";
+					this->request->bodyString = "";
+					unlink(tmp_filename.c_str());
+					throw this->response->generateError(E503, 0);
 				}
-				// waitpid(-1, 0, 0);
 				close(pipefd[1]);
 				while (read(pipefd[0], &buff, 1) > 0){
 					body.push_back(buff);
@@ -216,20 +221,21 @@ void Client::cgi_handler(){
         	    header += "Content-Type: text/html\r\n";
         	    header += "Content-Length: " + std::to_string(body.size()) + "\r\n";
         	    header += "Server: serveme/1.0\r\n";
-        	    header += "Connection: keep alive\r\n\r\n";
+        	    header += "Connection: close\r\n\r\n";
         	    header += body;
 				this->request->bodyString = "";
         	    int bytes = send(this->request->client_fd, header.c_str(), header.size(), 0);
 				if (bytes == -1)
 					throw this->response->generateError(E503, 0);
+				this->request->state = DONE;
 			}
 			unlink(tmp_filename.c_str());
 			close(pipefd[0]);
 		}
 		catch (std::string body){
-			send(this->request->client_fd, body.c_str(), body.size(), 0);
-			// if (bytes == -1)
-			// 	throw this->response->generateError(E503, 0);
+			int bytes = send(this->request->client_fd, body.c_str(), body.size(), 0);
+			if (bytes == -1)
+				exit(1);
 		}
 	}
 }

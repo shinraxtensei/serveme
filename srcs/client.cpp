@@ -27,6 +27,7 @@ Client::Client()
     this->request->core = this->core;
     this->request->client = this;
 
+    this->location = nullptr;
     this->response = new Response();
     this->response->http = this->core->get_http();
     this->response->client = this;
