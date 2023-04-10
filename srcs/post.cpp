@@ -45,9 +45,9 @@ void	Response::handleMultipart()
 				throw std::runtime_error(E500);
 			std::string	store = (*it).second.data.substr((*it).second.pos, toStore);
 			this->writeMultipart << store;
-			this->writeMultipart.flush();
 			(*it).second.pos += toStore;
 			this->writeMultipart.close();
+			break ;
 		}
 	}
 	if (this->responseSent == 0)
@@ -64,10 +64,11 @@ void	Response::handleMultipart()
 
 void	Response::handleNormalBody()
 {
-	if (this->started == 1 && this->readPos == this->client->request->bodyString.length())
+	if (this->responseSent == 1 && this->readPos == this->client->request->bodyString.length())
 	{
 		this->client->request->state = DONE;
 		this->fileWrite.close();
+		return ;
 	}
 	if (this->readPos < this->client->request->bodyString.length())
 	{
@@ -77,7 +78,7 @@ void	Response::handleNormalBody()
 			std::string	extension;
 			for (it = this->contentTypes.begin(); it != this->contentTypes.end(); it++)
 			{
-				if (this->client->request->contentType == (*it).second)
+				if ((*it).second.find(this->client->request->contentType))
 				{
 					extension = (*it).first;
 					break ;
@@ -85,8 +86,10 @@ void	Response::handleNormalBody()
 			}
 			if (it == this->contentTypes.end())
 				extension = "txt";
+			std::cout << "extension : " << extension << std::endl;
+			exit (1);
 			std::string	path = "upload/random." + extension;
-			this->fileWrite.open(path, std::ios::binary | std::ios_base::app);
+			this->fileWrite.open(path, std::ios_base::app);
 			if (!this->fileWrite.good())
 				throw std::runtime_error(E500);
 			this->started = 1;
@@ -98,8 +101,8 @@ void	Response::handleNormalBody()
 			toStore = this->client->request->bodyString.length() - this->readPos;
 		std::string store = this->client->request->bodyString.substr(this->readPos, toStore);
 		this->fileWrite << store;
-		this->fileWrite.flush();
 		this->readPos += toStore;
+	}
 		if (this->responseSent == 0)
 		{
 			this->body = "<html><head></head><body><h1>KOULCHI NADI AWLDI</h1></body></html>";
@@ -110,5 +113,4 @@ void	Response::handleNormalBody()
 					"Content-Length:" + ss.str() + " \r\n"
 					"Connection: close\r\n\r\n" + this->body;
 		}
-	}
 }

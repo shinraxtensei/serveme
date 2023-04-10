@@ -182,6 +182,7 @@ class Response
 			void	writeResponse();
 			std::string		getIndex();
 			void			handleNormalBody();
+			void 			cookies();
 //----------------------------------
 
 			void					getQuery();

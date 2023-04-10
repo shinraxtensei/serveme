@@ -327,7 +327,7 @@ void Request::ParseChunkedBody() {
         if (chunkSize == 0)
         {
             this->bodyString = data;
-            std::cout << GREEN << "BODY: " << data << std::endl;
+            // std::cout << GREEN << "BODY: " << data << std::endl;
             this->state = Stat::END;
             return;
         }
@@ -376,7 +376,7 @@ void Request::ParseChunkedBody() {
 
 void Request::ParseMultiPartBody()
 {
-    std::cout << GREEN << "BODY: " << this->bodyString << RESET << std::endl;
+    // std::cout << GREEN << "BODY: " << this->bodyString << RESET << std::endl;
     static int pos = 0;
     static std::string data = "";
     static std::string fieldname = "";
@@ -472,7 +472,7 @@ void Request::ParseMultiPartBody()
             else if (line.find(this->boundary) != std::string::npos)
             {
                 this->multipart_env[fieldname].data += data;
-                std::cout << GREEN << "DATA: " << data << RESET << std::endl;
+                // std::cout << GREEN << "DATA: " << data << RESET << std::endl;
                 data = "";
                 this->state = Stat::MULTI_PART_HEADERS;
             }

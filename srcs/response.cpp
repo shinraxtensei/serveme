@@ -80,6 +80,8 @@ void	Response::storeMimeTypes()
 		Parser::lex()->set_input(line);
 		extension = Parser::lex()->next_token(true);
 		type = Parser::lex()->next_token(true);
+		if (type.back() == '\r' || type.back() == '\n')
+			type.pop_back();
 		this->contentTypes[extension] = type;
 	}
 }
@@ -222,7 +224,6 @@ int	Response::checkReturn()
 									"Content-Length: 0\r\n"
 									"Connection: close\r\n\r\n";
 			send(this->client_fd, this->responseStr.c_str(), this->responseStr.length(), 0);
-			this->started = 1;
 			this->responseSent = 1;
 			this->client->request->state = DONE;
 			return (1);
@@ -245,7 +246,6 @@ int	Response::checkReturn()
 									"Content-Length: 0\r\n"
 									"Connection: close\r\n\r\n";
 			send(this->client_fd, this->responseStr.c_str(), this->responseStr.length(), 0);
-			this->started = 1;
 			this->responseSent = 1;
 			this->client->request->state = DONE;
 			return (1);
@@ -330,6 +330,13 @@ void    Response::handleNormalReq()
 			if (this->checkReturn())
 				return ;
 			this->storeMimeTypes();
+			// std::map<std::string, std::string>::iterator it;
+			// for (it = this->contentTypes.begin(); it != this->contentTypes.end(); it++)
+			// {
+			// 	std::cout << "first : " << (*it).first << std::endl;;
+			// 	std::cout << "second : " << (*it).second << std::endl;;
+			// }
+			// exit (1);
 			this->parseUrl();
     		this->matchLocation(this->client->server->locations);
 			this->checkAllowedMethods();
@@ -343,7 +350,7 @@ void    Response::handleNormalReq()
 		{
 			send(this->client_fd, this->responseStr.c_str(), this->responseStr.length(), 0);
 			this->responseSent = 1;
-			this->client->request->state = DONE;
+			// this->client->request->state = DONE;
 		}
 	}
 	catch(const std::exception& e)
@@ -360,3 +367,11 @@ void    Response::handleNormalReq()
 		this->client->request->state = DONE;
 	}
 }
+
+
+// void Response::cookies()
+// {
+// 	std::multimap<std::string , std::string >::iterator it =  this->client->request->headers.equal_range("cookies:").first;
+// 	std::multimap<std::string , std::string >::iterator ite =  this->client->request->headers.equal_range("cookies:").second;
+// 	while(it != ite)
+// }

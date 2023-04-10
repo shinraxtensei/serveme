@@ -120,7 +120,7 @@ void Lexer::set_input(const std::string &input)
 
 static bool is_whitespace(char c)
 {
-    return c == ' ' || c == '\t' || c == '\n' || c == '\r'  ;
+    return c == ' ' || c == '\t' || c == '\n' || c == '\r' ;
 }
 
 static void skip_whitespace(std::istringstream &input)
