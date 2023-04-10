@@ -119,6 +119,7 @@ void Request::ParseFirstLine(std::string &line)
     std::cout << CYAN << "STATE: " << (this->state == FIRSTLINE ? "FIRSTLINE" : "weird") << RESET << std::endl;
 
     this->client = &Servme::getCore()->map_clients[this->client_fd];
+    
     this->client->selectServer();
 
 
@@ -462,7 +463,7 @@ void Request::ParseMultiPartBody()
             std::cout << "STATE: MULTI_PART_DATA" << std::endl;
             if (line.find(this->boundary + "--") != std::string::npos)
             {
-                this->multipart_env[fieldname].data = data;
+                this->multipart_env[fieldname].data += data;
                 data = "";
                 std::cout << "end " << std::endl;
                 this->state = Stat::END;
@@ -470,7 +471,7 @@ void Request::ParseMultiPartBody()
             }
             else if (line.find(this->boundary) != std::string::npos)
             {
-                this->multipart_env[fieldname].data = data;
+                this->multipart_env[fieldname].data += data;
                 std::cout << GREEN << "DATA: " << data << RESET << std::endl;
                 data = "";
                 this->state = Stat::MULTI_PART_HEADERS;
