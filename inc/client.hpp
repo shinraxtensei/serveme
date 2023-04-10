@@ -148,16 +148,13 @@ class Response
 
 			size_t	contentLength;
 
-			std::ifstream	fileRead;
 			std::ofstream	file1;
 
 			int	step = 0;
 
-			std::ofstream 	multipart;
 			
 			void	handleNormalReq();
 			void	storeMimeTypes();
-			void	checkReturn();
 			void	sendChunked(std::ifstream &file);
 
 			std::string	generateError(std::string error, int flag);
@@ -167,6 +164,11 @@ class Response
 			int		checkError(int	error);
 
 //-------new methods----------------
+			int	sendFlag = 0;
+			std::ifstream	fileRead;
+			std::ofstream	fileWrite;
+			std::ofstream 	writeMultipart;
+			int		checkReturn();
 			void	parseUrl();
 			void	getPath();
 			int		checkResourseType();
@@ -175,7 +177,10 @@ class Response
 			std::string	newPath;
 			void	handleGet(int type);
 			void	sendFile();
+			void	sendDirectory();
 			void	writeResponse();
+			std::string		getIndex();
+			void			handleNormalBody();
 //----------------------------------
 
 			void					getQuery();
@@ -183,13 +188,12 @@ class Response
 			void					matchLocation(std::vector<Location> locations);
 			void					checkCgi();
 			void					checkPath();
-			std::string				getIndex(std::string newPath);
 			void					listDirectory();
 			std::vector<Location>	getLocations(std::vector<Location> locations);
 
 			void	listDirectory(std::string	newPath, DIR *dir);
 
-			void	handleDelete(std::string newPath);
+			void	handleDelete();
 			void	handlePost();
 			void	handleMultipart();
 };

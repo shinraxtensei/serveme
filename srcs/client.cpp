@@ -209,8 +209,6 @@ void Client::handleRequest()
 
 void Client::generateResponse()
 {
-	std::cout << "in generateResponse" << std::endl;
-	std::cout << "request state : " << this->request->state << std::endl;
 	this->response->client = &Servme::getCore()->map_clients[this->response->client_fd];
 	// this->response->checkAllowedMethods(); // error here aborted
 	this->response->checkCgi();
@@ -218,7 +216,6 @@ void Client::generateResponse()
         cgi_handler();
 	else
 		this->response->handleNormalReq();
-	std::cout << "done with generate response" << std::endl;
 }
 
 
