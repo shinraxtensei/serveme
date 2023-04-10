@@ -14,7 +14,7 @@
 #define E300 "300 Multiple Choices"
 #define E301 "301 Moved Permanently"
 #define E302 "302 Found"
-#define E303 "403 See Other"
+#define E303 "303 See Other"
 #define E304 "304 Not Modified"
 #define E307 "307 Temporary Redirect"
 #define E308 "308 Permanent Redirect"

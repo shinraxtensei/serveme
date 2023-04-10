@@ -1,19 +1,21 @@
-#include "../inc/client.hpp"
-#include <algorithm>
-#include <cstddef>
-#include <cstdlib>
-#include <cstring>
-#include <fstream>
-#include <ios>
-#include <iostream>
-#include <ostream>
-#include <string>
-#include <sys/_types/_pid_t.h>
-#include <sys/fcntl.h>
-#include <sys/socket.h>
-#include <sys/wait.h>
-#include <unistd.h>
-#include <vector>
+#include "../inc/servme.hpp"
+
+// #include "../inc/client.hpp"
+// #include <algorithm>
+// #include <cstddef>
+// #include <cstdlib>
+// #include <cstring>
+// #include <fstream>
+// #include <ios>
+// #include <iostream>
+// #include <ostream>
+// #include <string>
+// #include <sys/_types/_pid_t.h>
+// #include <sys/fcntl.h>
+// #include <sys/socket.h>
+
+
+// #include <vector>
 
 Client::Client()
 {
@@ -34,6 +36,27 @@ Client::Client()
 
 Client::~Client()
 {
+
+    // if (this->pollfd_.fd != -1)
+    // {
+    //     close(this->pollfd_.fd);
+    //     this->pollfd_.fd = -1;
+    // }
+    // if (this->addr != nullptr)
+    // {
+    //     delete this->addr;
+    //     this->addr = nullptr;
+    // }
+    // if (this->request != nullptr)
+    // {
+    //     delete this->request;
+    //     this->request = nullptr;
+    // }
+    // if (this->response != nullptr)
+    // {
+    //     delete this->response;
+    //     this->response = nullptr;
+    // }
     // close(this->fd);
     // delete this->addr;
     // delete this->request;
@@ -43,6 +66,8 @@ Client::~Client()
 Client::Client(SocketWrapper &sock)
 {
 
+    std::cout << "Client constructor" << std::endl;
+    
     this->lastActivity = time(NULL);
     
     this->cgi = new Cgi();
@@ -98,7 +123,7 @@ std::string Request::checkType(std::string path)
 void Client::handleRequest()
 {
 
-    // if (this->request->state == START || this->request->state == Stat::FIRSTLINE || this->request->state == Stat::HEADERS)
+
     this->lastActivity = time(NULL);
 
     if (this->request->state & (Stat::START | Stat::FIRSTLINE | Stat::HEADERS))
@@ -209,8 +234,6 @@ void Client::handleRequest()
 
 void Client::generateResponse()
 {
-	std::cout << "in generateResponse" << std::endl;
-	std::cout << "request state : " << this->request->state << std::endl;
 	this->response->client = &Servme::getCore()->map_clients[this->response->client_fd];
 	// this->response->checkAllowedMethods(); // error here aborted
 	this->response->checkCgi();
@@ -218,7 +241,6 @@ void Client::generateResponse()
         cgi_handler();
 	else
 		this->response->handleNormalReq();
-	std::cout << "done with generate response" << std::endl;
 }
 
 

@@ -52,6 +52,7 @@ msi application/octet-stream
 msp application/octet-stream
 msm application/octet-stream
 mp3 audio/mpeg
+mp4	video/mp4
 ra audio/x-realaudio
 mpeg video/mpeg
 mpg video/mpeg

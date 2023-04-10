@@ -33,7 +33,7 @@ enum Stat
     START = 1 << 0,
     FIRSTLINE = 1 << 1,
     HEADERS = 1 << 2,
-    // BODY = 1 << 3, this move to be a combined state
+    // BODY = 1 << 3, this moved to be a combined state
     DONE = 1 << 4,
     // this is for chunked encoding
     
@@ -46,6 +46,7 @@ enum Stat
     MULTI_PART_BOUNDARY = 1 << 9,
     MULTI_PART_HEADERS = 1 << 10,
     MULTI_PART_DATA = 1 << 11,
+
     END = 1 << 12 ,// for both chunked and multipart
 
     // combined states
@@ -148,16 +149,13 @@ class Response
 
 			size_t	contentLength;
 
-			std::ifstream	file;
 			std::ofstream	file1;
 
 			int	step = 0;
 
-			std::ofstream 	multipart;
 			
 			void	handleNormalReq();
 			void	storeMimeTypes();
-			void	checkReturn();
 			void	sendChunked(std::ifstream &file);
 
 			std::string	generateError(std::string error, int flag);
@@ -166,20 +164,37 @@ class Response
 
 			int		checkError(int	error);
 
+//-------new methods----------------
+			int	sendFlag = 0;
+			std::ifstream	fileRead;
+			std::ofstream	fileWrite;
+			std::ofstream 	writeMultipart;
+			int		checkReturn();
+			void	parseUrl();
+			void	getPath();
+			int		checkResourseType();
+			void	handleFile();
+			void	handleDirectory();
+			std::string	newPath;
+			void	handleGet(int type);
+			void	sendFile();
+			void	sendDirectory();
+			void	writeResponse();
+			std::string		getIndex();
+			void			handleNormalBody();
+//----------------------------------
+
 			void					getQuery();
 			void					checkAllowedMethods();
 			void					matchLocation(std::vector<Location> locations);
 			void					checkCgi();
 			void					checkPath();
-			std::string				getIndex(std::string newPath);
 			void					listDirectory();
 			std::vector<Location>	getLocations(std::vector<Location> locations);
 
-			void	handleGet(int type, std::string newPath);
 			void	listDirectory(std::string	newPath, DIR *dir);
-			void	sendFile(std::string newPath);
 
-			void	handleDelete(std::string newPath);
+			void	handleDelete();
 			void	handlePost();
 			void	handleMultipart();
 };
