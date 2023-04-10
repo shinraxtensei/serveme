@@ -128,7 +128,7 @@ void	Response::sendFile()
 		+ contentType + "\r\n"
 		"Content-Length: "
 		+ std::to_string(this->contentLength) + "\r\n"
-		"Connection: keep-alive\r\n\r\n";
+		"Connection: close\r\n\r\n";
 		return ;
 	}
 	if (this->responseSent == 1 && this->sendPos == this->contentLength)

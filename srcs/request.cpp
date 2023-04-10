@@ -462,7 +462,7 @@ void Request::ParseMultiPartBody()
             std::cout << "STATE: MULTI_PART_DATA" << std::endl;
             if (line.find(this->boundary + "--") != std::string::npos)
             {
-                this->multipart_env[fieldname].data = data;
+                this->multipart_env[fieldname].data += data;
                 data = "";
                 std::cout << "end " << std::endl;
                 this->state = Stat::END;
@@ -470,13 +470,13 @@ void Request::ParseMultiPartBody()
             }
             else if (line.find(this->boundary) != std::string::npos)
             {
-                this->multipart_env[fieldname].data = data;
+                this->multipart_env[fieldname].data += data;
                 std::cout << GREEN << "DATA: " << data << RESET << std::endl;
                 data = "";
                 this->state = Stat::MULTI_PART_HEADERS;
             }
             else
-                data += line;   
+                data += line + '\n';   
         }
 
         if (this->state & Stat::END)

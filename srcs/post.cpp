@@ -40,7 +40,7 @@ void	Response::handleMultipart()
 				toStore = 1024;
 			else
 				toStore = (*it).second.data.length() - (*it).second.pos;
-			this->writeMultipart.open(path, std::ios::binary);
+			this->writeMultipart.open(path, std::ios::binary | std::ios_base::app);
 			if (!this->writeMultipart.good())
 				throw std::runtime_error(E500);
 			std::string	store = (*it).second.data.substr((*it).second.pos, toStore);
@@ -86,7 +86,7 @@ void	Response::handleNormalBody()
 			if (it == this->contentTypes.end())
 				extension = "txt";
 			std::string	path = "upload/random." + extension;
-			this->fileWrite.open(path);
+			this->fileWrite.open(path, std::ios::binary | std::ios_base::app);
 			if (!this->fileWrite.good())
 				throw std::runtime_error(E500);
 			this->started = 1;
