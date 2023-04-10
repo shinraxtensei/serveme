@@ -6,3 +6,10 @@ Core *Servme::getCore()
         Servme::core = new Core();
     return Servme::core;
 };
+
+void Servme::deleteCore()
+{
+    if (Servme::core != nullptr)
+        delete Servme::core;
+    Servme::core = nullptr;
+};

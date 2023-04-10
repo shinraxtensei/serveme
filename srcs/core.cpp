@@ -18,7 +18,7 @@ void Core::parseMimeTypes()
 {
     std::string buffer;
     // std::ifstream file("/Users/yabtaour/Desktop/webserv-42/mime.types");
-    std::ifstream file("/Users/ahouari/triz_work/serveme/mime.types");
+    std::ifstream file("mime.types");
     // if (!file.is_open())
     // {
     //     std::cout << RED << "Error opening mime.types file" << RESET << std::endl;
@@ -123,6 +123,7 @@ void Core::handleConnections()
         fd.events = POLLIN;
         this->pollFds.push_back(fd);
     }
+    
     while (true)
     {
         int ret = poll(this->pollFds.data(), this->pollFds.size(), 10);
