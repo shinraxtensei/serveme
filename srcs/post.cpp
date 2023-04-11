@@ -80,12 +80,6 @@ void	Response::handleNormalBody()
 			std::string	extension;
 			for (it = this->contentTypes.begin(); it != this->contentTypes.end(); it++)
 			{
-				// if (this->client->request->contentType.back() == '\n' || this->client->request->contentType.back() == '\r')
-				// 	this->client->request->contentType.pop_back();
-				// if (this->client->request->contentType.back() == '\n' || this->client->request->contentType.back() == '\r')
-				// 	this->client->request->contentType.pop_back();
-				std::cout << "contenttype : |" << this->client->request->contentType << "|" << std::endl;
-				std::cout << "map value : |" << (*it).second << "|" << std::endl;
 				if ((*it).second == (this->client->request->contentType))
 				{
 					extension = (*it).first;
@@ -94,13 +88,11 @@ void	Response::handleNormalBody()
 			}
 			if (it == this->contentTypes.end())
 				extension = "txt";
-			std::cout << "extension : " << extension << std::endl;
-			// exit (1);
-			std::string	path = "upload/random." + extension;
+			static std::string	path = "upload/random." + extension;
+			this->started = 1;
 			this->fileWrite.open(path, std::ios_base::app);
 			if (!this->fileWrite.good())
 				throw std::runtime_error(E500);
-			this->started = 1;
 		}
 		int	toStore;
 		if (this->client->request->bodyString.length() - this->readPos > 1024)
@@ -111,14 +103,14 @@ void	Response::handleNormalBody()
 		this->fileWrite << store;
 		this->readPos += toStore;
 	}
-		if (this->responseSent == 0)
-		{
-			this->body = "<html><head></head><body><h1>KOULCHI NADI AWLDI</h1></body></html>";
-			std::stringstream ss;
-			ss << this->body.length();
-			this->responseStr = "HTTP/1.1 200 OK\r\n"
-					"Content-Type: text/html\r\n"
-					"Content-Length:" + ss.str() + " \r\n"
-					"Connection: close\r\n\r\n" + this->body;
-		}
+	if (this->responseSent == 0)
+	{
+		this->body = "<html><head></head><body><h1>KOULCHI NADI AWLDI</h1></body></html>";
+		std::stringstream ss;
+		ss << this->body.length();
+		this->responseStr = "HTTP/1.1 200 OK\r\n"
+				"Content-Type: text/html\r\n"
+				"Content-Length:" + ss.str() + " \r\n"
+				"Connection: close\r\n\r\n" + this->body;
+	}
 }

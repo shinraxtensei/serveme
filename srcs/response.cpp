@@ -350,7 +350,7 @@ void    Response::handleNormalReq()
 		{
 			send(this->client_fd, this->responseStr.c_str(), this->responseStr.length(), 0);
 			this->responseSent = 1;
-			// this->client->request->state = DONE;
+			this->client->request->state = DONE;
 		}
 	}
 	catch(const std::exception& e)
