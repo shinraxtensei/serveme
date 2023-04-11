@@ -40,6 +40,8 @@
 #include "socketWrapper.hpp"
 
 
+
+#define TIMEOUT 3600
 // std::string	generateError(std::string error);
 
 class Core;

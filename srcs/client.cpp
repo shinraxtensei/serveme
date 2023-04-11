@@ -63,14 +63,31 @@ Client::~Client()
     // delete this->request;
     // delete this->response;
 }
-
+// std::string generateSessionId(size_t length) {
+//   static const char charset[] =
+//       "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+//   const size_t charset_size = sizeof(charset) - 1;
+//   std::srand(std::time(0));
+//   std::stringstream ss;
+//   for (size_t i = 0; i < length; ++i) {
+//     ss << charset[std::rand() % charset_size];
+//   }
+//   return ss.str();
+// }
 Client::Client(SocketWrapper &sock)
 {
-
-    std::cout << "Client constructor" << std::endl;
     
     this->lastActivity = time(NULL);
-    
+
+
+    this->session.user_id = std::to_string(this->fd);
+    this->session.SessionExpired = false;
+    this->session.session_id = generateSessionId(50);
+    this->session.path = "/";
+    this->session.Expires = time(NULL) + TIMEOUT;
+
+
+
     this->cgi = new Cgi();
     this->request = new Request();
 
@@ -101,6 +118,10 @@ Client::Client(SocketWrapper &sock)
     pollfd_.events = POLLIN;
 }
 
+
+
+
+
 std::string Request::checkType(std::string path)
 {
     size_t dot = path.find_last_of('.');
@@ -121,11 +142,19 @@ std::string Request::checkType(std::string path)
 }
 
 
+
+
+
+
+
+
+
 void Client::handleRequest()
 {
 
 
     this->lastActivity = time(NULL);
+    this->session.Expires = time(NULL) + TIMEOUT;
 
     if (this->request->state & (Stat::START | Stat::FIRSTLINE | Stat::HEADERS))
     {
@@ -141,8 +170,9 @@ void Client::handleRequest()
         }
         else if (ret == 0)
         {
-            this->pollfd_.fd = -1;
             std::cout << "disconnection" << std::endl;
+            this->core->removeClient(*this);
+            // Servme::getCore()->map_clients[this->fd].pollfd_.fd = -1;
         }
         line += buffer[0];
         this->request->buffer += buffer[0];
@@ -159,6 +189,7 @@ void Client::handleRequest()
             if (line == "\r\n" || line == "\n")
             {
                 // if (this->request->method == "GET")
+                Client::handleCookies();
                 this->response->GENERATE_RES = true;
                 this->request->state = Stat::BODY;
             }
@@ -178,12 +209,27 @@ void Client::handleRequest()
     }
 
     else if (this->request->state & Stat::BODY)
-    {
-
-        
+    {        
         static int flag = 0;
 
-        this->request->ParseBody();
+        
+
+        try {
+            this->request->ParseBody();
+
+        }
+        catch (const std::exception& e)
+        {
+
+            if (std::string(e.what()) == "Disconnected")
+            {
+                std::cout << "disconnection" << std::endl;
+                this->core->removeClient(*this);
+            }
+            else
+                std::cout << e.what() << std::endl;
+        }
+
         if (this->request->bodyType == BodyType::CHUNKED)
         {
 			// std::cout << "body type : chunked" << std::endl;
@@ -194,7 +240,7 @@ void Client::handleRequest()
                 std::cout << BLUE <<"this is the start of chunked body" << RESET << std::endl;
                 this->request->state = Stat::CHUNKED_START;
             }
-            this->request->ParseChunkedBody(); // ! : this function is not working ,still working on ti
+            this->request->ParseChunkedBody(); 
         }
 
         else if (this->request->bodyType == BodyType::MULTIPART)
@@ -206,29 +252,12 @@ void Client::handleRequest()
                 flag = 1;
                 this->request->state = Stat::MULTI_PART_START;
             }
-            this->request->ParseMultiPartBody(); // ! : this function is not working ,still working on ti
+            this->request->ParseMultiPartBody(); 
         }
-        // else
-
-
-        // writeResponse();
-    	// this->generateResponse();
+ 
     }
 
-    else if (this->request->state == Stat::END)
-    {
-		// Servme::getCore()->pollFds.
-		
-		// this->pollfd_.events &= ~POLLIN;
-		// this->pollfd_.events &= ~POLLOUT;
-	}
 
-    // if (this->response->GENERATE_RES || this->request->state == BODY)
-	// {
-	// 	std::cout << "here " << std::endl;
-    //     this->generateResponse();
-	// }
-	// std::cout << "rj3na lhna" << std::endl;
 }
 
 

@@ -128,6 +128,10 @@ void	Response::sendFile()
 		+ contentType + "\r\n"
 		"Content-Length: "
 		+ std::to_string(this->contentLength) + "\r\n"
+		"Set-Cookie: " + "session_id=" + this->client->session.session_id +
+		" Path=" + this->client->session.path + "\r\n" +
+		"Set-Cookie: " + "session_expires=" + GetFutureTime() + "\r\n" + 
+		"Set-Cookie: " + "Max-Age: " + std::to_string(std::time(0) + TIMEOUT) + "\r\n" +
 		"Connection: keep-alive\r\n\r\n";
 		return ;
 	}

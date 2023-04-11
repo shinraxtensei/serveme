@@ -86,28 +86,56 @@ void Core::startup()
 
 
 
-// bool Core::check_client_inactivity(Client &client , time_t timeout)
-// {
-//     time_t now = time(NULL);
+bool Core::check_client_inactivity(Client &client , time_t timeout)
+{
+    time_t now = time(NULL);
 
-//     if (now - client.lastActivity > timeout)
-//     {
-//         std::cout << "Client with fd: timed out\n";
-//         return true;
-//         // TODO: handle client timeout
-//         // this->pollFds[getFromPollFds(this->pollFds, client.fd)].fd = -1;
-//         // return;
-//         // this->pollFds[getFromPollFds(this->pollFds, client->fd)].fd = -1;
-//         // this->clients.erase(client);
-//     }
-//     return false;
-// }
+    // if(client.request->connection.find("keep-alive") != std::string::npos)
+        // return false;
+    if (now - client.lastActivity > timeout )
+    {
+        std::cout << "Client with fd: " << client.fd  << " timed out\n";
+        if ((client.request->connection.find("keep-alive") == std::string::npos))
+            this->removeClient(client);
+        this->map_clients[client.fd].session.SessionExpired = true;
 
-
-
+        return true;
+    }
+    return false;
+}
 
 
 
+void Core::removeClient(Client &client)
+{
+    for (size_t i = 0; i < this->pollFds.size(); i++)
+    {
+        if (this->pollFds[i].fd == client.fd)
+        {
+            this->pollFds[i].fd = -1;
+            return;
+        }
+    }
+}
+
+
+
+// session utilies
+
+std::string get_ip_address_string(const sockaddr_in& addr_in) {
+  char ip_address_cstr[INET_ADDRSTRLEN];
+  inet_ntop(AF_INET, &addr_in.sin_addr, ip_address_cstr, INET_ADDRSTRLEN);
+  return std::string(ip_address_cstr);
+}
+
+
+
+std::string generate_session_id(const std::string& ip_address) {
+  std::time_t now = std::time(0);
+  std::ostringstream oss;
+  oss << ip_address << "-" << now;
+  return oss.str();
+}
 
 
 
@@ -126,7 +154,7 @@ void Core::handleConnections()
     
     while (true)
     {
-        int ret = poll(this->pollFds.data(), this->pollFds.size(), 10);
+        int ret = poll(this->pollFds.data(), this->pollFds.size(), TIMEOUT);
         if (ret == -1)
         {
             std::cerr << "Error: poll() failed" << std::endl;
@@ -135,11 +163,8 @@ void Core::handleConnections()
         for (size_t i = 0; i < this->pollFds.size(); i++)
         {
 
-            // if (check_client_inactivity(this->map_clients[this->pollFds[i].fd], 10))
-            // {
-            //     this->pollFds[i].fd = -1;
-            // }
-
+            if (check_servers_socket(this->pollFds[i].fd) == -1 )
+                check_client_inactivity(this->map_clients[this->pollFds[i].fd], TIMEOUT);
 
 
             if (this->map_clients[this->pollFds[i].fd].response->GENERATE_RES)
@@ -156,7 +181,6 @@ void Core::handleConnections()
                     this->clients.back().core = this; //****** gettin the core
                     
                     this->map_clients.insert(std::make_pair(this->clients.back().fd, this->clients.back()));
-
                     this->pollFds.push_back(this->clients.back().pollfd_);
                 }
                 else
@@ -186,6 +210,9 @@ void Core::handleConnections()
             {
                 std::cout << "Client disconnected\n";
                 this->pollFds[i].fd = -1;
+                // exit(0);
+                // this->pollFds.erase(this->pollFds.begin() + i);
+                // i--;
                 // this->pollFds.erase(this->pollFds.begin() + i);
                 // this->clients.erase(this->clients.begin() + i);
             }
