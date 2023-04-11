@@ -442,7 +442,7 @@ void Request::ParseMultiPartBody()
             if (Parser::match("Content-Type:"))
             {
                 ContentType = Parser::lex()->next_token(false);
-                ContentType.pop_back();
+                // ContentType.pop_back();
                 if (ContentType == "EOF")
                     ContentType = "";
             }

@@ -40,13 +40,15 @@ void	Response::handleMultipart()
 				toStore = 1024;
 			else
 				toStore = (*it).second.data.length() - (*it).second.pos;
-			this->writeMultipart.open(path, std::ios::binary | std::ios_base::app);
+			if (!this->writeMultipart.is_open())
+				this->writeMultipart.open(path, std::ios::binary | std::ios_base::app);
 			if (!this->writeMultipart.good())
 				throw std::runtime_error(E500);
 			std::string	store = (*it).second.data.substr((*it).second.pos, toStore);
+			// this->writeMultipart.write(store.c_str(), store.size());
 			this->writeMultipart << store;
-			(*it).second.pos += toStore;
 			this->writeMultipart.close();
+			(*it).second.pos += toStore;
 			break ;
 		}
 	}
@@ -78,7 +80,13 @@ void	Response::handleNormalBody()
 			std::string	extension;
 			for (it = this->contentTypes.begin(); it != this->contentTypes.end(); it++)
 			{
-				if ((*it).second.find(this->client->request->contentType))
+				// if (this->client->request->contentType.back() == '\n' || this->client->request->contentType.back() == '\r')
+				// 	this->client->request->contentType.pop_back();
+				// if (this->client->request->contentType.back() == '\n' || this->client->request->contentType.back() == '\r')
+				// 	this->client->request->contentType.pop_back();
+				std::cout << "contenttype : |" << this->client->request->contentType << "|" << std::endl;
+				std::cout << "map value : |" << (*it).second << "|" << std::endl;
+				if ((*it).second == (this->client->request->contentType))
 				{
 					extension = (*it).first;
 					break ;
@@ -87,7 +95,7 @@ void	Response::handleNormalBody()
 			if (it == this->contentTypes.end())
 				extension = "txt";
 			std::cout << "extension : " << extension << std::endl;
-			exit (1);
+			// exit (1);
 			std::string	path = "upload/random." + extension;
 			this->fileWrite.open(path, std::ios_base::app);
 			if (!this->fileWrite.good())
