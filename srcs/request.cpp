@@ -137,6 +137,7 @@ void Request::ParseFirstLine(std::string &line)
     this->url = Parser::lex()->next_token(true);
     this->version = Parser::lex()->next_token(true);
 
+    this->client->session.path = this->url;
 
     if (std::find(knownMethods.begin(), knownMethods.end(), this->method) == knownMethods.end())
         throw std::runtime_error(E405);
@@ -215,8 +216,11 @@ void Request::ParseHeaders(std::string &line)
         }
     }
 
-    if (key == "connection:")
+    if (key == "Connection:")
         this->connection = value;
+
+
+
 
     this->headers.insert(std::make_pair(key, value));
 
@@ -236,13 +240,7 @@ void Request::ParseBody()
     if (bytesRead == -1)
         throw std::runtime_error("Error: read() failed. from ParseBody");
     if (bytesRead == 0)
-    {
-        Servme::getCore()->map_clients[this->client_fd].pollfd_.fd = -1;
-        // this->client->pollfd_.fd = -1;
-        std::cout << RED << "END" << RESET << std::endl;
-        this->state = Stat::END;
-        return;
-    }
+        throw std::runtime_error("Disconnected");
         // throw std::runtime_error("Error: read() returned 0.");
     this->bodyString += std::string(buffer, bytesRead);
 

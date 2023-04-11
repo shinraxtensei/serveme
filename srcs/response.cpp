@@ -355,6 +355,10 @@ void    Response::handleNormalReq()
 			this->responseStr = generateError(e.what(), DEFAULT);
 		else
 			this->responseStr = generateError(e.what(), MINE);
+
+		// this->responseStr.append("\r\n");
+		// this->responseStr.append();
+
 		send(this->client_fd, this->responseStr.c_str(), this->responseStr.length(), 0);
 		this->responseSent = 1;
 		this->client->request->state = DONE;
