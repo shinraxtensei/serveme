@@ -76,7 +76,7 @@ std::string Cgi::parseSurfix(std::string path_info){
 }
 
 
-/*     TO DO	*/
+/*     			TO DO				*/
 // 0. check the macthing location
 // 1. check if the file is executable
 // 2. check if the file is a cgi file
@@ -113,6 +113,8 @@ void Client::cgi_handler(){
 		// std::string compiler								= this->cgi->CompilerPathsByLanguage[surfix];
 		//--------------------------------------------------------------
         surfix = "\\." + surfix + "$";
+		std::cout << "surfix: " << surfix << std::endl;
+
 		try {
         	for (iter_cand = candidates.begin(); iter_cand < candidates.end(); iter_cand++)
         	{
@@ -127,6 +129,8 @@ void Client::cgi_handler(){
         	        break;
         		}
 			}
+			std::cout << "compiler: " << compiler << std::endl;
+			std::cout << "file_path: " << file_path << std::endl;
 			if (compiler == ""){
 				std::string body = this->response->generateError(E503, 0);
 				throw body;
@@ -155,16 +159,17 @@ void Client::cgi_handler(){
 						srand(time(NULL));
 						std::ofstream ofs(tmp_filename);
 						if (!ofs.is_open())
-							exit(1);
+							throw this->response->generateError(E503, 0);
 						ofs << this->request->bodyString;
 						ofs.close();
 						int fdf = open(tmp_filename.c_str(), O_RDWR);
 						if (fdf == -1)
-							exit(1);
+							throw this->response->generateError(E503, 0);
 						if (dup2(fdf, STDIN_FILENO) == -1)
-							exit(1);
+							throw this->response->generateError(E503, 0);
 						close(fdf);
 					}
+
 					/*++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
 					setenv("REQUEST_METHOD", this->request->method.c_str(), 1);
 					setenv("REQUEST_URI", this->request->url.c_str(), 1);
@@ -181,7 +186,7 @@ void Client::cgi_handler(){
 					     setenv(iter_query->first.c_str(), iter_query->second.c_str(), 1);
 					/*++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
 					if (dup2(pipefd[1], STDOUT_FILENO) == -1)
-						exit(1);
+						throw this->response->generateError(E503, 0);
 					close(pipefd[0]);
 					close(pipefd[1]);
 
@@ -189,12 +194,12 @@ void Client::cgi_handler(){
         	    	char**	env	= environ;
 					file_path.erase(0, 1);
 					if (access(file_path.c_str(), F_OK) == -1)
-						exit(1);
+						throw this->response->generateError(E503, 0);
         	    	char*	arg[] = {strdup(compiler.c_str()), strdup(file_path.c_str()), NULL};
         	    	char*	path = strdup(compiler.c_str());
 					unlink(tmp_filename.c_str());
 					if (execve(path, arg, env) == -1)
-						exit(1);
+						throw this->response->generateError(E503, 0);
 				} catch (std::string body){
 					std::cout << body;
 					exit(1);
