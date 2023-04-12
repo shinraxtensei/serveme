@@ -29,6 +29,21 @@ Http *Parser::getHttp()
 }
 
 
+std::vector<std::string> Lexer::getStringTokens(std::string const &str)
+{
+    Parser::lex()->set_input(str);
+    std::vector<std::string> tokens;
+    while(true)
+    {
+        std::string token = Parser::lex()->next_token(true);
+        if (token == "EOF")
+            break;
+        tokens.push_back(token);
+    }
+    return tokens;
+}
+
+
 
 bool Lexer::errors_check()
 {

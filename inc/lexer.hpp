@@ -23,6 +23,8 @@ public:
     
     int streamPos;
     void refrechPos();
+	std::vector<std::string> getStringTokens(std::string const &str);
+
 
 
 };

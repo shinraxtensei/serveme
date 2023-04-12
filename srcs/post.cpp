@@ -16,6 +16,7 @@ void	Response::handleMultipart()
 	std::multimap<std::string, Multipart_ENV>::iterator	it;
 	for (it = this->client->request->multipart_env.begin(); it != this->client->request->multipart_env.end(); it++)
 	{
+		std::cout << "kandkhoooool" << std::endl;
 		if ((*it).second.pos < (*it).second.data.length())
 		{
 			if ((*it).second.file_name == "")
@@ -40,8 +41,7 @@ void	Response::handleMultipart()
 				toStore = 1024;
 			else
 				toStore = (*it).second.data.length() - (*it).second.pos;
-			if (!this->writeMultipart.is_open())
-				this->writeMultipart.open(path, std::ios::binary | std::ios_base::app);
+			this->writeMultipart.open(path, std::ios::binary | std::ios_base::app);
 			if (!this->writeMultipart.good())
 				throw std::runtime_error(E500);
 			std::string	store = (*it).second.data.substr((*it).second.pos, toStore);

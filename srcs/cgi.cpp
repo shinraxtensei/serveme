@@ -91,7 +91,7 @@ std::string Cgi::parseSurfix(std::string path_info){
 // 11. check which compiler to use
 
 void Client::cgi_handler(){
-
+	// this->response->parseCookies();
     std::vector<Location>   candidates;
 
 	if (this->request->method == "GET" || (this->request->method == "POST" && (unsigned long)this->request->contentLength == this->request->bodyString.size())){
@@ -166,6 +166,7 @@ void Client::cgi_handler(){
 						close(fdf);
 					}
 					/*++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
+					setenv("HTTP_COOKIE", this->response->parseCookies().c_str(), 1);
 					setenv("REQUEST_METHOD", this->request->method.c_str(), 1);
 					setenv("REQUEST_URI", this->request->url.c_str(), 1);
 					setenv("CONTENT_LENGTH", std::to_string(this->request->contentLength).c_str(), 1);

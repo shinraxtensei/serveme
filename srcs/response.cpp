@@ -1,5 +1,6 @@
 #include "../inc/client.hpp"
 #include "../inc/macros.hpp"
+#include <cstdlib>
 
 Response::~Response()
 {
@@ -330,17 +331,11 @@ void    Response::handleNormalReq()
 			if (this->checkReturn())
 				return ;
 			this->storeMimeTypes();
-			// std::map<std::string, std::string>::iterator it;
-			// for (it = this->contentTypes.begin(); it != this->contentTypes.end(); it++)
-			// {
-			// 	std::cout << "first : " << (*it).first << std::endl;;
-			// 	std::cout << "second : " << (*it).second << std::endl;;
-			// }
-			// exit (1);
 			this->parseUrl();
     		this->matchLocation(this->client->server->locations);
 			this->checkAllowedMethods();
-			this->getPath();	
+			this->getPath();
+			// this->parseCookies();
 		}
 		if (this->checkResourseType() == FILE)
 			this->handleFile();
@@ -369,9 +364,33 @@ void    Response::handleNormalReq()
 }
 
 
-// void Response::cookies()
-// {
-// 	std::multimap<std::string , std::string >::iterator it =  this->client->request->headers.equal_range("cookies:").first;
-// 	std::multimap<std::string , std::string >::iterator ite =  this->client->request->headers.equal_range("cookies:").second;
-// 	while(it != ite)
-// }
+std::string	Response::parseCookies()
+{
+	std::multimap<std::string , std::string >::iterator it =  this->client->request->headers.equal_range("Cookie:").first;
+	std::multimap<std::string , std::string >::iterator ite =  this->client->request->headers.equal_range("Cookie:").second;
+	std::string	cookies;
+	for(; it != ite; it++)
+		cookies += (*it).second;
+	return cookies; 
+	// std::cout << "cookies : " << cookies << std::endl;
+	// setenv("HTTP_COOKIE", cookies.c_str(), 1);
+	// std::cout << "env value : " << getenv("HTTP_COOKIE") << std::endl;
+	// std::vector<std::string>	inter = Parser::lex()->getStringTokens(cookies);
+	// for (std::vector<std::string>::iterator it = inter.begin(); it != inter.end(); it++)
+	// {
+	// 	if ((*it).back() == ';')
+	// 		(*it).pop_back();
+	// 	std::string key = (*it).substr(0, (*it).find('='));
+	// 	std::string	value = (*it).substr((*it).find('=') + 1);
+		// std::cout << "key is : " << key << std::endl;
+		// std::cout << "value is : " << value << std::endl;
+		// this->cookies.insert(std::make_pair(key, value));
+		// std::cout << (*it) << std::endl;
+	// }
+	// for (std::map<std::string, std::string>::iterator it = this->cookies.begin(); it != this->cookies.end(); it++)
+	// {
+	// 	std::cout << "first : " << (*it).first << std::endl;
+	// 	std::cout << "second : " << (*it).second << std::endl;
+	// }
+	// exit (0);
+}

@@ -98,19 +98,7 @@ int checkValidChars(std::string &str)
 
 
 
-std::vector<std::string> getStringTokens(std::string const &str)
-{
-    Parser::lex()->set_input(str);
-    std::vector<std::string> tokens;
-    while(true)
-    {
-        std::string token = Parser::lex()->next_token(true);
-        if (token == "EOF")
-            break;
-        tokens.push_back(token);
-    }
-    return tokens;
-}
+
 
 
 
@@ -127,7 +115,7 @@ void Request::ParseFirstLine(std::string &line)
     // std::cout << "last char: " << line.back() << std::endl;
     
     std::vector<std::string> knownMethods;
-    knownMethods = getStringTokens("GET POST DELETE");
+    knownMethods = Parser::lex()->getStringTokens("GET POST DELETE");
     
  
     Parser::lex()->set_input(line);
