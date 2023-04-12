@@ -155,14 +155,14 @@ void Client::cgi_handler(){
 						srand(time(NULL));
 						std::ofstream ofs(tmp_filename);
 						if (!ofs.is_open())
-							throw this->response->generateError(E503, 0);
+							exit(1);
 						ofs << this->request->bodyString;
 						ofs.close();
 						int fdf = open(tmp_filename.c_str(), O_RDWR);
 						if (fdf == -1)
-							throw this->response->generateError(E503, 0);
+							exit(1);
 						if (dup2(fdf, STDIN_FILENO) == -1)
-							throw this->response->generateError(E503, 0);
+							exit(1);
 						close(fdf);
 					}
 					/*++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
@@ -181,7 +181,7 @@ void Client::cgi_handler(){
 					     setenv(iter_query->first.c_str(), iter_query->second.c_str(), 1);
 					/*++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
 					if (dup2(pipefd[1], STDOUT_FILENO) == -1)
-						throw this->response->generateError(E503, 0);
+						exit(1);
 					close(pipefd[0]);
 					close(pipefd[1]);
 
@@ -189,12 +189,12 @@ void Client::cgi_handler(){
         	    	char**	env	= environ;
 					file_path.erase(0, 1);
 					if (access(file_path.c_str(), F_OK) == -1)
-						throw this->response->generateError(E503, 0);
+						exit(1);
         	    	char*	arg[] = {strdup(compiler.c_str()), strdup(file_path.c_str()), NULL};
         	    	char*	path = strdup(compiler.c_str());
 					unlink(tmp_filename.c_str());
 					if (execve(path, arg, env) == -1)
-						throw this->response->generateError(E503, 0);
+						exit(1);
 				} catch (std::string body){
 					std::cout << body;
 					exit(1);
@@ -235,7 +235,7 @@ void Client::cgi_handler(){
 		catch (std::string body){
 			int bytes = send(this->request->client_fd, body.c_str(), body.size(), 0);
 			if (bytes == -1)
-				exit(1);
+				return;
 		}
 	}
 }
