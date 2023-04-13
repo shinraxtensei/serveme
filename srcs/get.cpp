@@ -132,7 +132,7 @@ void	Response::sendFile()
 		"HTTP/1.1 200 OK\r\n"
 		"Content-Type: "
 		+ contentType + "\r\n"
-		// "Accept-Ranges: none\r\n"
+		"Accept-Ranges: none\r\n"
 		"Content-Length: "
 		+ std::to_string(this->contentLength) + "\r\n"
 		"Connection: close\r\n\r\n";
