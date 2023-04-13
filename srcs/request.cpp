@@ -98,19 +98,7 @@ int checkValidChars(std::string &str)
 
 
 
-std::vector<std::string> getStringTokens(std::string const &str)
-{
-    Parser::lex()->set_input(str);
-    std::vector<std::string> tokens;
-    while(true)
-    {
-        std::string token = Parser::lex()->next_token(true);
-        if (token == "EOF")
-            break;
-        tokens.push_back(token);
-    }
-    return tokens;
-}
+
 
 
 
@@ -118,7 +106,7 @@ void Request::ParseFirstLine(std::string &line)
 {
     std::cout << CYAN << "STATE: " << (this->state == FIRSTLINE ? "FIRSTLINE" : "weird") << RESET << std::endl;
 
-    this->client = &Servme::getCore()->map_clients[this->client_fd];
+    this->client = Servme::getCore()->map_clients[this->client_fd];
     
     this->client->selectServer();
 
@@ -128,7 +116,7 @@ void Request::ParseFirstLine(std::string &line)
     // std::cout << "last char: " << line.back() << std::endl;
     
     std::vector<std::string> knownMethods;
-    knownMethods = getStringTokens("GET POST DELETE");
+    knownMethods = Parser::lex()->getStringTokens("GET POST DELETE");
     
  
     Parser::lex()->set_input(line);
@@ -173,7 +161,7 @@ void Request::ParseHeaders(std::string &line)
     if (key == "Host:" )
     {
         this->host = value;
-        this->client = &Servme::getCore()->map_clients[this->client_fd]; //TODO: change this to be in the constructor 
+        this->client = Servme::getCore()->map_clients[this->client_fd]; //TODO: change this to be in the constructor 
         this->client->selectServer();
 
     }
@@ -326,7 +314,7 @@ void Request::ParseChunkedBody() {
         if (chunkSize == 0)
         {
             this->bodyString = data;
-            std::cout << GREEN << "BODY: " << data << std::endl;
+            // std::cout << GREEN << "BODY: " << data << std::endl;
             this->state = Stat::END;
             return;
         }
@@ -375,7 +363,7 @@ void Request::ParseChunkedBody() {
 
 void Request::ParseMultiPartBody()
 {
-    std::cout << GREEN << "BODY: " << this->bodyString << RESET << std::endl;
+    // std::cout << GREEN << "BODY: " << this->bodyString << RESET << std::endl;
     static int pos = 0;
     static std::string data = "";
     static std::string fieldname = "";
@@ -441,7 +429,7 @@ void Request::ParseMultiPartBody()
             if (Parser::match("Content-Type:"))
             {
                 ContentType = Parser::lex()->next_token(false);
-                ContentType.pop_back();
+                // ContentType.pop_back();
                 if (ContentType == "EOF")
                     ContentType = "";
             }
@@ -472,11 +460,12 @@ void Request::ParseMultiPartBody()
             {
                 this->multipart_env[fieldname].data += data;
                 std::cout << GREEN << "DATA: " << data << RESET << std::endl;
+
                 data = "";
                 this->state = Stat::MULTI_PART_HEADERS;
             }
             else
-                data += line;   
+                data += line + '\n';   
         }
 
         if (this->state & Stat::END)

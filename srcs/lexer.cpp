@@ -29,6 +29,21 @@ Http *Parser::getHttp()
 }
 
 
+std::vector<std::string> Lexer::getStringTokens(std::string const &str)
+{
+    Parser::lex()->set_input(str);
+    std::vector<std::string> tokens;
+    while(true)
+    {
+        std::string token = Parser::lex()->next_token(true);
+        if (token == "EOF")
+            break;
+        tokens.push_back(token);
+    }
+    return tokens;
+}
+
+
 
 bool Lexer::errors_check()
 {
@@ -120,7 +135,7 @@ void Lexer::set_input(const std::string &input)
 
 static bool is_whitespace(char c)
 {
-    return c == ' ' || c == '\t' || c == '\n' || c == '\r'  ;
+    return c == ' ' || c == '\t' || c == '\n' || c == '\r' ;
 }
 
 static void skip_whitespace(std::istringstream &input)

@@ -200,6 +200,8 @@ class Response
 			void	writeResponse();
 			std::string		getIndex();
 			void			handleNormalBody();
+			std::string		parseCookies();
+			std::map<std::string, std::string>	cookies;
 //----------------------------------
 
 			void					getQuery();

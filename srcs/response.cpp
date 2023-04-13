@@ -1,5 +1,6 @@
 #include "../inc/client.hpp"
 #include "../inc/macros.hpp"
+#include <cstdlib>
 
 Response::~Response()
 {
@@ -30,7 +31,12 @@ int	Response::checkError(int error)
 	std::string	path;
 	std::string	root;
 
-	this->client = &Servme::getCore()->map_clients[this->client_fd];
+	// this->client = Servme::getCore()->map_clients[this->client_fd];
+	if (this->client == nullptr)
+	{
+		std::cout << "why no server" << std::endl;
+		return 0;
+	}
 	if (this->client->location != nullptr)
 	{
 		root = this->client->location->root;
@@ -80,6 +86,8 @@ void	Response::storeMimeTypes()
 		Parser::lex()->set_input(line);
 		extension = Parser::lex()->next_token(true);
 		type = Parser::lex()->next_token(true);
+		if (type.back() == '\r' || type.back() == '\n')
+			type.pop_back();
 		this->contentTypes[extension] = type;
 	}
 }
@@ -94,9 +102,14 @@ void	Response::checkAllowedMethods()
 	std::vector<std::string>			methods;
 	std::vector<std::string>::iterator	iter;
 
-	this->client = &Servme::getCore()->map_clients[this->client_fd];
+	if (this->client->request->method.empty())
+	{
+		std::cout << "maymknch tkoun request bla method" << std::endl;
+		exit (1);
+	}
+	// this->client = &Servme::getCore()->map_clients[this->client_fd];
 	methods = this->client->location->allowed_methods;
-	if (methods.size() == 0 && this->client->request->method == "GET")
+	if (methods.empty() && this->client->request->method == "GET")
 		return ;
 	for (iter = methods.begin(); iter < methods.end(); iter++)
 	{
@@ -129,7 +142,7 @@ std::vector<Location>	Response::getLocations(std::vector<Location> locations)
 	std::vector<Location>	candidates;
 	std::vector<Location>::iterator	iter;
 
-	this->client = &Servme::getCore()->map_clients[this->client_fd];
+	// this->client = &Servme::getCore()->map_clients[this->client_fd];
 	iter = locations.begin();
 	
 	for (iter = this->client->server->locations.begin(); iter < this->client->server->locations.end(); iter++)
@@ -158,7 +171,7 @@ void	Response::matchLocation(std::vector<Location> locations)
 	std::vector<Location>	candidates;
 	std::vector<Location>::iterator	iter;
 
-	this->client = &Servme::getCore()->map_clients[this->client_fd];
+	// this->client = &Servme::getCore()->map_clients[this->client_fd];
 	candidates = this->getLocations(locations);
 	if (!candidates.empty())
 	{
@@ -178,7 +191,7 @@ void	Response::matchLocation(std::vector<Location> locations)
 void	Response::checkCgi()
 {
 	std::string	cgiPath = "/cgi-bin/";
-	this->client = &Servme::getCore()->map_clients[this->client_fd];
+	// this->client = &Servme::getCore()->map_clients[this->client_fd];
 	std::string	imaginaryPath = this->client->request->url;
 	if (imaginaryPath.find(cgiPath) != std::string::npos)
 	{
@@ -204,52 +217,65 @@ std::string	Response::getIndex()
 
 int	Response::checkReturn()
 {
-	// if (this->client)
-	if (this->client->location)
+	if (this->client != nullptr)
 	{
-		if (this->client->location->returned != 0)
+		if (this->client->location != nullptr)
 		{
-			if (this->client->location->returnType == "permanent")
-				this->responseStr = "HTTP/1.1 308 Permanent Redirect\r\n"
-									"Location: " + this->client->location->returnUrl + "\r\n"
-									"Content-Type: text/html\r\n"
-									"Content-Length: 0\r\n"
-									"Connection: close\r\n\r\n";
+			if (this->client->location->returned != 0)
+			{
+				if (this->client->location->returnType == "permanent")
+					this->responseStr = "HTTP/1.1 308 Permanent Redirect\r\n"
+										"Location: " + this->client->location->returnUrl + "\r\n"
+										"Content-Type: text/html\r\n"
+										"Content-Length: 0\r\n"
+										"Connection: close\r\n\r\n";
+				else
+					this->responseStr = "HTTP/1.1 307 Temporary Redirect\r\n"
+										"Location: " + this->client->location->returnUrl + "\r\n"
+										"Content-Type: text/html\r\n"
+										"Content-Length: 0\r\n"
+										"Connection: close\r\n\r\n";
+				send(this->client_fd, this->responseStr.c_str(), this->responseStr.length(), 0);
+				this->responseSent = 1;
+				this->client->request->state = DONE;
+				return (1);
+			}
+		}
+		else
+		{
+			if (this->client->server != nullptr)
+			{
+				if (this->client->server->returned != 0)
+				{
+					if (this->client->server->returnType == "permanent")
+						this->responseStr = "HTTP/1.1 308 Permanent Redirect\r\n"
+											"Location: " + this->client->server->returnUrl + "\r\n"
+											"Content-Type: text/html\r\n"
+											"Content-Length: 0\r\n"
+											"Connection: close\r\n\r\n";
+					else
+						this->responseStr = "HTTP/1.1 307 Temporary Redirect\r\n"
+											"Location: " + this->client->server->returnUrl + "\r\n"
+											"Content-Type: text/html\r\n"
+											"Content-Length: 0\r\n"
+											"Connection: close\r\n\r\n";
+					send(this->client_fd, this->responseStr.c_str(), this->responseStr.length(), 0);
+					this->responseSent = 1;
+					this->client->request->state = DONE;
+					return (1);
+				}
+			}
 			else
-				this->responseStr = "HTTP/1.1 307 Temporary Redirect\r\n"
-									"Location: " + this->client->location->returnUrl + "\r\n"
-									"Content-Type: text/html\r\n"
-									"Content-Length: 0\r\n"
-									"Connection: close\r\n\r\n";
-			send(this->client_fd, this->responseStr.c_str(), this->responseStr.length(), 0);
-			this->started = 1;
-			this->responseSent = 1;
-			this->client->request->state = DONE;
-			return (1);
+			{
+				std::cout << "maymknch nwslou lhna blama ykoun 3ndna server" << std::endl;
+				exit (1);
+			}
 		}
 	}
 	else
 	{
-		if (this->client->server->returned != 0)
-		{
-			if (this->client->server->returnType == "permanent")
-				this->responseStr = "HTTP/1.1 308 Permanent Redirect\r\n"
-									"Location: " + this->client->server->returnUrl + "\r\n"
-									"Content-Type: text/html\r\n"
-									"Content-Length: 0\r\n"
-									"Connection: close\r\n\r\n";
-			else
-				this->responseStr = "HTTP/1.1 307 Temporary Redirect\r\n"
-									"Location: " + this->client->server->returnUrl + "\r\n"
-									"Content-Type: text/html\r\n"
-									"Content-Length: 0\r\n"
-									"Connection: close\r\n\r\n";
-			send(this->client_fd, this->responseStr.c_str(), this->responseStr.length(), 0);
-			this->started = 1;
-			this->responseSent = 1;
-			this->client->request->state = DONE;
-			return (1);
-		}
+		std::cout << "maymknch nwslou lhna blama ykoun client" << std::endl;
+		exit (1);
 	}
 	return (0);
 }
@@ -293,6 +319,11 @@ void	Response::handleFile()
 
 void	Response::getPath()
 {
+	if (this->client->location->root.empty())
+	{
+		std::cout << "we can't have a location without root achrif" << std::endl;
+		exit (1);
+	}
 	if (this->client->request->url != this->client->location->path)
 	{
 		if (this->client->location->path != "/")
@@ -308,7 +339,29 @@ void	Response::parseUrl()
 	std::string				query;
 	size_t					pos;
 
-	pos = this->client->request->url.find('?');
+	if (this->client)
+	{
+		if (this->client->request)
+		{
+			if (this->client->request->url != "")
+				pos = this->client->request->url.find('?');
+			else
+			{
+				std::cout << "ta kifach wslna lhna bla url" << std::endl;
+				exit (1);
+			}
+		}
+		else
+		{
+			std::cout << "ta kifach wslna lhna bla request" << std::endl;
+			exit (1);
+		}
+	}
+	else
+	{
+		std::cout << "ta kifach wslna lhna bla client" << std::endl;
+		exit (1);
+	}
 	if (pos != std::string::npos)
 	{
 		query = this->client->request->url.substr(pos + 1, this->client->request->url.length() - pos + 1);
@@ -322,7 +375,7 @@ void	Response::parseUrl()
 
 void    Response::handleNormalReq()
 {
-	this->client = &Servme::getCore()->map_clients[this->client_fd];
+	// this->client = &Servme::getCore()->map_clients[this->client_fd];
 	try
 	{
 		if (this->responseSent == 0)
@@ -331,9 +384,13 @@ void    Response::handleNormalReq()
 				return ;
 			this->storeMimeTypes();
 			this->parseUrl();
+			if (this->client->server->locations.empty())
+				throw std::runtime_error(E404);
     		this->matchLocation(this->client->server->locations);
+			if (!this->client->location)
+				throw std::runtime_error(E404);
 			this->checkAllowedMethods();
-			this->getPath();	
+			this->getPath();
 		}
 		if (this->checkResourseType() == FILE)
 			this->handleFile();
@@ -363,4 +420,15 @@ void    Response::handleNormalReq()
 		this->responseSent = 1;
 		this->client->request->state = DONE;
 	}
+}
+
+
+std::string	Response::parseCookies()
+{
+	std::multimap<std::string , std::string >::iterator it =  this->client->request->headers.equal_range("Cookie:").first;
+	std::multimap<std::string , std::string >::iterator ite =  this->client->request->headers.equal_range("Cookie:").second;
+	std::string	cookies;
+	for(; it != ite; it++)
+		cookies += (*it).second;
+	return cookies; 
 }

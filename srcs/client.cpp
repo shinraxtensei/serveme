@@ -334,8 +334,9 @@ void Client::handleRequest()
 
 void Client::generateResponse()
 {
+	std::cout << "in generateResponse" << std::endl;
 	this->response->client = Servme::getCore()->map_clients[this->response->client_fd];
-	// this->response->checkAllowedMethods(); // error here aborted
+
 	this->response->checkCgi();
 	if (this->cgiFlag == 1)
         cgi_handler();

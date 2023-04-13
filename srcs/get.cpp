@@ -2,15 +2,15 @@
 #include "../inc/macros.hpp"
 
 
-int getpollfd(pollfd clientPollfd)
-{
-	for (size_t i = 0; i < Servme::getCore()->pollFds.size() ; i++)
-	{
-		if (Servme::getCore()->pollFds[i].fd == clientPollfd.fd)
-			return i;
-	}
-	return (-1);
-}
+// int getpollfd(pollfd clientPollfd)
+// {
+// 	for (size_t i = 0; i < Servme::getCore()->pollFds.size() ; i++)
+// 	{
+// 		if (Servme::getCore()->pollFds[i].fd == clientPollfd.fd)
+// 			return i;
+// 	}
+// 	return (-1);
+// }
 
 void	Response::handleGet(int type)
 {
@@ -35,16 +35,14 @@ void	Response::handleGet(int type)
 				this->handleGet(FILE);
 			}
 			else
-			{
 				throw std::runtime_error(E403);
-			}
 		}
 		else
 		{
 			if (this->client->location->autoindex == true)
 				this->sendDirectory();
 			else
-				throw std::runtime_error(E403);
+				throw std::runtime_error(E404);
 		}
 	}
 }
@@ -53,14 +51,11 @@ void	Response::sendDirectory()
 {
 	if (this->responseSent == 0)
 	{
-    	DIR	*dir = opendir(this->client->path.c_str());
+    	DIR	*dir = opendir(this->client->path.substr(1).c_str());
 		if (dir == NULL)
-		{
-			// std::cout << "lpath : " << this->client->path << std::endl;
-			// std::cout << "dir mat7elch" << std::endl;
-			// exit (1);
 			throw std::runtime_error(E500);
-		}
+		// std::cout << "t7eeeeel" << std::endl;
+		// exit (1);
 		std::string	body = "<html>\n<head></head>\n<body>\n<h1>Index of " + newPath + "</h1>\n"
 			"<table style=\"width: 50%\">\n"
 			"<tr><td>Name</td><td>Last Modified</td><td>Size</td></tr>\n";
@@ -71,10 +66,18 @@ void	Response::sendDirectory()
 			std::string filename = dirent->d_name;
 			if (filename[0] != '.')
 			{
-				std::string path = "/" + this->newPath + "/" + filename;
+				std::string path = this->newPath + "/" + filename;
 				if (stat(path.c_str(), &infos) < 0)
+				{
+					std::cout << "hna trat chi haja" << std::endl;
+					exit (1);
 					throw std::runtime_error(E500);
-				std::string size = std::to_string(infos.st_size);
+				}
+				std::string size;
+				if (S_ISDIR(infos.st_mode))
+					size = "-";
+				else
+					size = std::to_string(infos.st_size);
 				std::string lastModified = ctime(&infos.st_mtime);
 				body += "<tr><td><a href=\"" + filename + "\">" + filename + "</a></td><td>" + lastModified + "</td><td>" + size + "</td></tr>\n";
 			}
@@ -87,6 +90,7 @@ void	Response::sendDirectory()
 		this->responseStr = 
 			"HTTP/1.1 200 OK\r\n"
 			"Content-Type: text/html\r\n"
+			"Accept-Ranges: none\r\n"
 			"Content-Length: " + ss.str() + "\r\n"
 			"Connection: close\r\n\r\n";
 		return ;
@@ -117,6 +121,8 @@ void	Response::sendFile()
 		{
 			extension = this->newPath.substr(dotIndex + 1);
 			contentType = this->contentTypes[extension];
+			if (extension == "php")
+				contentType = "text/html";
 			if (contentType == "")
 				contentType = "text/plain";
 		}
@@ -126,6 +132,7 @@ void	Response::sendFile()
 		"HTTP/1.1 200 OK\r\n"
 		"Content-Type: "
 		+ contentType + "\r\n"
+		"Accept-Ranges: none\r\n"
 		"Content-Length: "
 		+ std::to_string(this->contentLength) + "\r\n"
 		"Set-Cookie: " + "session_id=" + this->client->session.session_id +
