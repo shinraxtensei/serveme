@@ -20,6 +20,7 @@ std::string	Response::generateError(std::string error, int flag)
 						+ ss.str()
 						+ "\r\nContent-Type: text/html"
 						+ "\r\nServer: a7san/server/2.0"
+						+ "\r\nConnection: close"
 						+ "\r\n\r\n";
 	return (headers + body);
 }

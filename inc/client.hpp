@@ -157,6 +157,7 @@ class Response
 			std::string		body;
 	
 			Response();
+            // Response(const Response &response);
 			~Response();
 
 			size_t	readPos = 0;
@@ -199,6 +200,8 @@ class Response
 			void	writeResponse();
 			std::string		getIndex();
 			void			handleNormalBody();
+			std::string		parseCookies();
+			std::map<std::string, std::string>	cookies;
 //----------------------------------
 
 			void					getQuery();
@@ -237,9 +240,10 @@ class Client
         // Response *response;
         // SocketWrapper *socket;
         Client();
+        // Client(const Client &client);
         ~Client();
 		std::string		path;
-		Client(SocketWrapper &socket);
+		Client(SocketWrapper *socket);
 
 
         //**  methods
