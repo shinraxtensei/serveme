@@ -14,6 +14,9 @@ class Client;
 class Location;
 
 
+
+
+
 enum BodyType
 {
     NONE,
@@ -51,6 +54,20 @@ enum Stat
 
     // combined states
     BODY = (CHUNKED_START | CHUNKED_SIZE | CHUNKED_DATA  | MULTI_PART_START | MULTI_PART_BOUNDARY | MULTI_PART_HEADERS | MULTI_PART_DATA | END)
+};
+
+
+
+struct Session
+{
+    std::string session_id;
+    std::string user_id;
+    bool SessionExpired;
+
+    std::string path;
+    std::string Expires;
+    std::string MaxAge;
+
 };
 
 struct Multipart_ENV
@@ -140,6 +157,7 @@ class Response
 			std::string		body;
 	
 			Response();
+            // Response(const Response &response);
 			~Response();
 
 			size_t	readPos = 0;
@@ -214,6 +232,7 @@ class Client
         SocketWrapper	*socket;
 		Server			*server;
 		Location		*location; // need to get the location path in config parsing
+        Session            session;
 
 		int				cgiFlag;
 
@@ -221,12 +240,14 @@ class Client
         // Response *response;
         // SocketWrapper *socket;
         Client();
+        // Client(const Client &client);
         ~Client();
 		std::string		path;
-		Client(SocketWrapper &socket);
+		Client(SocketWrapper *socket);
 
 
         //**  methods
+        void handleCookies();
     	void handleRequest();
     	void cgi_handler();
     	// void generateResponse();
@@ -240,3 +261,6 @@ class Client
     	// void checkInactivity();
 
 };
+
+std::string GetFutureTime();
+std::string generateSessionId(size_t length) ;

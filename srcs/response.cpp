@@ -31,7 +31,12 @@ int	Response::checkError(int error)
 	std::string	path;
 	std::string	root;
 
-	this->client = &Servme::getCore()->map_clients[this->client_fd];
+	// this->client = Servme::getCore()->map_clients[this->client_fd];
+	if (this->client == nullptr)
+	{
+		std::cout << "why no server" << std::endl;
+		return 0;
+	}
 	if (this->client->location != nullptr)
 	{
 		root = this->client->location->root;
@@ -102,7 +107,7 @@ void	Response::checkAllowedMethods()
 		std::cout << "maymknch tkoun request bla method" << std::endl;
 		exit (1);
 	}
-	this->client = &Servme::getCore()->map_clients[this->client_fd];
+	// this->client = &Servme::getCore()->map_clients[this->client_fd];
 	methods = this->client->location->allowed_methods;
 	if (methods.empty() && this->client->request->method == "GET")
 		return ;
@@ -137,7 +142,7 @@ std::vector<Location>	Response::getLocations(std::vector<Location> locations)
 	std::vector<Location>	candidates;
 	std::vector<Location>::iterator	iter;
 
-	this->client = &Servme::getCore()->map_clients[this->client_fd];
+	// this->client = &Servme::getCore()->map_clients[this->client_fd];
 	iter = locations.begin();
 	
 	for (iter = this->client->server->locations.begin(); iter < this->client->server->locations.end(); iter++)
@@ -166,7 +171,7 @@ void	Response::matchLocation(std::vector<Location> locations)
 	std::vector<Location>	candidates;
 	std::vector<Location>::iterator	iter;
 
-	this->client = &Servme::getCore()->map_clients[this->client_fd];
+	// this->client = &Servme::getCore()->map_clients[this->client_fd];
 	candidates = this->getLocations(locations);
 	if (!candidates.empty())
 	{
@@ -186,7 +191,7 @@ void	Response::matchLocation(std::vector<Location> locations)
 void	Response::checkCgi()
 {
 	std::string	cgiPath = "/cgi-bin/";
-	this->client = &Servme::getCore()->map_clients[this->client_fd];
+	// this->client = &Servme::getCore()->map_clients[this->client_fd];
 	std::string	imaginaryPath = this->client->request->url;
 	if (imaginaryPath.find(cgiPath) != std::string::npos)
 	{
@@ -212,9 +217,9 @@ std::string	Response::getIndex()
 
 int	Response::checkReturn()
 {
-	if (this->client)
+	if (this->client != nullptr)
 	{
-		if (this->client->location)
+		if (this->client->location != nullptr)
 		{
 			if (this->client->location->returned != 0)
 			{
@@ -238,7 +243,7 @@ int	Response::checkReturn()
 		}
 		else
 		{
-			if (this->client->server)
+			if (this->client->server != nullptr)
 			{
 				if (this->client->server->returned != 0)
 				{
@@ -370,7 +375,7 @@ void	Response::parseUrl()
 
 void    Response::handleNormalReq()
 {
-	this->client = &Servme::getCore()->map_clients[this->client_fd];
+	// this->client = &Servme::getCore()->map_clients[this->client_fd];
 	try
 	{
 		if (this->responseSent == 0)
@@ -407,6 +412,10 @@ void    Response::handleNormalReq()
 			this->responseStr = generateError(e.what(), DEFAULT);
 		else
 			this->responseStr = generateError(e.what(), MINE);
+
+		// this->responseStr.append("\r\n");
+		// this->responseStr.append();
+
 		send(this->client_fd, this->responseStr.c_str(), this->responseStr.length(), 0);
 		this->responseSent = 1;
 		this->client->request->state = DONE;

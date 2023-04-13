@@ -19,6 +19,7 @@
 
 Client::Client()
 {
+    std::cout << " Client created without socket\n";
     this->lastActivity = time(NULL);
 
     this->addr = new sockaddr_in;
@@ -35,42 +36,119 @@ Client::Client()
     this->pollfd_.fd = -1;
 }
 
+
+// // deep copy constructor
+// Client::Client(const Client &client)
+// {
+//     std::cout << "Client created with socket\n";
+//     this->lastActivity = time(NULL);
+//     this->fd = client.fd;
+//     this->addr = new sockaddr_in;
+//     this->addr->sin_addr.s_addr = client.addr->sin_addr.s_addr;
+//     this->addr->sin_family = client.addr->sin_family;
+//     this->addr->sin_port = client.addr->sin_port;
+//     this->request = new Request(*client.request);
+//     this->request->client = this;
+//     this->location = client.location;
+//     this->response = new Response(*client.response);
+//     this->response->client = this;
+//     this->pollfd_.fd = client.pollfd_.fd;
+//     this->pollfd_.events = client.pollfd_.events;
+//     this->pollfd_.revents = client.pollfd_.revents;
+// }
+
+
+
+
+
+
+
+
+
 Client::~Client()
 {
 
-    // if (this->pollfd_.fd != -1)
-    // {
-    //     close(this->pollfd_.fd);
-    //     this->pollfd_.fd = -1;
-    // }
-    // if (this->addr != nullptr)
-    // {
-    //     delete this->addr;
-    //     this->addr = nullptr;
-    // }
-    // if (this->request != nullptr)
-    // {
-    //     delete this->request;
-    //     this->request = nullptr;
-    // }
-    // if (this->response != nullptr)
-    // {
-    //     delete this->response;
-    //     this->response = nullptr;
-    // }
+    if (this->fd == -1)
+    {
+        std::cout << "Client destroyed without socket\n";
+        // std::cout << "memory address" << this << std::endl;
+    }
+    else
+    {
+        std::cout << "Client destroyed with socket\n";
+        // std::cout << "memory address" << this << std::endl;
+    }
+        
+
+    if (this->pollfd_.fd != -1)
+    {
+        close(this->pollfd_.fd);
+        this->pollfd_.fd = -1;
+    }
+    if (this->addr != nullptr)
+    {
+        delete this->addr;
+        this->addr = nullptr;
+    }
+    if (this->request != nullptr)
+    {
+        delete this->request;
+        this->request = nullptr;
+    }
+    if (this->response != nullptr)
+    {
+        delete this->response;
+        this->response = nullptr;
+    }
+
+
+    if (this->cgi != nullptr)
+    {
+        delete this->cgi;
+        this->cgi = nullptr;
+    }
+    if (this->server != nullptr)
+    {
+        delete this->server;
+        this->server = nullptr;
+    }
+    if (this->location != nullptr)
+    {
+        delete this->location;
+        this->location = nullptr;
+    }
     // close(this->fd);
     // delete this->addr;
     // delete this->request;
     // delete this->response;
 }
-
-Client::Client(SocketWrapper &sock)
+// std::string generateSessionId(size_t length) {
+//   static const char charset[] =
+//       "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+//   const size_t charset_size = sizeof(charset) - 1;
+//   std::srand(std::time(0));
+//   std::stringstream ss;
+//   for (size_t i = 0; i < length; ++i) {
+//     ss << charset[std::rand() % charset_size];
+//   }
+//   return ss.str();
+// }
+Client::Client(SocketWrapper *sock)
 {
-
-    std::cout << "Client constructor" << std::endl;
     
+    std::cout << " Client created with socket\n";
+    // std::cout << "memory address" << this << std::endl;
     this->lastActivity = time(NULL);
-    
+
+
+    this->session.user_id = std::to_string(this->fd);
+    this->session.SessionExpired = false;
+    this->session.session_id = generateSessionId(50);
+    this->session.path = "/";
+    this->session.Expires = time(NULL) + TIMEOUT;
+
+
+
     this->cgi = new Cgi();
     this->request = new Request();
 
@@ -83,9 +161,9 @@ Client::Client(SocketWrapper &sock)
     // this->response->http = this->core->get_http();
     // this->response->client = this;
 
-    this->socket = &sock;
+    this->socket = sock;
     addr = new sockaddr_in;
-    fd = sock.accept(*addr);
+    fd = sock->accept(*addr);
     if (fd == -1)
     {
         throw std::runtime_error("Failed to accept connection");
@@ -99,7 +177,12 @@ Client::Client(SocketWrapper &sock)
     fcntl(fd, F_SETFL, O_NONBLOCK);
     pollfd_.fd = fd;
     pollfd_.events = POLLIN;
+    pollfd_.revents = 0;
 }
+
+
+
+
 
 std::string Request::checkType(std::string path)
 {
@@ -121,11 +204,19 @@ std::string Request::checkType(std::string path)
 }
 
 
+
+
+
+
+
+
+
 void Client::handleRequest()
 {
 
 
     this->lastActivity = time(NULL);
+    this->session.Expires = time(NULL) + TIMEOUT;
 
     if (this->request->state & (Stat::START | Stat::FIRSTLINE | Stat::HEADERS))
     {
@@ -141,8 +232,9 @@ void Client::handleRequest()
         }
         else if (ret == 0)
         {
-            this->pollfd_.fd = -1;
             std::cout << "disconnection" << std::endl;
+            this->core->removeClient(*this);
+            // Servme::getCore()->map_clients[this->fd].pollfd_.fd = -1;
         }
         line += buffer[0];
         this->request->buffer += buffer[0];
@@ -159,8 +251,12 @@ void Client::handleRequest()
             if (line == "\r\n" || line == "\n")
             {
                 // if (this->request->method == "GET")
+                Client::handleCookies();
                 this->response->GENERATE_RES = true;
-                this->request->state = Stat::BODY;
+                if (this->request->method == "GET")
+                    this->request->state = Stat::END;
+                else
+                    this->request->state = Stat::BODY;
             }
             if (this->request->state & Stat::FIRSTLINE)
             {
@@ -178,12 +274,32 @@ void Client::handleRequest()
     }
 
     else if (this->request->state & Stat::BODY)
-    {
-
+    {        
+        std::cout << CYAN << "STATE: " << (this->request->state == BODY ? "BODY" : "weird") << RESET << std::endl;
+        
+        if (this->request->state & Stat::END)
+            return;
         
         static int flag = 0;
 
-        this->request->ParseBody();
+        
+
+        try {
+            this->request->ParseBody();
+
+        }
+        catch (const std::exception& e)
+        {
+
+            if (std::string(e.what()) == "Disconnected")
+            {
+                std::cout << "disconnection" << std::endl;
+                this->core->removeClient(*this);
+            }
+            else
+                std::cout << e.what() << std::endl;
+        }
+
         if (this->request->bodyType == BodyType::CHUNKED)
         {
 			// std::cout << "body type : chunked" << std::endl;
@@ -194,7 +310,7 @@ void Client::handleRequest()
                 std::cout << BLUE <<"this is the start of chunked body" << RESET << std::endl;
                 this->request->state = Stat::CHUNKED_START;
             }
-            this->request->ParseChunkedBody(); // ! : this function is not working ,still working on ti
+            this->request->ParseChunkedBody(); 
         }
 
         else if (this->request->bodyType == BodyType::MULTIPART)
@@ -206,29 +322,12 @@ void Client::handleRequest()
                 flag = 1;
                 this->request->state = Stat::MULTI_PART_START;
             }
-            this->request->ParseMultiPartBody(); // ! : this function is not working ,still working on ti
+            this->request->ParseMultiPartBody(); 
         }
-        // else
-
-
-        // writeResponse();
-    	// this->generateResponse();
+ 
     }
 
-    else if (this->request->state == Stat::END)
-    {
-		// Servme::getCore()->pollFds.
-		
-		// this->pollfd_.events &= ~POLLIN;
-		// this->pollfd_.events &= ~POLLOUT;
-	}
 
-    // if (this->response->GENERATE_RES || this->request->state == BODY)
-	// {
-	// 	std::cout << "here " << std::endl;
-    //     this->generateResponse();
-	// }
-	// std::cout << "rj3na lhna" << std::endl;
 }
 
 
@@ -236,7 +335,8 @@ void Client::handleRequest()
 void Client::generateResponse()
 {
 	std::cout << "in generateResponse" << std::endl;
-	this->response->client = &Servme::getCore()->map_clients[this->response->client_fd];
+	this->response->client = Servme::getCore()->map_clients[this->response->client_fd];
+
 	this->response->checkCgi();
 	if (this->cgiFlag == 1)
         cgi_handler();
