@@ -2,15 +2,15 @@
 #include "../inc/macros.hpp"
 
 
-int getpollfd(pollfd clientPollfd)
-{
-	for (size_t i = 0; i < Servme::getCore()->pollFds.size() ; i++)
-	{
-		if (Servme::getCore()->pollFds[i].fd == clientPollfd.fd)
-			return i;
-	}
-	return (-1);
-}
+// int getpollfd(pollfd clientPollfd)
+// {
+// 	for (size_t i = 0; i < Servme::getCore()->pollFds.size() ; i++)
+// 	{
+// 		if (Servme::getCore()->pollFds[i].fd == clientPollfd.fd)
+// 			return i;
+// 	}
+// 	return (-1);
+// }
 
 void	Response::handleGet(int type)
 {
@@ -90,6 +90,7 @@ void	Response::sendDirectory()
 		this->responseStr = 
 			"HTTP/1.1 200 OK\r\n"
 			"Content-Type: text/html\r\n"
+			"Accept-Ranges: none\r\n"
 			"Content-Length: " + ss.str() + "\r\n"
 			"Connection: close\r\n\r\n";
 		return ;
@@ -131,6 +132,7 @@ void	Response::sendFile()
 		"HTTP/1.1 200 OK\r\n"
 		"Content-Type: "
 		+ contentType + "\r\n"
+		// "Accept-Ranges: none\r\n"
 		"Content-Length: "
 		+ std::to_string(this->contentLength) + "\r\n"
 		"Connection: close\r\n\r\n";

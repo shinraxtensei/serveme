@@ -97,9 +97,14 @@ void	Response::checkAllowedMethods()
 	std::vector<std::string>			methods;
 	std::vector<std::string>::iterator	iter;
 
+	if (this->client->request->method.empty())
+	{
+		std::cout << "maymknch tkoun request bla method" << std::endl;
+		exit (1);
+	}
 	this->client = &Servme::getCore()->map_clients[this->client_fd];
 	methods = this->client->location->allowed_methods;
-	if (methods.size() == 0 && this->client->request->method == "GET")
+	if (methods.empty() && this->client->request->method == "GET")
 		return ;
 	for (iter = methods.begin(); iter < methods.end(); iter++)
 	{
@@ -207,50 +212,65 @@ std::string	Response::getIndex()
 
 int	Response::checkReturn()
 {
-	// if (this->client)
-	if (this->client->location)
+	if (this->client)
 	{
-		if (this->client->location->returned != 0)
+		if (this->client->location)
 		{
-			if (this->client->location->returnType == "permanent")
-				this->responseStr = "HTTP/1.1 308 Permanent Redirect\r\n"
-									"Location: " + this->client->location->returnUrl + "\r\n"
-									"Content-Type: text/html\r\n"
-									"Content-Length: 0\r\n"
-									"Connection: close\r\n\r\n";
+			if (this->client->location->returned != 0)
+			{
+				if (this->client->location->returnType == "permanent")
+					this->responseStr = "HTTP/1.1 308 Permanent Redirect\r\n"
+										"Location: " + this->client->location->returnUrl + "\r\n"
+										"Content-Type: text/html\r\n"
+										"Content-Length: 0\r\n"
+										"Connection: close\r\n\r\n";
+				else
+					this->responseStr = "HTTP/1.1 307 Temporary Redirect\r\n"
+										"Location: " + this->client->location->returnUrl + "\r\n"
+										"Content-Type: text/html\r\n"
+										"Content-Length: 0\r\n"
+										"Connection: close\r\n\r\n";
+				send(this->client_fd, this->responseStr.c_str(), this->responseStr.length(), 0);
+				this->responseSent = 1;
+				this->client->request->state = DONE;
+				return (1);
+			}
+		}
+		else
+		{
+			if (this->client->server)
+			{
+				if (this->client->server->returned != 0)
+				{
+					if (this->client->server->returnType == "permanent")
+						this->responseStr = "HTTP/1.1 308 Permanent Redirect\r\n"
+											"Location: " + this->client->server->returnUrl + "\r\n"
+											"Content-Type: text/html\r\n"
+											"Content-Length: 0\r\n"
+											"Connection: close\r\n\r\n";
+					else
+						this->responseStr = "HTTP/1.1 307 Temporary Redirect\r\n"
+											"Location: " + this->client->server->returnUrl + "\r\n"
+											"Content-Type: text/html\r\n"
+											"Content-Length: 0\r\n"
+											"Connection: close\r\n\r\n";
+					send(this->client_fd, this->responseStr.c_str(), this->responseStr.length(), 0);
+					this->responseSent = 1;
+					this->client->request->state = DONE;
+					return (1);
+				}
+			}
 			else
-				this->responseStr = "HTTP/1.1 307 Temporary Redirect\r\n"
-									"Location: " + this->client->location->returnUrl + "\r\n"
-									"Content-Type: text/html\r\n"
-									"Content-Length: 0\r\n"
-									"Connection: close\r\n\r\n";
-			send(this->client_fd, this->responseStr.c_str(), this->responseStr.length(), 0);
-			this->responseSent = 1;
-			this->client->request->state = DONE;
-			return (1);
+			{
+				std::cout << "maymknch nwslou lhna blama ykoun 3ndna server" << std::endl;
+				exit (1);
+			}
 		}
 	}
 	else
 	{
-		if (this->client->server->returned != 0)
-		{
-			if (this->client->server->returnType == "permanent")
-				this->responseStr = "HTTP/1.1 308 Permanent Redirect\r\n"
-									"Location: " + this->client->server->returnUrl + "\r\n"
-									"Content-Type: text/html\r\n"
-									"Content-Length: 0\r\n"
-									"Connection: close\r\n\r\n";
-			else
-				this->responseStr = "HTTP/1.1 307 Temporary Redirect\r\n"
-									"Location: " + this->client->server->returnUrl + "\r\n"
-									"Content-Type: text/html\r\n"
-									"Content-Length: 0\r\n"
-									"Connection: close\r\n\r\n";
-			send(this->client_fd, this->responseStr.c_str(), this->responseStr.length(), 0);
-			this->responseSent = 1;
-			this->client->request->state = DONE;
-			return (1);
-		}
+		std::cout << "maymknch nwslou lhna blama ykoun client" << std::endl;
+		exit (1);
 	}
 	return (0);
 }
@@ -294,6 +314,11 @@ void	Response::handleFile()
 
 void	Response::getPath()
 {
+	if (this->client->location->root.empty())
+	{
+		std::cout << "we can't have a location without root achrif" << std::endl;
+		exit (1);
+	}
 	if (this->client->request->url != this->client->location->path)
 	{
 		if (this->client->location->path != "/")
@@ -309,7 +334,29 @@ void	Response::parseUrl()
 	std::string				query;
 	size_t					pos;
 
-	pos = this->client->request->url.find('?');
+	if (this->client)
+	{
+		if (this->client->request)
+		{
+			if (this->client->request->url != "")
+				pos = this->client->request->url.find('?');
+			else
+			{
+				std::cout << "ta kifach wslna lhna bla url" << std::endl;
+				exit (1);
+			}
+		}
+		else
+		{
+			std::cout << "ta kifach wslna lhna bla request" << std::endl;
+			exit (1);
+		}
+	}
+	else
+	{
+		std::cout << "ta kifach wslna lhna bla client" << std::endl;
+		exit (1);
+	}
 	if (pos != std::string::npos)
 	{
 		query = this->client->request->url.substr(pos + 1, this->client->request->url.length() - pos + 1);
@@ -332,10 +379,13 @@ void    Response::handleNormalReq()
 				return ;
 			this->storeMimeTypes();
 			this->parseUrl();
+			if (this->client->server->locations.empty())
+				throw std::runtime_error(E404);
     		this->matchLocation(this->client->server->locations);
+			if (!this->client->location)
+				throw std::runtime_error(E404);
 			this->checkAllowedMethods();
 			this->getPath();
-			// this->parseCookies();
 		}
 		if (this->checkResourseType() == FILE)
 			this->handleFile();
@@ -372,25 +422,4 @@ std::string	Response::parseCookies()
 	for(; it != ite; it++)
 		cookies += (*it).second;
 	return cookies; 
-	// std::cout << "cookies : " << cookies << std::endl;
-	// setenv("HTTP_COOKIE", cookies.c_str(), 1);
-	// std::cout << "env value : " << getenv("HTTP_COOKIE") << std::endl;
-	// std::vector<std::string>	inter = Parser::lex()->getStringTokens(cookies);
-	// for (std::vector<std::string>::iterator it = inter.begin(); it != inter.end(); it++)
-	// {
-	// 	if ((*it).back() == ';')
-	// 		(*it).pop_back();
-	// 	std::string key = (*it).substr(0, (*it).find('='));
-	// 	std::string	value = (*it).substr((*it).find('=') + 1);
-		// std::cout << "key is : " << key << std::endl;
-		// std::cout << "value is : " << value << std::endl;
-		// this->cookies.insert(std::make_pair(key, value));
-		// std::cout << (*it) << std::endl;
-	// }
-	// for (std::map<std::string, std::string>::iterator it = this->cookies.begin(); it != this->cookies.end(); it++)
-	// {
-	// 	std::cout << "first : " << (*it).first << std::endl;
-	// 	std::cout << "second : " << (*it).second << std::endl;
-	// }
-	// exit (0);
 }
