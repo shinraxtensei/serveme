@@ -19,6 +19,7 @@
 
 Client::Client()
 {
+    std::cout << " Client created without socket\n";
     this->lastActivity = time(NULL);
 
     this->addr = new sockaddr_in;
@@ -35,29 +36,87 @@ Client::Client()
     this->pollfd_.fd = -1;
 }
 
+
+// // deep copy constructor
+// Client::Client(const Client &client)
+// {
+//     std::cout << "Client created with socket\n";
+//     this->lastActivity = time(NULL);
+//     this->fd = client.fd;
+//     this->addr = new sockaddr_in;
+//     this->addr->sin_addr.s_addr = client.addr->sin_addr.s_addr;
+//     this->addr->sin_family = client.addr->sin_family;
+//     this->addr->sin_port = client.addr->sin_port;
+//     this->request = new Request(*client.request);
+//     this->request->client = this;
+//     this->location = client.location;
+//     this->response = new Response(*client.response);
+//     this->response->client = this;
+//     this->pollfd_.fd = client.pollfd_.fd;
+//     this->pollfd_.events = client.pollfd_.events;
+//     this->pollfd_.revents = client.pollfd_.revents;
+// }
+
+
+
+
+
+
+
+
+
 Client::~Client()
 {
 
-    // if (this->pollfd_.fd != -1)
-    // {
-    //     close(this->pollfd_.fd);
-    //     this->pollfd_.fd = -1;
-    // }
-    // if (this->addr != nullptr)
-    // {
-    //     delete this->addr;
-    //     this->addr = nullptr;
-    // }
-    // if (this->request != nullptr)
-    // {
-    //     delete this->request;
-    //     this->request = nullptr;
-    // }
-    // if (this->response != nullptr)
-    // {
-    //     delete this->response;
-    //     this->response = nullptr;
-    // }
+    if (this->fd == -1)
+    {
+        std::cout << "Client destroyed without socket\n";
+        // std::cout << "memory address" << this << std::endl;
+    }
+    else
+    {
+        std::cout << "Client destroyed with socket\n";
+        // std::cout << "memory address" << this << std::endl;
+    }
+        
+
+    if (this->pollfd_.fd != -1)
+    {
+        close(this->pollfd_.fd);
+        this->pollfd_.fd = -1;
+    }
+    if (this->addr != nullptr)
+    {
+        delete this->addr;
+        this->addr = nullptr;
+    }
+    if (this->request != nullptr)
+    {
+        delete this->request;
+        this->request = nullptr;
+    }
+    if (this->response != nullptr)
+    {
+        delete this->response;
+        this->response = nullptr;
+    }
+
+
+    if (this->cgi != nullptr)
+    {
+        delete this->cgi;
+        this->cgi = nullptr;
+    }
+    if (this->server != nullptr)
+    {
+        delete this->server;
+        this->server = nullptr;
+    }
+    if (this->location != nullptr)
+    {
+        delete this->location;
+        this->location = nullptr;
+    }
     // close(this->fd);
     // delete this->addr;
     // delete this->request;
@@ -74,9 +133,11 @@ Client::~Client()
 //   }
 //   return ss.str();
 // }
-Client::Client(SocketWrapper &sock)
+Client::Client(SocketWrapper *sock)
 {
     
+    std::cout << " Client created with socket\n";
+    // std::cout << "memory address" << this << std::endl;
     this->lastActivity = time(NULL);
 
 
@@ -100,9 +161,9 @@ Client::Client(SocketWrapper &sock)
     // this->response->http = this->core->get_http();
     // this->response->client = this;
 
-    this->socket = &sock;
+    this->socket = sock;
     addr = new sockaddr_in;
-    fd = sock.accept(*addr);
+    fd = sock->accept(*addr);
     if (fd == -1)
     {
         throw std::runtime_error("Failed to accept connection");
@@ -116,6 +177,7 @@ Client::Client(SocketWrapper &sock)
     fcntl(fd, F_SETFL, O_NONBLOCK);
     pollfd_.fd = fd;
     pollfd_.events = POLLIN;
+    pollfd_.revents = 0;
 }
 
 
@@ -191,7 +253,10 @@ void Client::handleRequest()
                 // if (this->request->method == "GET")
                 Client::handleCookies();
                 this->response->GENERATE_RES = true;
-                this->request->state = Stat::BODY;
+                if (this->request->method == "GET")
+                    this->request->state = Stat::END;
+                else
+                    this->request->state = Stat::BODY;
             }
             if (this->request->state & Stat::FIRSTLINE)
             {
@@ -210,6 +275,11 @@ void Client::handleRequest()
 
     else if (this->request->state & Stat::BODY)
     {        
+        std::cout << CYAN << "STATE: " << (this->request->state == BODY ? "BODY" : "weird") << RESET << std::endl;
+        
+        if (this->request->state & Stat::END)
+            return;
+        
         static int flag = 0;
 
         
@@ -264,7 +334,7 @@ void Client::handleRequest()
 
 void Client::generateResponse()
 {
-	this->response->client = &Servme::getCore()->map_clients[this->response->client_fd];
+	this->response->client = Servme::getCore()->map_clients[this->response->client_fd];
 	// this->response->checkAllowedMethods(); // error here aborted
 	this->response->checkCgi();
 	if (this->cgiFlag == 1)

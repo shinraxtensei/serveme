@@ -157,6 +157,7 @@ class Response
 			std::string		body;
 	
 			Response();
+            // Response(const Response &response);
 			~Response();
 
 			size_t	readPos = 0;
@@ -237,9 +238,10 @@ class Client
         // Response *response;
         // SocketWrapper *socket;
         Client();
+        // Client(const Client &client);
         ~Client();
 		std::string		path;
-		Client(SocketWrapper &socket);
+		Client(SocketWrapper *socket);
 
 
         //**  methods

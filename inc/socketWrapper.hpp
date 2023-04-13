@@ -8,6 +8,7 @@ class SocketWrapper
 {
     public:
         SocketWrapper();
+        SocketWrapper(SocketWrapper const &other);
         SocketWrapper(int domain, int type, int protocol);
 
     ~SocketWrapper() ;
