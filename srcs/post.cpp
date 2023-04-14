@@ -66,7 +66,7 @@ void	Response::handleMultipart()
 
 void	Response::handleNormalBody()
 {
-	if (this->responseSent == 1 && this->readPos == this->client->request->bodyString.length())
+	if (this->started && this->responseSent == 1 && this->readPos == this->client->request->bodyString.length())
 	{
 		this->client->request->state = DONE;
 		this->fileWrite.close();
@@ -89,10 +89,10 @@ void	Response::handleNormalBody()
 			if (it == this->contentTypes.end())
 				extension = "txt";
 			static std::string	path = "upload/random." + extension;
-			this->started = 1;
 			this->fileWrite.open(path, std::ios_base::app);
 			if (!this->fileWrite.good())
 				throw std::runtime_error(E500);
+			this->started = 1;
 		}
 		int	toStore;
 		if (this->client->request->bodyString.length() - this->readPos > 1024)
