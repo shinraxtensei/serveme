@@ -2,6 +2,15 @@
 #include "../inc/macros.hpp"
 #include <cstdlib>
 
+Response::Response()
+{
+	this->GENERATE_RES = false;
+	this->responseSent = 0;
+	this->responseStr = "";
+	this->body = "";
+	this->contentLength = 0;
+}
+
 Response::~Response()
 {
 	
@@ -31,7 +40,8 @@ int	Response::checkError(int error)
 	std::string	path;
 	std::string	root;
 
-	// this->client = Servme::getCore()->map_clients[this->client_fd];
+	this->client = Servme::getCore()->map_clients[this->client_fd];
+
 	if (this->client == nullptr)
 	{
 		std::cout << "why no server" << std::endl;
@@ -50,6 +60,9 @@ int	Response::checkError(int error)
 	}
 	else
 	{
+		this->client->selectServer();
+			std::cout << "client: " << Servme::getCore()->map_clients[this->client_fd] << std::endl;
+
 		if (!this->client->server->error_page.empty())
 			member = this->client->server->error_page;
 		root = this->client->server->root;
@@ -92,10 +105,7 @@ void	Response::storeMimeTypes()
 	}
 }
 
-Response::Response()
-{
-	this->GENERATE_RES = false;
-}
+
 
 void	Response::checkAllowedMethods()
 {
@@ -107,7 +117,8 @@ void	Response::checkAllowedMethods()
 		std::cout << "maymknch tkoun request bla method" << std::endl;
 		exit (1);
 	}
-	// this->client = &Servme::getCore()->map_clients[this->client_fd];
+	this->client = Servme::getCore()->map_clients[this->client_fd];
+
 	methods = this->client->location->allowed_methods;
 	if (methods.empty() && this->client->request->method == "GET")
 		return ;
@@ -141,8 +152,8 @@ std::vector<Location>	Response::getLocations(std::vector<Location> locations)
 {
 	std::vector<Location>	candidates;
 	std::vector<Location>::iterator	iter;
+	this->client = Servme::getCore()->map_clients[this->client_fd];
 
-	// this->client = &Servme::getCore()->map_clients[this->client_fd];
 	iter = locations.begin();
 	
 	for (iter = this->client->server->locations.begin(); iter < this->client->server->locations.end(); iter++)
@@ -171,7 +182,8 @@ void	Response::matchLocation(std::vector<Location> locations)
 	std::vector<Location>	candidates;
 	std::vector<Location>::iterator	iter;
 
-	// this->client = &Servme::getCore()->map_clients[this->client_fd];
+	this->client = Servme::getCore()->map_clients[this->client_fd];
+
 	candidates = this->getLocations(locations);
 	if (!candidates.empty())
 	{
@@ -191,7 +203,7 @@ void	Response::matchLocation(std::vector<Location> locations)
 void	Response::checkCgi()
 {
 	std::string	cgiPath = "/cgi-bin/";
-	// this->client = &Servme::getCore()->map_clients[this->client_fd];
+	this->client = Servme::getCore()->map_clients[this->client_fd];
 	std::string	imaginaryPath = this->client->request->url;
 	if (imaginaryPath.find(cgiPath) != std::string::npos)
 	{
@@ -375,7 +387,7 @@ void	Response::parseUrl()
 
 void    Response::handleNormalReq()
 {
-	// this->client = &Servme::getCore()->map_clients[this->client_fd];
+	this->client = Servme::getCore()->map_clients[this->client_fd];
 	try
 	{
 		if (this->responseSent == 0)
@@ -398,14 +410,15 @@ void    Response::handleNormalReq()
 			this->handleDirectory();
 		if (this->responseSent == 0)
 		{
+			std::cout << CYAN << "here " << RESET << std::endl;
 			send(this->client_fd, this->responseStr.c_str(), this->responseStr.length(), 0);
 			this->responseSent = 1;
-			this->client->request->state = DONE;
+			// this->client->request->state = DONE;
 		}
 	}
 	catch(const std::exception& e)
 	{
-		std::cerr << e.what() << '\n';
+		std::cerr <<  "res: "<< e.what() << '\n';
 		Parser::lex()->set_input(e.what());
 		int	code = atoi(Parser::lex()->next_token(false).c_str());
 		if (checkError(code))

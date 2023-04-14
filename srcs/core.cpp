@@ -148,15 +148,29 @@ void Core::removeClient(Client &client)
 
 void reset(Client *client)
 {
-    (void)client;
-    // req
-    client->request->method = "";
-    client->request->url = "";
-    client->request->version = "";
-    client->request->headers.clear();
-    client->request->bodyString = "";
+
+    // std::cout <<RESET <<  "resetting client\n";
     client->request->state = START;
-    client->request->connection = "";
+    client->request->multipart_env.clear();
+    // client->request->body.clear();
+    // client->request->headers.clear();
+    // client->request->method.clear();
+    // client->request->url.clear();
+    // client->request->version.clear();
+    client->request->connection.clear();
+    client->request->contentLength = 0;
+    client->request->transferEncoding.clear();
+    client->request->boundary.clear();
+    
+    
+    
+    client->response->responseSent = 0;
+    client->response->sendPos = 0;
+    client->response->contentTypes.clear();
+    client->response->responseStr.clear();
+    client->response->readPos = 0;
+    client->response->sendPos = 0;
+
 
 
 }
@@ -190,8 +204,24 @@ void Core::handleConnections()
 
             if (this->map_clients[this->pollFds[i].fd] &&  check_servers_socket(this->pollFds[i].fd) == -1)
             {
-                if (this->map_clients[this->pollFds[i].fd]->response->GENERATE_RES)
+                if (this->map_clients[this->pollFds[i].fd]->request->state == Stat::DONE)
+                {
+                    reset(this->map_clients[this->pollFds[i].fd]);
+
+                }
+                if (this->map_clients[this->pollFds[i].fd]->response->GENERATE_RES )
+                {
+
+                    std::cout << "GENERATE_RES\n";
+                    this->map_clients[this->pollFds[i].fd]->selectServer();
+                    // std::cout << "url:"  << this->map_clients[this->pollFds[i].fd]->request->url << std::endl;
+                    // std::cout << "req  : " << this->map_clients[this->pollFds[i].fd]->request << std::endl;
+                    // std::cout << "methods:"  << this->map_clients[this->pollFds[i].fd]->request->method << std::endl;
+
+                    this->pollFds[i].events |= POLLOUT;
                     this->map_clients[this->pollFds[i].fd]->generateResponse();
+                    this->pollFds[i].events &= ~POLLOUT;
+                }
     
                     // this->map_clients[this->pollFds[i].fd]->request->state = START;
                 // check_client_inactivity(*this->map_clients[this->pollFds[i].fd] , TIMEOUT);
@@ -216,15 +246,15 @@ void Core::handleConnections()
 
                     
                     this->pollFds.push_back(this->clients.back()->pollfd_);
-                    std::cout <<  "new fd : " << this->pollFds.back().fd << "size: " << this->pollFds.size() << std::endl;
+                    // std::cout <<  "new fd : " << this->pollFds.back().fd << "size: " << this->pollFds.size() << std::endl;
 
 
                 }
                 else
                 {	
                     try {
-                            std::cout << "handle request\n" << std::endl;
-                            std::cout <<  "new fd : " << this->pollFds.back().fd << "size: " << this->pollFds.size() << std::endl;
+                            // std::cout << "handle request\n" << std::endl;
+                            // std::cout <<  "new fd : " << this->pollFds.back().fd << "size: " << this->pollFds.size() << std::endl;
                             this->map_clients[this->pollFds[i].fd]->handleRequest();
                     }
                     catch(const std::exception& e)

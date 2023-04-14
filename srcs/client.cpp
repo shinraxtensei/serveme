@@ -151,15 +151,15 @@ Client::Client(SocketWrapper *sock)
 
     this->cgi = new Cgi();
     this->request = new Request();
+    this->response = new Response();
+    this->request->client = this;
+    this->response->client = this;
 
     this->request->core = this->core;
     this->server = nullptr;
 	this->location = nullptr;
-    // this->request->client = this;
 
-    this->response = new Response();
     // this->response->http = this->core->get_http();
-    // this->response->client = this;
 
     this->socket = sock;
     addr = new sockaddr_in;
@@ -212,14 +212,18 @@ std::string Request::checkType(std::string path)
 
 
 void Client::handleRequest()
-{
-
+{   
 
     this->lastActivity = time(NULL);
     this->session.Expires = time(NULL) + TIMEOUT;
 
     if (this->request->state & (Stat::START | Stat::FIRSTLINE | Stat::HEADERS))
     {
+
+        if (this->request->state & Stat::FIRSTLINE)
+        {
+    
+        }
         static std::string line = "";
         char buffer[1];
         int ret;
@@ -296,7 +300,7 @@ void Client::handleRequest()
                 std::cout << "disconnection" << std::endl;
                 this->core->removeClient(*this);
             }
-            else
+            // else
                 std::cout << e.what() << std::endl;
         }
 
@@ -335,7 +339,11 @@ void Client::handleRequest()
 void Client::generateResponse()
 {
 	std::cout << "in generateResponse" << std::endl;
-	this->response->client = Servme::getCore()->map_clients[this->response->client_fd];
+	// this->response->client = Servme::getCore()->map_clients[this->response->client_fd];
+    std::cout << "state: " << this->request->state << std::endl;
+    std::cout << "this->request->uri : " << this->request->url << std::endl;
+    std::cout << "this->request->method : " << this->request->method << std::endl;
+
 
 	this->response->checkCgi();
 	if (this->cgiFlag == 1)
@@ -350,8 +358,8 @@ void	Client::selectServer()
     std::vector<Server>::iterator it;
     std::vector<Server> candidates;
 
-    it = this->core->get_http()->servers.begin();
-    for (it = this->core->get_http()->servers.begin(); it != this->core->get_http()->servers.end(); it++)
+
+    for (it = Servme::getCore()->get_http()->servers.begin();  it != Servme::getCore()->get_http()->servers.end(); it++)
     {
         if (it->ipPort.second == this->socket->get_listenPair().second)
             candidates.push_back(*it);

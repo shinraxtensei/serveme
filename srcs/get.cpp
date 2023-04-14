@@ -143,7 +143,10 @@ void	Response::sendFile()
 		return ;
 	}
 	if (this->responseSent == 1 && this->sendPos == this->contentLength)
+	{
 		this->client->request->state = DONE;
+		std::cout << GREEN << "DONE"  << std::endl;
+	}
 	if (this->sendPos < this->contentLength)
 	{
 		int	size;
