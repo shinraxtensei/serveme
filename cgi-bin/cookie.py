@@ -10,6 +10,8 @@ form = cgi.FieldStorage()
 # Get data from fields
 # Get data from fields
 color = "white"
+if form.getvalue('HTTP_COOKIE'):
+	color = form.getvalue('HTTP_COOKIE')
 if form.getvalue('color'):
 	color = form.getvalue('color')
 

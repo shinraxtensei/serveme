@@ -112,7 +112,8 @@ void Client::cgi_handler(){
 		std::string server_path								= "/Users/rsaf/Desktop/serveme" + file_path;
 		std::string surfix									= this->cgi->parseSurfix(file_path);
 		std::string tmp_filename =  std::string("tmp/serveme-") + std::to_string(rand()) + ".tmp";
-		std::string cookie_value = this->response->parseCookies();
+		// std::string cookie_value = this->response->parseCookies();
+		// cookie_value = cookie_value.substr(cookie_value.find("color") + 6, cookie_value.find(";") - cookie_value.find("color") - 6);
 		// std::string compiler								= this->cgi->CompilerPathsByLanguage[surfix];
 		//--------------------------------------------------------------
         surfix = "\\." + surfix + "$";
@@ -170,9 +171,10 @@ void Client::cgi_handler(){
 					}
 					/*++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
 
-					// cookie_value = cookie_value.substr(cookie_value.find("=") + 1);
-					std::cout << "cookie_value: " << cookie_value << std::endl;
-					setenv("cocolor", cookie_value.c_str(), 1);
+					// cookie_value = cookie_value.substr(cookie_value.find("color") + 6, cookie_value.find(";") - cookie_value.find("color") - 6);
+// 
+					// std::cout << "cookie_value: " << cookie_value << std::endl;
+					// setenv("HTTP_COOKIE", cookie_value.c_str(), 1);
 					setenv("REQUEST_METHOD", this->request->method.c_str(), 1);
 					setenv("REQUEST_URI", this->request->url.c_str(), 1);
 					setenv("SCRIPT_FILENAME", server_path.c_str(), 1);
@@ -194,7 +196,7 @@ void Client::cgi_handler(){
 						throw this->response->generateError(E503, 0);
 					close(pipefd[0]);
 					close(pipefd[1]);
-					std::cerr << getenv("cocolor") << std::endl;
+					// std::cerr << "env color ====== " << getenv("cocolor") << std::endl;
         	    	extern	char**	environ;
         	    	char**	env	= environ;
 					file_path.erase(0, 1);
@@ -235,11 +237,11 @@ void Client::cgi_handler(){
 					std::cout << "querys_map[color]: " << querys_map["color"] << std::endl;
 					header += "Set-Cookie: color=" + querys_map["color"] + "\r\n";
 				}
-				else if (cookie_value != "")
-					header += "Set-Cookie: color=" + cookie_value + "\r\n";
+				// else if (cookie_value != "")
+					// header += "Set-Cookie: color=" + cookie_value + "\r\n";
         	    header += "Content-Length: " + std::to_string(body.size()) + "\r\n";
         	    header += "Server: serveme/1.0\r\n";
-        	    header += "Connection: close\r\n\r\n";
+        	    header += "Connection: keep-alive\r\n\r\n";
         	    header += body;
 				// this->request->bodyString = "";
 				std::cout << "header :" << header;
