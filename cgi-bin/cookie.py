@@ -9,18 +9,14 @@ form = cgi.FieldStorage()
 
 # Get data from fields
 # Get data from fields
-
+color = "white"
+if form.getvalue('cocolor'):
+	color = form.getvalue('cocolor')
 if form.getvalue('color'):
 	color = form.getvalue('color')
-elif form.getvalue('HTTP_COOKIE'):
-	color = form.getvalue('HTTP_COOKIE')
-else:
-	color = "white"
 
 print ("HTTP/1.1 200 OK")
 print ("server: Garson/0.1.5 (1337)")
-if form.getvalue('color'):
-	print ("Set-cookie: background_color=%s" % (color))
 print ("Content-type:text/html\n\r\n\r")
 
 print ("<html>")

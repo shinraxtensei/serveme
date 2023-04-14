@@ -168,8 +168,10 @@ void Client::cgi_handler(){
 						close(fdf);
 					}
 					/*++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
-					if (cookie_value != "")
-						setenv("HTTP_COOKIE", cookie_value.c_str(), 1);
+
+					cookie_value = cookie_value.substr(cookie_value.find("=") + 1);
+					std::cout << "cookie_value: " << cookie_value << std::endl;
+					setenv("cocolor", cookie_value.c_str(), 1);
 					setenv("REQUEST_METHOD", this->request->method.c_str(), 1);
 					setenv("REQUEST_URI", this->request->url.c_str(), 1);
 					setenv("SCRIPT_FILENAME", server_path.c_str(), 1);
@@ -191,6 +193,7 @@ void Client::cgi_handler(){
 						throw this->response->generateError(E503, 0);
 					close(pipefd[0]);
 					close(pipefd[1]);
+					std::cerr << getenv("cocolor") << std::endl;
         	    	extern	char**	environ;
         	    	char**	env	= environ;
 					file_path.erase(0, 1);
@@ -226,8 +229,13 @@ void Client::cgi_handler(){
         	    body = body.substr(body.find("\r\n\r\n") + 4);
         	    header += "Content-Type: text/html\r\n";
 				// std::cerr << "Cokie Color: " << this->response->parseCookies() << std::endl;
-				if (querys_map["color"].c_str())
+				std::string tmp_cookie = querys_map["color"].c_str() ;
+				if (querys_map["color"].c_str() ){
+					std::cout << "querys_map[color]: " << querys_map["color"] << std::endl;
 					header += "Set-Cookie: color=" + querys_map["color"] + "\r\n";
+				}
+				else if (cookie_value != "")
+					header += "Set-Cookie: color=" + cookie_value + "\r\n";
         	    header += "Content-Length: " + std::to_string(body.size()) + "\r\n";
         	    header += "Server: serveme/1.0\r\n";
         	    header += "Connection: close\r\n\r\n";
@@ -238,6 +246,7 @@ void Client::cgi_handler(){
         	    int bytes = send(this->request->client_fd, header.c_str(), header.size(), 0);
 				if (bytes == -1)
 					throw this->response->generateError(E503, 0);
+				header = "";
 				this->request->state = DONE;
 			unlink(tmp_filename.c_str());
 			close(pipefd[0]);
