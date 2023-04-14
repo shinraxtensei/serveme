@@ -10,8 +10,6 @@ form = cgi.FieldStorage()
 # Get data from fields
 # Get data from fields
 color = "white"
-if form.getvalue('cocolor'):
-	color = form.getvalue('cocolor')
 if form.getvalue('color'):
 	color = form.getvalue('color')
 

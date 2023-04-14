@@ -169,7 +169,7 @@ void Client::cgi_handler(){
 					}
 					/*++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
 
-					cookie_value = cookie_value.substr(cookie_value.find("=") + 1);
+					// cookie_value = cookie_value.substr(cookie_value.find("=") + 1);
 					std::cout << "cookie_value: " << cookie_value << std::endl;
 					setenv("cocolor", cookie_value.c_str(), 1);
 					setenv("REQUEST_METHOD", this->request->method.c_str(), 1);
