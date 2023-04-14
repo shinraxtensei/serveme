@@ -127,6 +127,7 @@ void	Response::checkAllowedMethods()
 		if (*iter == this->client->request->method)
 			return ;
 	}
+	std::cout << RED << "chi 7aja trat 3ndi" << RESET << std::endl;
 	throw std::runtime_error(E405);
 }
 
@@ -419,6 +420,7 @@ void    Response::handleNormalReq()
 	catch(const std::exception& e)
 	{
 		std::cerr <<  "res: "<< e.what() << '\n';
+		// exit(1);
 		Parser::lex()->set_input(e.what());
 		int	code = atoi(Parser::lex()->next_token(false).c_str());
 		if (checkError(code))
