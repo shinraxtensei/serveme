@@ -113,7 +113,10 @@ void	Response::sendFile()
 	{
 		this->fileRead.open(this->newPath.c_str(), std::ios::binary);
 		if (!this->fileRead.good())
+		{
+			std::cout << "couldn't open : " << this->newPath << std::endl;
 			throw std::runtime_error(E500);
+		}
 		std::string	extension;
 		std::string	contentType;
 		std::string::size_type dotIndex = this->newPath.rfind('.');
@@ -144,6 +147,7 @@ void	Response::sendFile()
 	}
 	if (this->responseSent == 1 && this->sendPos == this->contentLength)
 	{
+		this->fileRead.close();
 		this->client->request->state = DONE;
 		std::cout << GREEN << "DONE"  << std::endl;
 	}
