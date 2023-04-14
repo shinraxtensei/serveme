@@ -92,7 +92,7 @@ void	Response::sendDirectory()
 			"Content-Type: text/html\r\n"
 			"Accept-Ranges: none\r\n"
 			"Content-Length: " + ss.str() + "\r\n"
-			"Connection: close\r\n\r\n";
+			"Connection: keep-alive\r\n\r\n";
 		return ;
 	}
 	if (this->responseSent == 1 && this->sendPos == this->body.size())
@@ -138,10 +138,10 @@ void	Response::sendFile()
 		"Accept-Ranges: none\r\n"
 		"Content-Length: "
 		+ std::to_string(this->contentLength) + "\r\n"
-		"Set-Cookie: " + "session_id=" + this->client->session.session_id +
-		" Path=" + this->client->session.path + "\r\n" +
-		"Set-Cookie: " + "session_expires=" + GetFutureTime() + "\r\n" + 
-		"Set-Cookie: " + "Max-Age: " + std::to_string(std::time(0) + TIMEOUT) + "\r\n" +
+		// "Set-Cookie: " + "session_id=" + this->client->session.session_id +
+		// " Path=" + this->client->session.path + "\r\n" +
+		// "Set-Cookie: " + "session_expires=" + GetFutureTime() + "\r\n" + 
+		// "Set-Cookie: " + "Max-Age: " + std::to_string(std::time(0) + TIMEOUT) + "\r\n" +
 		"Connection: keep-alive\r\n\r\n";
 		return ;
 	}

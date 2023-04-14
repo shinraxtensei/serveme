@@ -251,8 +251,9 @@ void Request::ParseBody()
         {
             this->bodyString = this->bodyString.substr(0, this->contentLength);
             std::cout << RED  << this->bodyString.size() << RESET << std::endl;
-            std::cout << RED << "END" << RESET << std::endl;
+            std::cout << CYAN << "END"  << std::endl;
             this->state = Stat::END;
+            // exit(0);
         }
     }
 

@@ -25,7 +25,8 @@ void	Response::handleMultipart()
 				std::string	extension;
 				for (i = this->contentTypes.begin(); i != this->contentTypes.end(); i++)
 				{
-					if ((*it).second.content_type == (*i).second)
+					// if ((*it).second.content_type == (*i).second)
+					if ((*it).second.content_type.find((*i).second) != std::string::npos)
 					{
 						extension = (*i).first;
 						break ;
@@ -45,7 +46,6 @@ void	Response::handleMultipart()
 			if (!this->writeMultipart.good())
 				throw std::runtime_error(E500);
 			std::string	store = (*it).second.data.substr((*it).second.pos, toStore);
-			// this->writeMultipart.write(store.c_str(), store.size());
 			this->writeMultipart << store;
 			this->writeMultipart.close();
 			(*it).second.pos += toStore;
@@ -66,10 +66,6 @@ void	Response::handleMultipart()
 
 void	Response::handleNormalBody()
 {
-	if (this->client->request->bodyString.length() != 0)
-	{
-		std::cout << RED << "BODY FIH CHI HAJA AT LEAST" << RESET << std::endl;
-	}
 	std::cout << RED << "in handleNormal body" << RESET << std::endl;
 	if (this->started == 1 && this->responseSent == 1 && this->readPos == this->client->request->bodyString.length())
 	{
@@ -79,15 +75,19 @@ void	Response::handleNormalBody()
 	}
 	if (this->readPos < this->client->request->bodyString.length())
 	{
-		std::cout << "bdina flbody" << std::endl;
-		exit (1);
 		if (this->started == 0)
 		{
 			std::map<std::string, std::string>::iterator	it;
 			std::string	extension;
+			if (this->client->request->contentType.back() == '\r')
+				this->client->request->contentType.pop_back();
+			if (this->client->request->contentType.back() == '\n')
+				this->client->request->contentType.pop_back();
+	
 			for (it = this->contentTypes.begin(); it != this->contentTypes.end(); it++)
 			{
-				if ((*it).second == (this->client->request->contentType))
+				std::cout << (*it).second << std::endl;
+				if (this->client->request->contentType.find((*it).second) != std::string::npos)
 				{
 					extension = (*it).first;
 					break ;
@@ -95,6 +95,8 @@ void	Response::handleNormalBody()
 			}
 			if (it == this->contentTypes.end())
 				extension = "txt";
+			std::cout << "contentType : " << this->client->request->contentType << std::endl;
+			// exit (1);
 			static std::string	path = "upload/random." + extension;
 			this->fileWrite.open(path, std::ios_base::app);
 			if (!this->fileWrite.good())
@@ -118,6 +120,6 @@ void	Response::handleNormalBody()
 		this->responseStr = "HTTP/1.1 200 OK\r\n"
 				"Content-Type: text/html\r\n"
 				"Content-Length:" + ss.str() + " \r\n"
-				"Connection: close\r\n\r\n" + this->body;
+				"Connection: keep-alive\r\n\r\n" + this->body;
 	}
 }

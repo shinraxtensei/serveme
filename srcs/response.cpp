@@ -444,6 +444,8 @@ std::string	Response::parseCookies()
 	std::multimap<std::string , std::string >::iterator ite =  this->client->request->headers.equal_range("Cookie:").second;
 	std::string	cookies;
 	for(; it != ite; it++)
+	{
 		cookies += (*it).second;
+	}
 	return cookies; 
 }
