@@ -217,6 +217,9 @@ void Client::handleRequest()
     this->lastActivity = time(NULL);
     this->session.Expires = time(NULL) + TIMEOUT;
 
+
+
+
     if (this->request->state & (Stat::START | Stat::FIRSTLINE | Stat::HEADERS))
     {
 
@@ -228,6 +231,7 @@ void Client::handleRequest()
         char buffer[1];
         int ret;
         // ret = recv(this->fd, buffer, 1, 0);
+        // std::cout << "this->fd" << this->fd << std::endl;
         ret = read(this->fd, buffer, 1);
         if (ret == -1)
         {
@@ -255,12 +259,12 @@ void Client::handleRequest()
             if (line == "\r\n" || line == "\n")
             {
                 // if (this->request->method == "GET")
-                Client::handleCookies();
+                // Client::handleCookies();
                 this->response->GENERATE_RES = true;
-                if (this->request->method == "GET")
-                    this->request->state = Stat::END;
-                else
-                    this->request->state = Stat::BODY;
+                this->request->state = Stat::BODY;
+                // if (this->request->method == "GET")
+                    // this->request->state = Stat::END;
+                // else
             }
             if (this->request->state & Stat::FIRSTLINE)
             {
@@ -281,8 +285,8 @@ void Client::handleRequest()
     {        
         std::cout << CYAN << "STATE: " << (this->request->state == BODY ? "BODY" : "weird") << RESET << std::endl;
         
-        if (this->request->state & Stat::END)
-            return;
+        // if (this->request->state & Stat::END)
+            // return;
         
         static int flag = 0;
 
@@ -290,7 +294,6 @@ void Client::handleRequest()
 
         try {
             this->request->ParseBody();
-
         }
         catch (const std::exception& e)
         {

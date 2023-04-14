@@ -94,6 +94,7 @@ void Client::cgi_handler(){
 	// this->response->parseCookies();
     std::vector<Location>   candidates;
 
+	std::cout << "Body size" << this->request->bodyString.size() << std::endl;
 	if (this->request->method == "GET" || (this->request->method == "POST" && (unsigned long)this->request->contentLength == this->request->bodyString.size())){
         candidates = this->response->getLocations(this->server->locations);
 		/****************************************************************/
