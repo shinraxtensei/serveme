@@ -37,9 +37,11 @@ Multipart_ENV::~Multipart_ENV()
 Request::Request()
 {
 
-
+    std::cout << "Request created\n";
+    
     this->state = Stat::START;
     this->bodyType = BodyType::NONE;
+    pos = 0;
     this->host = "";
     this->connection = "";
     this->contentLength = 1024;
@@ -79,6 +81,7 @@ Request::Request(const Request &other)
 
 Request::~Request()
 {
+    std::cout << "Request destroyed\n";
 
 }
 
@@ -104,11 +107,20 @@ int checkValidChars(std::string &str)
 
 void Request::ParseFirstLine(std::string &line)
 {
+
+    // static int i = 0;
+    //     i++;
+    // if (i == 2)
+    // {
+    //     std::cout << "it enters the first line" << std::endl;
+    //     exit(0);
+    // }
+
     std::cout << CYAN << "STATE: " << (this->state == FIRSTLINE ? "FIRSTLINE" : "weird") << RESET << std::endl;
 
     this->client = Servme::getCore()->map_clients[this->client_fd];
     
-    this->client->selectServer();
+    // this->client->selectServer();
 
 
 
@@ -125,7 +137,7 @@ void Request::ParseFirstLine(std::string &line)
     this->url = Parser::lex()->next_token(true);
     this->version = Parser::lex()->next_token(true);
 
-    this->client->session.path = this->url;
+  
 
     if (std::find(knownMethods.begin(), knownMethods.end(), this->method) == knownMethods.end())
         throw std::runtime_error(E405);
@@ -144,6 +156,8 @@ void Request::ParseHeaders(std::string &line)
 {
     std::cout << CYAN << "STATE: " << (this->state == HEADERS ? "HEADERS" : "weird") << RESET << std::endl;
 
+    this->client = Servme::getCore()->map_clients[this->client_fd];
+
     if (line == "\r\n" || line == "\n")
         return;
 
@@ -161,7 +175,6 @@ void Request::ParseHeaders(std::string &line)
     if (key == "Host:" )
     {
         this->host = value;
-        this->client = Servme::getCore()->map_clients[this->client_fd]; //TODO: change this to be in the constructor 
         this->client->selectServer();
 
     }
@@ -278,7 +291,7 @@ std::string nextLine(int &pos , std::string &str)
 
 void Request::ParseChunkedBody() {
     static size_t chunkSize = 0;
-    static int pos = 0;
+    this->pos = 0;
     static std::string data;
 
     if (this->state == Stat::END) {
@@ -299,7 +312,7 @@ void Request::ParseChunkedBody() {
 
         std::cout << BOLDYELLOW << "STAT: CHUNKED SIZE"  << RESET << std::endl;
         std::string line ;
-        line = nextLine(pos , this->bodyString);
+        line = nextLine(this->pos , this->bodyString);
         // std::getline(ss, line);
         // line.erase(line.find_first_of("\r\n"), std::string::npos);
         // std::cout << "line: " << line  << "size: " << line.size() << std::endl;
@@ -333,7 +346,7 @@ void Request::ParseChunkedBody() {
 
         while(1)
         {
-            line = nextLine(pos , this->bodyString);
+            line = nextLine(this->pos , this->bodyString);
             if (line == "EOF")
                 return;
             while(chunkSize > 0 && line.size() > 0)
@@ -364,7 +377,8 @@ void Request::ParseChunkedBody() {
 void Request::ParseMultiPartBody()
 {
     // std::cout << GREEN << "BODY: " << this->bodyString << RESET << std::endl;
-    static int pos = 0;
+    // static int pos = 0;
+    this->pos = 0;
     static std::string data = "";
     static std::string fieldname = "";
     static std::string filename = "";
@@ -382,9 +396,9 @@ void Request::ParseMultiPartBody()
 
 
 
-    while(pos < (int)this->bodyString.size())
+    while(this->pos < (int)this->bodyString.size())
     {
-        line = nextLine(pos , this->bodyString);
+        line = nextLine(this->pos , this->bodyString);
         if (line == "EOF")
             return;
 

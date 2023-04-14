@@ -111,6 +111,7 @@ class Request
         std::stringstream ss;
         std::ofstream body;
         std::string bodyString;
+        int pos;
 
         int 		contentLength;
         std::string transferEncoding;
