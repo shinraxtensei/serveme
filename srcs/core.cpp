@@ -149,27 +149,41 @@ void Core::removeClient(Client &client)
 void reset(Client *client)
 {
 
+    delete client->request;
+    delete client->response;
+    delete client->cgi;
+
+
+    client->request = new Request();
+    client->response = new Response();
+    client->cgi = new Cgi();
+
+    client->server = nullptr;
+	client->location = nullptr;
+    client->request->client_fd = client->fd;
+    client->response->client_fd = client->fd;
+    
     // std::cout <<RESET <<  "resetting client\n";
-    client->request->state = START;
-    client->request->multipart_env.clear();
+    // client->request->state = START;
+    // client->request->multipart_env.clear();
     // client->request->body.clear();
     // client->request->headers.clear();
     // client->request->method.clear();
     // client->request->url.clear();
     // client->request->version.clear();
-    client->request->connection.clear();
-    client->request->contentLength = 0;
-    client->request->transferEncoding.clear();
-    client->request->boundary.clear();
+    // client->request->connection.clear();
+    // client->request->contentLength = 0;
+    // client->request->transferEncoding.clear();
+    // client->request->boundary.clear();
     
     
     
-    client->response->responseSent = 0;
-    client->response->sendPos = 0;
-    client->response->contentTypes.clear();
-    client->response->responseStr.clear();
-    client->response->readPos = 0;
-    client->response->sendPos = 0;
+    // client->response->responseSent = 0;
+    // client->response->sendPos = 0;
+    // client->response->contentTypes.clear();
+    // client->response->responseStr.clear();
+    // client->response->readPos = 0;
+    // client->response->sendPos = 0;
 
 
 
