@@ -12,7 +12,7 @@ void	Response::handleDelete()
 			this->responseStr = "HTTP/1.1 200 OK\r\n"
 								"Content-Type: text/html\r\n"
 								"Content-Length: 0\r\n"
-								"Connection: close\r\n\r\n";
+								"Connection: keep-alive\r\n\r\n";
 			send(this->client_fd, this->responseStr.c_str(), this->responseStr.length(), 0);
 			// dont send here
 		}
