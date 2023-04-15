@@ -1,12 +1,18 @@
-# Base image
-FROM debian:buster
 
-# Install Siege
+# Start from the latest Debian image
+FROM debian:latest
+
+# Update the package repository and install dependencies
 RUN apt-get update && \
-    apt-get install -y siege
+    apt-get install -y curl gcc make tar
 
-# Set the entrypoint to Siege
+# Download and install Siege
+RUN curl -L http://download.joedog.org/siege/siege-latest.tar.gz | tar zx && \
+    cd siege-* && \
+    ./configure && \
+    make && \
+    make install
+
 ENTRYPOINT ["siege"]
-
-# Set the default command to test your web server (replace with your own URL)
+# Set the default command for the container
 CMD ["-c", "3", "-r", "1", "10.11.9.7:6969"]

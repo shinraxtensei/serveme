@@ -8,7 +8,6 @@ Core::Core()
 
 Core::~Core()
 {
-
     for (size_t i = 0; i < this->pollFds.size(); i++)
     {
         if (this->pollFds[i].fd != -1)
@@ -163,29 +162,6 @@ void reset(Client *client)
     client->request->client_fd = client->fd;
     client->response->client_fd = client->fd;
     
-    // std::cout <<RESET <<  "resetting client\n";
-    // client->request->state = START;
-    // client->request->multipart_env.clear();
-    // client->request->body.clear();
-    // client->request->headers.clear();
-    // client->request->method.clear();
-    // client->request->url.clear();
-    // client->request->version.clear();
-    // client->request->connection.clear();
-    // client->request->contentLength = 0;
-    // client->request->transferEncoding.clear();
-    // client->request->boundary.clear();
-    
-    
-    
-    // client->response->responseSent = 0;
-    // client->response->sendPos = 0;
-    // client->response->contentTypes.clear();
-    // client->response->responseStr.clear();
-    // client->response->readPos = 0;
-    // client->response->sendPos = 0;
-
-
 
 }
 
@@ -207,7 +183,7 @@ void Core::handleConnections()
     
     while (true)
     {
-        int ret = poll(this->pollFds.data(), this->pollFds.size(), 20);
+        int ret = poll(this->pollFds.data(), this->pollFds.size(), 10);
         if (ret < 0)
             throw std::runtime_error("poll() failed");
  
@@ -233,7 +209,8 @@ void Core::handleConnections()
                     // std::cout << "methods:"  << this->map_clients[this->pollFds[i].fd]->request->method << std::endl;
 
                     this->pollFds[i].events |= POLLOUT;
-                    this->map_clients[this->pollFds[i].fd]->generateResponse();
+                    if (this->map_clients[this->pollFds[i].fd]->request->method.size() != 0)
+                        this->map_clients[this->pollFds[i].fd]->generateResponse();
                     this->pollFds[i].events &= ~POLLOUT;
                 }
     
@@ -293,6 +270,9 @@ void Core::handleConnections()
                 std::cout << "dissconected\n";
                 this->pollFds[i].fd = -1;
                 this->pollFds.erase(this->pollFds.begin() + i);
+                // this->map_clients[this->pollFds[i].fd;
+                delete this->map_clients[this->pollFds[i].fd];
+                this->map_clients.erase(this->pollFds[i].fd);
                 i--;
 
             }
@@ -302,6 +282,8 @@ void Core::handleConnections()
                 std::cout << "error\n";
                 this->pollFds[i].fd = -1;
                 this->pollFds.erase(this->pollFds.begin() + i);
+                delete this->map_clients[this->pollFds[i].fd];
+                this->map_clients.erase(this->pollFds[i].fd);
                 i--;
             }
         }
