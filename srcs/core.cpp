@@ -207,18 +207,14 @@ void Core::handleConnections()
 
                     std::cout << "GENERATE_RES\n";
                     this->map_clients[this->pollFds[i].fd]->selectServer();
-                    // std::cout << "url:"  << this->map_clients[this->pollFds[i].fd]->request->url << std::endl;
-                    // std::cout << "req  : " << this->map_clients[this->pollFds[i].fd]->request << std::endl;
-                    // std::cout << "methods:"  << this->map_clients[this->pollFds[i].fd]->request->method << std::endl;
+
 
                     this->pollFds[i].events |= POLLOUT;
                     if (this->map_clients[this->pollFds[i].fd]->request->method.size() != 0)
                         this->map_clients[this->pollFds[i].fd]->generateResponse();
                     this->pollFds[i].events &= ~POLLOUT;
                 }
-    
-                    // this->map_clients[this->pollFds[i].fd]->request->state = START;
-                // check_client_inactivity(*this->map_clients[this->pollFds[i].fd] , TIMEOUT);
+                check_client_inactivity(*this->map_clients[this->pollFds[i].fd] , TIMEOUT);
             }
 
   
@@ -294,3 +290,4 @@ void Core::handleConnections()
         }
     }
 }
+
