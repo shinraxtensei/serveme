@@ -195,6 +195,7 @@ void	Response::matchLocation(std::vector<Location> locations)
 		std::sort(candidates.begin(), candidates.end(), compareFields);
 		for (iter = candidates.begin(); iter < candidates.end(); iter++)
 		{
+			iter->path = normalizePath(iter->path);
 			if (LocationFound(iter->path, this->client->request->url))
 			{
 				this->client->location = new Location(*iter);
@@ -356,28 +357,17 @@ void	Response::parseUrl()
 	std::string				query;
 	size_t					pos;
 
+	pos = std::string::npos;
 	if (this->client)
 	{
 		if (this->client->request)
 		{
 			if (this->client->request->url != "")
-				pos = this->client->request->url.find('?');
-			else
 			{
-				std::cout << "ta kifach wslna lhna bla url" << std::endl;
-				exit (1);
+				pos = this->client->request->url.find('?');
+				this->client->request->url = normalizePath(this->client->request->url);
 			}
 		}
-		else
-		{
-			std::cout << "ta kifach wslna lhna bla request" << std::endl;
-			exit (1);
-		}
-	}
-	else
-	{
-		std::cout << "ta kifach wslna lhna bla client" << std::endl;
-		exit (1);
 	}
 	if (pos != std::string::npos)
 	{
@@ -395,10 +385,6 @@ void    Response::handleNormalReq()
 	this->client = Servme::getCore()->map_clients[this->client_fd];
 	try
 	{
-		// std::cout << BLUE << "method: " << this->client->request->method << std::endl;
-		// std::cout << "url: " << this->client->request->url << std::endl;
-		// std::cout << "state: " << this->client->request->state  << RESET << std::endl;
-
 		if (this->responseSent == 0)
 		{
 			if (this->checkReturn())
@@ -419,26 +405,18 @@ void    Response::handleNormalReq()
 			this->handleDirectory();
 		if (this->responseSent == 0)
 		{
-			std::cout << CYAN << "here " << RESET << std::endl;
 			send(this->client_fd, this->responseStr.c_str(), this->responseStr.length(), 0);
 			this->responseSent = 1;
-			// this->client->request->state = DONE;
 		}
 	}
 	catch(const std::exception& e)
 	{
-		std::cerr <<  "res: "<< e.what() << '\n';
-		// exit(1);
 		Parser::lex()->set_input(e.what());
 		int	code = atoi(Parser::lex()->next_token(false).c_str());
 		if (checkError(code))
 			this->responseStr = generateError(e.what(), DEFAULT);
 		else
 			this->responseStr = generateError(e.what(), MINE);
-
-		// this->responseStr.append("\r\n");
-		// this->responseStr.append();
-
 		send(this->client_fd, this->responseStr.c_str(), this->responseStr.length(), 0);
 		this->responseSent = 1;
 		this->client->request->state = DONE;

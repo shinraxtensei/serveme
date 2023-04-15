@@ -70,11 +70,7 @@ void	Response::sendDirectory()
 			{
 				std::string path = this->newPath + "/" + filename;
 				if (stat(path.c_str(), &infos) < 0)
-				{
-					std::cout << "hna trat chi haja" << std::endl;
-					exit (1);
 					throw std::runtime_error(E500);
-				}
 				std::string size;
 				if (S_ISDIR(infos.st_mode))
 					size = "-";
@@ -105,9 +101,8 @@ void	Response::sendDirectory()
 	else
 		toSend = this->body.size() - this->sendPos;
 	std::string toSendStr = this->body.substr(this->sendPos, toSend);
-	this->sendPos += toSend;
-	send(this->client_fd, toSendStr.c_str(), toSendStr.length(), 0);
-	
+	int sent = send(this->client_fd, toSendStr.c_str(), toSendStr.length(), 0);
+	this->sendPos += sent;
 }
 
 void	Response::sendFile()
@@ -116,10 +111,7 @@ void	Response::sendFile()
 	{
 		this->fileRead.open(this->newPath.c_str(), std::ios::binary);
 		if (!this->fileRead.good())
-		{
-			std::cout << "couldn't open : " << this->newPath << std::endl;
 			throw std::runtime_error(E500);
-		}
 		std::string	extension;
 		std::string	contentType;
 		std::string::size_type dotIndex = this->newPath.rfind('.');
@@ -141,10 +133,6 @@ void	Response::sendFile()
 		"Accept-Ranges: none\r\n"
 		"Content-Length: "
 		+ std::to_string(this->contentLength) + "\r\n"
-		// "Set-Cookie: " + "session_id=" + this->client->session.session_id +
-		// " Path=" + this->client->session.path + "\r\n" +
-		// "Set-Cookie: " + "session_expires=" + GetFutureTime() + "\r\n" + 
-		// "Set-Cookie: " + "Max-Age: " + std::to_string(std::time(0) + TIMEOUT) + "\r\n" +
 		"Connection: keep-alive\r\n\r\n";
 		return ;
 	}
@@ -152,7 +140,6 @@ void	Response::sendFile()
 	{
 		this->fileRead.close();
 		this->client->request->state = DONE;
-		std::cout << GREEN << "DONE"  << std::endl;
 	}
 	if (this->sendPos < this->contentLength)
 	{
@@ -163,7 +150,7 @@ void	Response::sendFile()
 			size = this->contentLength - this->sendPos;
 		char	buffer[size];
 		this->fileRead.read(buffer, sizeof(buffer));
-		this->sendPos += size;
-		send(this->client_fd, buffer, sizeof(buffer), 0);
+		size_t sent = send(this->client_fd, buffer, sizeof(buffer), 0);
+		this->sendPos += sent;
 	}
 }
