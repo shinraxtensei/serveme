@@ -135,7 +135,10 @@ void Core::removeClient(Client &client)
         if (this->pollFds[i].fd == client.fd)
         {
             this->pollFds[i].fd = -1;
+            close(client.fd);
             this->pollFds.erase(this->pollFds.begin() + i);
+            // delete this->map_clients[client.fd];
+            this->map_clients.erase(client.fd);
             i--;
             return;
         }
@@ -183,7 +186,7 @@ void Core::handleConnections()
     
     while (true)
     {
-        int ret = poll(this->pollFds.data(), this->pollFds.size(), 10);
+        int ret = poll(this->pollFds.data(), this->pollFds.size(), 60);
         if (ret < 0)
             throw std::runtime_error("poll() failed");
  
@@ -269,6 +272,7 @@ void Core::handleConnections()
             {
                 std::cout << "dissconected\n";
                 this->pollFds[i].fd = -1;
+                close(this->pollFds[i].fd);
                 this->pollFds.erase(this->pollFds.begin() + i);
                 // this->map_clients[this->pollFds[i].fd;
                 delete this->map_clients[this->pollFds[i].fd];
@@ -281,6 +285,7 @@ void Core::handleConnections()
             {  
                 std::cout << "error\n";
                 this->pollFds[i].fd = -1;
+                close(this->pollFds[i].fd);
                 this->pollFds.erase(this->pollFds.begin() + i);
                 delete this->map_clients[this->pollFds[i].fd];
                 this->map_clients.erase(this->pollFds[i].fd);

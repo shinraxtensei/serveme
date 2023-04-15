@@ -107,6 +107,7 @@ void	Response::sendDirectory()
 	std::string toSendStr = this->body.substr(this->sendPos, toSend);
 	this->sendPos += toSend;
 	send(this->client_fd, toSendStr.c_str(), toSendStr.length(), 0);
+	
 }
 
 void	Response::sendFile()
