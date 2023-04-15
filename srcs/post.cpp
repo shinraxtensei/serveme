@@ -16,7 +16,6 @@ void	Response::handleMultipart()
 	std::multimap<std::string, Multipart_ENV>::iterator	it;
 	for (it = this->client->request->multipart_env.begin(); it != this->client->request->multipart_env.end(); it++)
 	{
-		std::cout << "kandkhoooool" << std::endl;
 		if ((*it).second.pos < (*it).second.data.length())
 		{
 			if ((*it).second.file_name == "")
@@ -66,7 +65,6 @@ void	Response::handleMultipart()
 
 void	Response::handleNormalBody()
 {
-	std::cout << RED << "in handleNormal body" << RESET << std::endl;
 	if (this->started == 1 && this->responseSent == 1 && this->readPos == this->client->request->bodyString.length())
 	{
 		this->client->request->state = DONE;
@@ -86,7 +84,6 @@ void	Response::handleNormalBody()
 	
 			for (it = this->contentTypes.begin(); it != this->contentTypes.end(); it++)
 			{
-				std::cout << (*it).second << std::endl;
 				if (this->client->request->contentType.find((*it).second) != std::string::npos)
 				{
 					extension = (*it).first;
@@ -95,8 +92,6 @@ void	Response::handleNormalBody()
 			}
 			if (it == this->contentTypes.end())
 				extension = "txt";
-			std::cout << "contentType : " << this->client->request->contentType << std::endl;
-			// exit (1);
 			static std::string	path = "upload/random." + extension;
 			this->fileWrite.open(path, std::ios_base::app);
 			if (!this->fileWrite.good())

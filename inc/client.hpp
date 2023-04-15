@@ -171,21 +171,15 @@ class Response
 
 			std::ofstream	file1;
 
-			int	step = 0;
-
 			
 			void	handleNormalReq();
 			void	storeMimeTypes();
 			void	sendChunked(std::ifstream &file);
-
 			std::string	generateError(std::string error, int flag);
-
 			int	checkAccess(std::string path);
-
 			int		checkError(int	error);
 
 //-------new methods----------------
-			int	sendFlag = 0;
 			std::ifstream	fileRead;
 			std::ofstream	fileWrite;
 			std::ofstream 	writeMultipart;
@@ -265,4 +259,5 @@ class Client
 };
 
 std::string GetFutureTime();
-std::string generateSessionId(size_t length) ;
+std::string generateSessionId(size_t length);
+std::string	normalizePath(std::string	path);

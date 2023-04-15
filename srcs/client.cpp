@@ -336,12 +336,6 @@ void Client::handleRequest()
 void Client::generateResponse()
 {
 	std::cout << "in generateResponse" << std::endl;
-	// this->response->client = Servme::getCore()->map_clients[this->response->client_fd];
-    std::cout << "state: " << this->request->state << std::endl;
-    std::cout << "this->request->uri : " << this->request->url << std::endl;
-    std::cout << "this->request->method : " << this->request->method << std::endl;
-
-
 	this->response->checkCgi();
 	if (this->cgiFlag == 1)
         cgi_handler();
