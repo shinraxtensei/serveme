@@ -39,6 +39,8 @@ void	Response::handleGet(int type)
 		}
 		else
 		{
+			// std::cout << "no indexes found" << std::endl;
+			// exit (1);
 			if (this->client->location->autoindex == true)
 				this->sendDirectory();
 			else
