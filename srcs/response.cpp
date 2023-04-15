@@ -4,16 +4,20 @@
 
 Response::Response()
 {
+	std::cout << "Response created" << std::endl;
 	this->GENERATE_RES = false;
 	this->responseSent = 0;
 	this->responseStr = "";
 	this->body = "";
 	this->contentLength = 0;
+	this->started = 0;
+	this->sendPos = 0;
+	this->readPos = 0;
 }
 
 Response::~Response()
 {
-	
+	std::cout << "Response destroyed" << std::endl;
 }
 
 void	Response::writeResponse()
@@ -61,7 +65,7 @@ int	Response::checkError(int error)
 	else
 	{
 		this->client->selectServer();
-			std::cout << "client: " << Servme::getCore()->map_clients[this->client_fd] << std::endl;
+			// std::cout << "client: " << Servme::getCore()->map_clients[this->client_fd] << std::endl;
 
 		if (!this->client->server->error_page.empty())
 			member = this->client->server->error_page;
@@ -241,13 +245,13 @@ int	Response::checkReturn()
 										"Location: " + this->client->location->returnUrl + "\r\n"
 										"Content-Type: text/html\r\n"
 										"Content-Length: 0\r\n"
-										"Connection: close\r\n\r\n";
+										"Connection: keep-alive\r\n\r\n";
 				else
 					this->responseStr = "HTTP/1.1 307 Temporary Redirect\r\n"
 										"Location: " + this->client->location->returnUrl + "\r\n"
 										"Content-Type: text/html\r\n"
 										"Content-Length: 0\r\n"
-										"Connection: close\r\n\r\n";
+										"Connection: keep-alive\r\n\r\n";
 				send(this->client_fd, this->responseStr.c_str(), this->responseStr.length(), 0);
 				this->responseSent = 1;
 				this->client->request->state = DONE;
@@ -265,13 +269,13 @@ int	Response::checkReturn()
 											"Location: " + this->client->server->returnUrl + "\r\n"
 											"Content-Type: text/html\r\n"
 											"Content-Length: 0\r\n"
-											"Connection: close\r\n\r\n";
+											"Connection: keep-alive\r\n\r\n";
 					else
 						this->responseStr = "HTTP/1.1 307 Temporary Redirect\r\n"
 											"Location: " + this->client->server->returnUrl + "\r\n"
 											"Content-Type: text/html\r\n"
 											"Content-Length: 0\r\n"
-											"Connection: close\r\n\r\n";
+											"Connection: keep-alive\r\n\r\n";
 					send(this->client_fd, this->responseStr.c_str(), this->responseStr.length(), 0);
 					this->responseSent = 1;
 					this->client->request->state = DONE;
@@ -391,6 +395,10 @@ void    Response::handleNormalReq()
 	this->client = Servme::getCore()->map_clients[this->client_fd];
 	try
 	{
+		// std::cout << BLUE << "method: " << this->client->request->method << std::endl;
+		// std::cout << "url: " << this->client->request->url << std::endl;
+		// std::cout << "state: " << this->client->request->state  << RESET << std::endl;
+
 		if (this->responseSent == 0)
 		{
 			if (this->checkReturn())

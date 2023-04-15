@@ -25,7 +25,7 @@ SocketWrapper::SocketWrapper(int domain, int type, int protocol)
 
 SocketWrapper::SocketWrapper(SocketWrapper const &other)
 {
-    std::cout << "SocketWrapper copy constructor\n";
+    // std::cout << "SocketWrapper copy constructor\n";
     sockfd_ = other.sockfd_;
     listenPair = other.listenPair;
 }

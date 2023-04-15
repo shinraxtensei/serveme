@@ -214,9 +214,15 @@ std::string Lexer::next_token(bool consume)
             break;
         token += input_stream.get();
     }
+
     char last = token.back();
-    if (last == -1)
+    char first = token.front();
+    if (last == -1 )
         token.pop_back();
+    if (first == -112)
+        token.erase(token.begin());
+
+
 
     token.erase(std::remove(token.begin(), token.end(), '\r'), token.end());
     token.erase(std::remove(token.begin(), token.end(), '\n'), token.end());

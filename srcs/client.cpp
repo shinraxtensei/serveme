@@ -1,18 +1,5 @@
 #include "../inc/servme.hpp"
 
-// #include "../inc/client.hpp"
-// #include <algorithm>
-// #include <cstddef>
-// #include <cstdlib>
-// #include <cstring>
-// #include <fstream>
-// #include <ios>
-// #include <iostream>
-// #include <ostream>
-// #include <string>
-// #include <sys/_types/_pid_t.h>
-// #include <sys/fcntl.h>
-// #include <sys/socket.h>
 
 
 // #include <vector>
@@ -85,6 +72,12 @@ Client::~Client()
         close(this->pollfd_.fd);
         this->pollfd_.fd = -1;
     }
+    if (this->socket != nullptr)
+    {
+        delete this->socket;
+        this->socket = nullptr;
+    }
+
     if (this->addr != nullptr)
     {
         delete this->addr;
@@ -223,20 +216,21 @@ void Client::handleRequest()
     if (this->request->state & (Stat::START | Stat::FIRSTLINE | Stat::HEADERS))
     {
 
-        if (this->request->state & Stat::FIRSTLINE)
-        {
+        // if (this->request->state & Stat::FIRSTLINE)
+        // {
     
-        }
+        // }
         static std::string line = "";
         char buffer[1];
         int ret;
-        // ret = recv(this->fd, buffer, 1, 0);
         // std::cout << "this->fd" << this->fd << std::endl;
-        ret = read(this->fd, buffer, 1);
+        // ret = read(this->fd, buffer, 1);
+        ret = recv(this->fd, buffer, 1, 0);
         if (ret == -1)
         {
             std::cerr << "Error: recv() failed" << std::endl;
-            return;
+            this->core->removeClient(*this);
+            // return;
         }
         else if (ret == 0)
         {
@@ -244,19 +238,19 @@ void Client::handleRequest()
             this->core->removeClient(*this);
             // Servme::getCore()->map_clients[this->fd].pollfd_.fd = -1;
         }
-        line += buffer[0];
+        this->request->line += buffer[0];
         this->request->buffer += buffer[0];
 
-        if ((line.find("\r") != std::string::npos || line.find("\n") != std::string::npos || line.find("\r\n") != std::string::npos ) && this->request->state & Stat::START)
+        if ((this->request->line.find("\r") != std::string::npos || this->request->line.find("\n") != std::string::npos || this->request->line.find("\r\n") != std::string::npos ) && this->request->state & Stat::START)
         {
-            line = "";
+            this->request->line = "";
             return;
         }
         if (this->request->state & Stat::START)
             this->request->state = Stat::FIRSTLINE;
-        if (line.find("\r\n") != std::string::npos || line.find("\n") != std::string::npos)
+        if (this->request->line.find("\r\n") != std::string::npos || this->request->line.find("\n") != std::string::npos)
         {
-            if (line == "\r\n" || line == "\n")
+            if (this->request->line == "\r\n" || this->request->line == "\n")
             {
                 // if (this->request->method == "GET")
                 // Client::handleCookies();
@@ -268,14 +262,14 @@ void Client::handleRequest()
             }
             if (this->request->state & Stat::FIRSTLINE)
             {
-                this->request->ParseFirstLine(line);
+                this->request->ParseFirstLine(this->request->line);
                 this->request->state = Stat::HEADERS;
             }
             else if (this->request->state & Stat::HEADERS)
             {
-                this->request->ParseHeaders(line);
+                this->request->ParseHeaders(this->request->line);
             }
-            line = "";
+            this->request->line = "";
         }
         if (this->request->buffer.find("\r\n\r\n") != std::string::npos)
             this->request->state = Stat::BODY;
@@ -300,7 +294,7 @@ void Client::handleRequest()
 
             if (std::string(e.what()) == "Disconnected")
             {
-                std::cout << "disconnection" << std::endl;
+                std::cout <<  "disconnection" << std::endl;
                 this->core->removeClient(*this);
             }
             // else

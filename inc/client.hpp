@@ -100,6 +100,7 @@ class Request
         Core *core;
         Client *client; // this is a pointer to its parent client
         std::string buffer; 
+        std::string line;
 
         
 

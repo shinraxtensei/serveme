@@ -42,6 +42,7 @@ Request::Request()
     this->state = Stat::START;
     this->bodyType = BodyType::NONE;
     pos = 0;
+    this->line = "";
     this->host = "";
     this->connection = "";
     this->contentLength = 1024;
@@ -129,18 +130,24 @@ void Request::ParseFirstLine(std::string &line)
     
     std::vector<std::string> knownMethods;
     knownMethods = Parser::lex()->getStringTokens("GET POST DELETE");
-    
- 
+    std::cout << "line:" << line << std::endl; 
+    std::cout << RED << (int)line.c_str()[0] << RESET << std::endl;
     Parser::lex()->set_input(line);
-
+    
     this->method = Parser::lex()->next_token(true);
     this->url = Parser::lex()->next_token(true);
     this->version = Parser::lex()->next_token(true);
 
+    // std::cout << "method: " << this->method << std::endl;
+    // std::cout << "url: " << this->url << std::endl;
+    // std::cout << "version: " << this->version << std::endl;
   
 
     if (std::find(knownMethods.begin(), knownMethods.end(), this->method) == knownMethods.end())
+    {
+        std::cout << "method not found" << std::endl;
         throw std::runtime_error(E405);
+    }
 
     if (this->url.size() > 2048)
         throw std::runtime_error(E414);
@@ -149,6 +156,8 @@ void Request::ParseFirstLine(std::string &line)
 
     if (this->version.find("HTTP/1.1") == std::string::npos && this->version.find("HTTP/1.0") == std::string::npos)
         throw std::runtime_error(E505);
+
+    return;
 
 }
 
@@ -224,7 +233,6 @@ void Request::ParseHeaders(std::string &line)
 
 
     this->headers.insert(std::make_pair(key, value));
-
 }
 
 
