@@ -24,7 +24,6 @@ void	Response::handleMultipart()
 				std::string	extension;
 				for (i = this->contentTypes.begin(); i != this->contentTypes.end(); i++)
 				{
-					// if ((*it).second.content_type == (*i).second)
 					if ((*it).second.content_type.find((*i).second) != std::string::npos)
 					{
 						extension = (*i).first;
