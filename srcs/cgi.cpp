@@ -74,11 +74,25 @@ std::string Cgi::parseSurfix(std::string path_info){
 	return surfix;
 }
 
+std::vector<Location>	Response::getLocations2(std::vector<Location> locations)
+{
+	std::vector<Location>	candidates;
+	std::vector<Location>::iterator	iter;
+	this->client = Servme::getCore()->map_clients[this->client_fd];
+
+	iter = locations.begin();
+	for (iter = this->client->server->locations.begin(); iter < this->client->server->locations.end(); iter++)
+	{
+			candidates.push_back(*iter);
+	}
+	return (candidates);
+}
+
 void Client::cgi_handler(){
     std::vector<Location>   candidates;
 
 	if (this->request->method == "GET" || (this->request->method == "POST" && (unsigned long)this->request->contentLength == this->request->bodyString.size())){
-        candidates = this->response->getLocations(this->server->locations);
+        candidates = this->response->getLocations2(this->server->locations);
 		/****************************************************************/
 		int		pipefd[2];
 		pid_t	pid = -1;
@@ -98,7 +112,7 @@ void Client::cgi_handler(){
 		std::string cookie_value = this->response->parseCookies();
 		cookie_value = cookie_value.substr(0, cookie_value.find("\n") - 1);
 		//--------------------------------------------------------------
-        surfix = "\\." + surfix + "$";
+        // surfix = "\\." + surfix + "$";
         tmp_surfix = "\\." + surfix + "$";
 		try {
         	for (iter_cand = candidates.begin(); iter_cand < candidates.end(); iter_cand++)
@@ -118,6 +132,7 @@ void Client::cgi_handler(){
 				std::string body = this->response->generateError(E503, 0);
 				throw body;
 			}
+
 			if (iter_cand == candidates.end())
 				throw this->response->generateError(E503, 0);
 			/*	**************************************	*/
