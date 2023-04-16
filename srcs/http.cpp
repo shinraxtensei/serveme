@@ -3,23 +3,11 @@
 
 
 
-// ! : not used for now but can have important impolementations , so not deleting it for now 
-
-
-
-
 
 
 Http::Http()
 {
-    // std::cout << "Http constructor called : " << this << std::endl;
-    // this->http_directives.insert(std::pair<std::string, std::vector<std::string> >("root", std::vector<std::string> (1 , "/html")));
-    // this->http_directives.insert(std::pair<std::string, std::vector<std::string> >("", std::vector<std::string> (1, "index.html")));
-    // // this->http_directives.insert(std::pair<std::string, std::vector<std::string> >("error_page", std::vector<std::string> (1 , "404")));
-    // this->http_directives.insert(std::pair<std::string, std::vector<std::string> >("autoindex", std::vector<std::string> (1 , "off")));
-    // this->http_directives.insert(std::pair<std::string, std::vector<std::string> >("client_max_body_size", std::vector<std::string> (1 , "1024")));
-    // this->http_directives.insert(std::pair<std::string, std::vector<std::string> >("allowed_methods", std::vector<std::string> ( 1 , "GET")));
-
+ 
     this->index.push_back("");
     this->root = "/html";
     this->autoindex = false;
@@ -28,15 +16,6 @@ Http::Http()
     this->allowed_methods.push_back("POST");
     this->allowed_methods.push_back("DELETE");
 
-    // this->error_page.insert(std::pair<int, std::string> (404, "404.html"));
-
-
-    // this->http_directives["root"] = std::vector<std::string> (1 , "/html") ;
-    // this->http_directives["index"] = std::vector<std::string> (1, "index.html");
-    // this->http_directives["error_page"] = std::vector<std::string> (1 , "404");
-    // this->http_directives["autoindex"] = std::vector<std::string> (1 , "off");
-    // this->http_directives["client_max_body_size"] = std::vector<std::string> (1 , "1");
-    // this->http_directives["allowed_methods"] = std::vector<std::string> ( 1 , "GET");
 }
 
 void Parser::init_http()
@@ -97,7 +76,7 @@ void Parser::init_http()
 
 Http::~Http()
 {
-    // std::cout << "Http destructor" << std::endl;
+
 }
 
 
@@ -109,19 +88,7 @@ Http::~Http()
 
 Server::Server()
 {
-    // std::cout << "Server constructor called" << std::endl;
-
-
-    // this->server_directives.insert(std::pair<std::string, std::vector<std::string> >("root", std::vector<std::string> (1 , "/html")));
-    // this->server_directives.insert(std::pair<std::string, std::vector<std::string> >("", std::vector<std::string> (1, "index.html")));
-    // this->server_directives.insert(std::pair<std::string, std::vector<std::string> >("error_page", std::vector<std::string> (1 , "404")));
-    // this->server_directives.insert(std::pair<std::string, std::vector<std::string> >("autoindex", std::vector<std::string> (1 , "off")));
-    // this->server_directives.insert(std::pair<std::string, std::vector<std::string> >("client_max_body_size", std::vector<std::string> (1 , "1024")));
-    // this->server_directives.insert(std::pair<std::string, std::vector<std::string> >("allowed_methods", std::vector<std::string> ( 1 , "GET")));
-
-    // this->server_directives.insert(std::pair<std::string, std::vector<std::string> >("listen", std::vector<std::string> (1 , "6969")));
-    // this->server_directives.insert(std::pair<std::string, std::vector<std::string> >("server_name", std::vector<std::string> (1 , "localhost")));
-
+   
     this->ipPort.first = "NONE";
     this->ipPort.second = 6969;
 
@@ -129,8 +96,7 @@ Server::Server()
     this->returnType = "";
     this->returnUrl = "";
     this->server_name = "localhost";
-    // this->server_directives["listen"] = std::vector<std::string> (1 , "8080");
-    // this->server_directives["server_name"] = std::vector<std::string> (1 , "localhost");
+
 }
 
 
@@ -177,7 +143,7 @@ void Parser::init_servers()
         {
             if (Parser::getHttp()->servers[i].server_directives.find("root")->second.size() != 1)
             {
-                std::cout  << Parser::getHttp()->servers[i].server_directives.find("root")->second.size() << std::endl;
+                //std::cout  << Parser::getHttp()->servers[i].server_directives.find("root")->second.size() << std::endl;
                 throw std::runtime_error("Error: root directive can only have one value");
             }
             Parser::getHttp()->servers[i].root = Parser::getHttp()->servers[i].server_directives.find("root")->second[0];
@@ -216,7 +182,7 @@ void Parser::init_servers()
         // autoindex
         if (Parser::getHttp()->servers[i].server_directives.find("autoindex") != Parser::getHttp()->servers[i].server_directives.end())
         {
-            // std::cout << RED << "autoindex: " << Parser::getHttp()->servers[i].server_directives["autoindex"][1] << RESET <<std::endl;
+            // //std::cout << RED << "autoindex: " << Parser::getHttp()->servers[i].server_directives["autoindex"][1] << RESET <<std::endl;
             if (Parser::getHttp()->servers[i].server_directives.find("autoindex")->second[0] == "on" || Parser::getHttp()->servers[i].server_directives.find("autoindex")->second.size() != 1)
                 Parser::getHttp()->servers[i].autoindex = true;
             else if (Parser::getHttp()->servers[i].server_directives.find("autoindex")->second[0] == "off" || Parser::getHttp()->servers[i].server_directives.find("autoindex")->second.size() != 1)
@@ -264,7 +230,7 @@ void Parser::init_servers()
 
 Server::~Server()
 {
-    // std::cout << "Server destructor" << std::endl;
+
 }
 
 
@@ -275,7 +241,7 @@ Server::~Server()
 
 Location::Location()
 {
-    // std::cout << "Location constructor called" << std::endl;
+    // //std::cout << "Location constructor called" << std::endl;
     this->location_directives.insert(std::pair<std::string, std::vector<std::string> >("path", std::vector<std::string> (1 , "/html")));
     this->location_directives.insert(std::pair<std::string, std::vector<std::string> >("return", std::vector<std::string> (1 , "200")));
     this->returned = 0;
@@ -285,8 +251,7 @@ Location::Location()
     this->Return.first = 200;
     this->Return.second = "OK";
     
-    // this->location_directives["path"] = std::vector<std::string> (1 , "/html");
-    // this->location_directives["return"] = std::vector<std::string> (1 , "200");
+
 }
 
 void Parser::init_locations(int index)
@@ -296,17 +261,7 @@ void Parser::init_locations(int index)
 
     for (size_t i = 0; i < server->locations.size(); i++)
     {
-        // //return
-        // if (server->locations[i].location_directives.find("return") != server->locations[i].location_directives.end())
-        // {
-        //     server->locations[i].Return.first = atoi(server->locations[i].location_directives["return"][0].c_str());
-        //     server->locations[i].Return.second = server->locations[i].location_directives["return"][1];
-        // }
-        // else
-        // {
-        //     server->locations[i].Return.first = server->Return.first;
-        //     server->locations[i].Return.second = server.RReturn.second;
-        // }
+
         //root
         if (server->locations[i].location_directives.find("root") != server->locations[i].location_directives.end())
         {
@@ -352,5 +307,5 @@ void Parser::init_locations(int index)
 
 Location::~Location()
 {
-    // std::cout << "Location destructor" << std::endl;
+
 }

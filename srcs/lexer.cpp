@@ -14,7 +14,7 @@ Lexer *Parser::lex()
 {
     if (Parser::ptr == nullptr)
     {
-        std::cout << "Error: No file specified" << std::endl;
+        //std::cout << "Error: No file specified" << std::endl;
         return NULL;
     }
     return ptr;
@@ -88,7 +88,7 @@ bool Lexer::errors_check()
     return true;
 }
 
-// this is the constructor for the lexer
+
 
 Lexer::Lexer(std::string filename)
 {   
@@ -124,7 +124,7 @@ Lexer::Lexer(std::string filename)
 
 void Lexer::print_input()
 {
-    std::cout << this->input << std::endl;
+    //std::cout << this->input << std::endl;
 }
 
 void Lexer::set_input(const std::string &input)

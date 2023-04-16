@@ -39,7 +39,7 @@ void	Response::handleGet(int type)
 		}
 		else
 		{
-			// std::cout << "no indexes found" << std::endl;
+			// //std::cout << "no indexes found" << std::endl;
 			// exit (1);
 			if (this->client->location->autoindex == true)
 				this->sendDirectory();
@@ -56,7 +56,7 @@ void	Response::sendDirectory()
     	DIR	*dir = opendir(this->client->path.substr(1).c_str());
 		if (dir == NULL)
 			throw std::runtime_error(E500);
-		// std::cout << "t7eeeeel" << std::endl;
+		// //std::cout << "t7eeeeel" << std::endl;
 		// exit (1);
 		std::string	body = "<html>\n<head></head>\n<body>\n<h1>Index of " + newPath + "</h1>\n"
 			"<table style=\"width: 50%\">\n"
@@ -119,8 +119,6 @@ void	Response::sendFile()
 		{
 			extension = this->newPath.substr(dotIndex + 1);
 			contentType = this->contentTypes[extension];
-			if (extension == "php")
-				contentType = "text/html";
 			if (contentType == "")
 				contentType = "text/plain";
 		}
