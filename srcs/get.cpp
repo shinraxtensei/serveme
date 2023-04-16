@@ -1,17 +1,6 @@
 #include "../inc/client.hpp"
 #include "../inc/macros.hpp"
 
-
-// int getpollfd(pollfd clientPollfd)
-// {
-// 	for (size_t i = 0; i < Servme::getCore()->pollFds.size() ; i++)
-// 	{
-// 		if (Servme::getCore()->pollFds[i].fd == clientPollfd.fd)
-// 			return i;
-// 	}
-// 	return (-1);
-// }
-
 void	Response::handleGet(int type)
 {
 	if (type == FILE)
@@ -39,8 +28,6 @@ void	Response::handleGet(int type)
 		}
 		else
 		{
-			// std::cout << "no indexes found" << std::endl;
-			// exit (1);
 			if (this->client->location->autoindex == true)
 				this->sendDirectory();
 			else
@@ -56,8 +43,6 @@ void	Response::sendDirectory()
     	DIR	*dir = opendir(this->client->path.substr(1).c_str());
 		if (dir == NULL)
 			throw std::runtime_error(E500);
-		// std::cout << "t7eeeeel" << std::endl;
-		// exit (1);
 		std::string	body = "<html>\n<head></head>\n<body>\n<h1>Index of " + newPath + "</h1>\n"
 			"<table style=\"width: 50%\">\n"
 			"<tr><td>Name</td><td>Last Modified</td><td>Size</td></tr>\n";

@@ -24,9 +24,9 @@ Http::Http()
     this->root = "/html";
     this->autoindex = false;
     this->client_max_body_size = 1024;
-    this->allowed_methods.push_back("GET");
-    this->allowed_methods.push_back("POST");
-    this->allowed_methods.push_back("DELETE");
+    // this->allowed_methods.push_back("GET");
+    // this->allowed_methods.push_back("POST");
+    // this->allowed_methods.push_back("DELETE");
 
     // this->error_page.insert(std::pair<int, std::string> (404, "404.html"));
 

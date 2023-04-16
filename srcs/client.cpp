@@ -331,8 +331,6 @@ void Client::handleRequest()
 
 }
 
-
-
 void Client::generateResponse()
 {
 	std::cout << "in generateResponse" << std::endl;
@@ -342,7 +340,6 @@ void Client::generateResponse()
 	else
 		this->response->handleNormalReq();
 }
-
 
 void	Client::selectServer()
 {
