@@ -108,11 +108,6 @@ void	Response::checkAllowedMethods()
 	std::vector<std::string>			methods;
 	std::vector<std::string>::iterator	iter;
 
-	if (this->client->request->method.empty())
-	{
-		//std::cout << "maymknch tkoun request bla method" << std::endl;
-		exit (1);
-	}
 	this->client = Servme::getCore()->map_clients[this->client_fd];
 
 	methods = this->client->location->allowed_methods;
@@ -191,7 +186,6 @@ void	Response::matchLocation(std::vector<Location> locations)
 		std::sort(candidates.begin(), candidates.end(), compareFields);
 		for (iter = candidates.begin(); iter < candidates.end(); iter++)
 		{
-			// iter->path = normalizePath(iter->path);
 			if (LocationFound(iter->path, this->client->request->url))
 			{
 				this->client->location = new Location(*iter);
@@ -278,17 +272,8 @@ int	Response::checkReturn()
 					return (1);
 				}
 			}
-			else
-			{
-				//std::cout << "maymknch nwslou lhna blama ykoun 3ndna server" << std::endl;
-				exit (1);
-			}
+
 		}
-	}
-	else
-	{
-		//std::cout << "maymknch nwslou lhna blama ykoun client" << std::endl;
-		exit (1);
 	}
 	return (0);
 }
@@ -340,7 +325,6 @@ void	Response::getPath()
 	}
 	else
 		this->client->path = this->client->location->root;
-	std::cout << "this->client->path : " << this->client->path << std::endl;
 }
 
 void	Response::parseUrl()
@@ -385,7 +369,6 @@ void    Response::handleNormalReq()
 			if (this->client->server->locations.empty())
 				throw std::runtime_error(E404);
     		this->matchLocation(this->client->server->locations);
-			std::cout << "asdbjkadksjfhgasdhjfgdf" << std::endl;
 			if (this->checkReturn())
 				return ;
 			if (!this->client->location)
