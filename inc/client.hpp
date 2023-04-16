@@ -192,6 +192,8 @@ class Response
 			void	handleDelete();
 			void	handlePost();
 			void	handleMultipart();
+
+            std::vector<Location>	getLocations2(std::vector<Location> locations);
 };
 
 class Client
