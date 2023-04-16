@@ -192,13 +192,13 @@ void Core::handleConnections()
 						if (this->map_clients[this->pollFds[i].fd]->fd == -1)
 						{
 							removeClient(*this->map_clients[this->pollFds[i].fd]);
-							// i--;
+							continue;
 						}
 							
             }
 
   
-            
+
             if (this->pollFds[i].revents & POLLIN)
             {   
 
@@ -240,6 +240,7 @@ void Core::handleConnections()
                         send(this->pollFds[i].fd, this->map_clients[this->pollFds[i].fd]->response->responseStr.c_str(), this->map_clients[this->pollFds[i].fd]->response->responseStr.size(), 0);
                         // this->map_clients[this->pollFds[i].fd]->request->state = DONE;  
 						removeClient(*this->map_clients[this->pollFds[i].fd]);
+						continue;
 						// i--;
                     }
                 }
