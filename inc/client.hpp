@@ -58,18 +58,6 @@ enum Stat
 
 
 
-struct Session
-{
-    std::string session_id;
-    std::string user_id;
-    bool SessionExpired;
-
-    std::string path;
-    std::string Expires;
-    std::string MaxAge;
-
-};
-
 struct Multipart_ENV
 {
     
@@ -133,17 +121,9 @@ class Request
 
 		std::string	query;
 
-        // void ParseBodyChunked();
-		// int handle error();
+ 
 };
 
-// enum responseStat
-// {
-//     START,
-//     FIRSTLINE,
-//     HEADERS,
-//     DONE
-// };
 
 class Response
 {
@@ -159,7 +139,6 @@ class Response
 			std::string		body;
 	
 			Response();
-            // Response(const Response &response);
 			~Response();
 
 			size_t	readPos = 0;
@@ -228,7 +207,6 @@ class Client
         SocketWrapper	*socket;
 		Server			*server;
 		Location		*location; // need to get the location path in config parsing
-        Session            session;
 
 		int				cgiFlag;
 

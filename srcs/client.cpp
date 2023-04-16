@@ -6,7 +6,7 @@
 
 Client::Client()
 {
-    std::cout << " Client created without socket\n";
+    //std::cout << " Client created without socket\n";
     this->lastActivity = time(NULL);
 
     this->addr = new sockaddr_in;
@@ -24,29 +24,6 @@ Client::Client()
 }
 
 
-// // deep copy constructor
-// Client::Client(const Client &client)
-// {
-//     std::cout << "Client created with socket\n";
-//     this->lastActivity = time(NULL);
-//     this->fd = client.fd;
-//     this->addr = new sockaddr_in;
-//     this->addr->sin_addr.s_addr = client.addr->sin_addr.s_addr;
-//     this->addr->sin_family = client.addr->sin_family;
-//     this->addr->sin_port = client.addr->sin_port;
-//     this->request = new Request(*client.request);
-//     this->request->client = this;
-//     this->location = client.location;
-//     this->response = new Response(*client.response);
-//     this->response->client = this;
-//     this->pollfd_.fd = client.pollfd_.fd;
-//     this->pollfd_.events = client.pollfd_.events;
-//     this->pollfd_.revents = client.pollfd_.revents;
-// }
-
-
-
-
 
 
 
@@ -54,18 +31,7 @@ Client::Client()
 
 Client::~Client()
 {
-
-    if (this->fd == -1)
-    {
-        std::cout << "Client destroyed without socket\n";
-        // std::cout << "memory address" << this << std::endl;
-    }
-    else
-    {
-        std::cout << "Client destroyed with socket\n";
-        // std::cout << "memory address" << this << std::endl;
-    }
-        
+ 
 
     if (this->pollfd_.fd != -1)
     {
@@ -110,36 +76,15 @@ Client::~Client()
         delete this->location;
         this->location = nullptr;
     }
-    // close(this->fd);
-    // delete this->addr;
-    // delete this->request;
-    // delete this->response;
+
 }
-// std::string generateSessionId(size_t length) {
-//   static const char charset[] =
-//       "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-//   const size_t charset_size = sizeof(charset) - 1;
-//   std::srand(std::time(0));
-//   std::stringstream ss;
-//   for (size_t i = 0; i < length; ++i) {
-//     ss << charset[std::rand() % charset_size];
-//   }
-//   return ss.str();
-// }
+
 Client::Client(SocketWrapper *sock)
 {
     
-    std::cout << " Client created with socket\n";
-    // std::cout << "memory address" << this << std::endl;
+    //std::cout << " Client created with socket\n";
+    // //std::cout << "memory address" << this << std::endl;
     this->lastActivity = time(NULL);
-
-
-    this->session.user_id = std::to_string(this->fd);
-    this->session.SessionExpired = false;
-    this->session.session_id = generateSessionId(50);
-    this->session.path = "/";
-    this->session.Expires = time(NULL) + TIMEOUT;
-
 
 
     this->cgi = new Cgi();
@@ -182,7 +127,7 @@ std::string Request::checkType(std::string path)
     size_t dot = path.find_last_of('.');
     if (dot == std::string::npos)
     {
-        std::cout << "No extension" << std::endl;
+        //std::cout << "No extension" << std::endl;
         return "";
     }
     else
@@ -208,7 +153,7 @@ void Client::handleRequest()
 {   
 
     this->lastActivity = time(NULL);
-    this->session.Expires = time(NULL) + TIMEOUT;
+
 
 
 
@@ -216,27 +161,21 @@ void Client::handleRequest()
     if (this->request->state & (Stat::START | Stat::FIRSTLINE | Stat::HEADERS))
     {
 
-        // if (this->request->state & Stat::FIRSTLINE)
-        // {
-    
-        // }
         static std::string line = "";
         char buffer[1];
         int ret;
-        // std::cout << "this->fd" << this->fd << std::endl;
-        // ret = read(this->fd, buffer, 1);
+ 
         ret = recv(this->fd, buffer, 1, 0);
         if (ret == -1)
         {
             std::cerr << "Error: recv() failed" << std::endl;
             this->core->removeClient(*this);
-            // return;
+    
         }
         else if (ret == 0)
         {
-            std::cout << "disconnection" << std::endl;
+            //std::cout << "disconnection" << std::endl;
             this->core->removeClient(*this);
-            // Servme::getCore()->map_clients[this->fd].pollfd_.fd = -1;
         }
         this->request->line += buffer[0];
         this->request->buffer += buffer[0];
@@ -252,13 +191,8 @@ void Client::handleRequest()
         {
             if (this->request->line == "\r\n" || this->request->line == "\n")
             {
-                // if (this->request->method == "GET")
-                // Client::handleCookies();
                 this->response->GENERATE_RES = true;
                 this->request->state = Stat::BODY;
-                // if (this->request->method == "GET")
-                    // this->request->state = Stat::END;
-                // else
             }
             if (this->request->state & Stat::FIRSTLINE)
             {
@@ -277,11 +211,9 @@ void Client::handleRequest()
 
     else if (this->request->state & Stat::BODY)
     {        
-        std::cout << CYAN << "STATE: " << (this->request->state == BODY ? "BODY" : "weird") << RESET << std::endl;
+        //std::cout << CYAN << "STATE: " << (this->request->state == BODY ? "BODY" : "weird") << RESET << std::endl;
         
-        // if (this->request->state & Stat::END)
-            // return;
-        
+
         static int flag = 0;
 
         
@@ -294,21 +226,20 @@ void Client::handleRequest()
 
             if (std::string(e.what()) == "Disconnected")
             {
-                std::cout <<  "disconnection" << std::endl;
+                //std::cout <<  "disconnection" << std::endl;
                 this->core->removeClient(*this);
             }
-            // else
-                std::cout << e.what() << std::endl;
+                //std::cout << e.what() << std::endl;
         }
 
         if (this->request->bodyType == BodyType::CHUNKED)
         {
-			// std::cout << "body type : chunked" << std::endl;
+
 			
             if (flag == 0)
             {
                 flag = 1;
-                std::cout << BLUE <<"this is the start of chunked body" << RESET << std::endl;
+                //std::cout << BLUE <<"this is the start of chunked body" << RESET << std::endl;
                 this->request->state = Stat::CHUNKED_START;
             }
             this->request->ParseChunkedBody(); 
@@ -316,8 +247,8 @@ void Client::handleRequest()
 
         else if (this->request->bodyType == BodyType::MULTIPART)
         {
-			std::cout << "state : " << this->request->state << std::endl;
-			std::cout << "body type : multipart" << std::endl;
+			//std::cout << "state : " << this->request->state << std::endl;
+			//std::cout << "body type : multipart" << std::endl;
             if (flag == 0)
             {
                 flag = 1;
@@ -333,7 +264,8 @@ void Client::handleRequest()
 
 void Client::generateResponse()
 {
-	std::cout << "in generateResponse" << std::endl;
+	//std::cout << "in generateResponse" << std::endl;
+    this->lastActivity = time(NULL);
 	this->response->checkCgi();
 	if (this->cgiFlag == 1)
         cgi_handler();

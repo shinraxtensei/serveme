@@ -104,8 +104,6 @@ void	Response::sendFile()
 		{
 			extension = this->newPath.substr(dotIndex + 1);
 			contentType = this->contentTypes[extension];
-			if (extension == "php")
-				contentType = "text/html";
 			if (contentType == "")
 				contentType = "text/plain";
 		}

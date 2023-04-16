@@ -4,7 +4,7 @@
 
 Response::Response()
 {
-	std::cout << "Response created" << std::endl;
+	//std::cout << "Response created" << std::endl;
 	this->GENERATE_RES = false;
 	this->responseSent = 0;
 	this->responseStr = "";
@@ -17,7 +17,7 @@ Response::Response()
 
 Response::~Response()
 {
-	std::cout << "Response destroyed" << std::endl;
+	//std::cout << "Response destroyed" << std::endl;
 }
 
 int	Response::checkAccess(std::string path)
@@ -42,7 +42,7 @@ int	Response::checkError(int error)
 
 	if (this->client == nullptr)
 	{
-		std::cout << "why no server" << std::endl;
+		//std::cout << "why no server" << std::endl;
 		return 0;
 	}
 	if (this->client->location != nullptr)
@@ -59,7 +59,6 @@ int	Response::checkError(int error)
 	else
 	{
 		this->client->selectServer();
-
 		if (!this->client->server->error_page.empty())
 			member = this->client->server->error_page;
 		root = this->client->server->root;
@@ -111,7 +110,7 @@ void	Response::checkAllowedMethods()
 
 	if (this->client->request->method.empty())
 	{
-		std::cout << "maymknch tkoun request bla method" << std::endl;
+		//std::cout << "maymknch tkoun request bla method" << std::endl;
 		exit (1);
 	}
 	this->client = Servme::getCore()->map_clients[this->client_fd];
@@ -281,14 +280,14 @@ int	Response::checkReturn()
 			}
 			else
 			{
-				std::cout << "maymknch nwslou lhna blama ykoun 3ndna server" << std::endl;
+				//std::cout << "maymknch nwslou lhna blama ykoun 3ndna server" << std::endl;
 				exit (1);
 			}
 		}
 	}
 	else
 	{
-		std::cout << "maymknch nwslou lhna blama ykoun client" << std::endl;
+		//std::cout << "maymknch nwslou lhna blama ykoun client" << std::endl;
 		exit (1);
 	}
 	return (0);
@@ -333,8 +332,6 @@ void	Response::handleFile()
 
 void	Response::getPath()
 {
-	std::cout << "url : " << this->client->request->url << std::endl;
-	std::cout << "path : " << this->client->location->path << std::endl;
 	if (this->client->request->url != this->client->location->path)
 	{
 		if (this->client->location->path != "/")

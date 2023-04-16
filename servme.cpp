@@ -84,7 +84,6 @@ int main(int argc, char **argv)
             Servme::deleteCore();
             Parser::deleteHttp();
             Parser::deleteLex();
-
         }
         catch (const std::exception &e)
         {
