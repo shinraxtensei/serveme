@@ -396,6 +396,7 @@ void    Response::handleNormalReq()
 			this->responseStr = generateError(e.what(), MINE);
 		send(this->client_fd, this->responseStr.c_str(), this->responseStr.length(), 0);
 		this->responseSent = 1;
+		this->client->fd = -1;
 		this->client->request->state = DONE;
 	}
 }
