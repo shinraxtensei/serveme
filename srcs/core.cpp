@@ -62,7 +62,7 @@ int Core::check_servers_socket(int fd)
 void Core::startup()
 {
 
-    std::set<std::pair<std::string, int>> listens;
+    std::set<std::pair<std::string, int> > listens;
     for (size_t i = 0; i < Parser::getHttp()->servers.size(); i++)
     {
         std::pair<std::string, int> listen;
@@ -172,7 +172,7 @@ void Core::handleConnections()
 
             if (this->map_clients[this->pollFds[i].fd] &&  check_servers_socket(this->pollFds[i].fd) == -1)
             {
-                if (this->map_clients[this->pollFds[i].fd]->request->state == Stat::DONE)
+                if (this->map_clients[this->pollFds[i].fd]->request->state == DONE)
                 {
                     reset(this->map_clients[this->pollFds[i].fd]);
 

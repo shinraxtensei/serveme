@@ -25,11 +25,6 @@ Cgi::Cgi(){
 	this->BODY = "";
 	this->QUERY_MAP = std::map<std::string, std::string>();
 
-	this->CompilerPathsByLanguage = std::map<std::string, std::string>{
-		{"py", "/usr/bin/python3"},
-		{"php", "/usr/bin/php"}
-	};    
-
 }
 
 
@@ -120,7 +115,7 @@ void Client::cgi_handler(){
         	    if (!strcmp(tmp_surfix.c_str(), iter_cand->path.c_str()))
 				{
 					allowed_meth = iter_cand->allowed_methods;
-					for (std::map<std::string, std::vector<std::string>>::iterator iter_compiler = iter_cand->location_directives.begin(); iter_compiler != iter_cand->location_directives.end(); iter_compiler++){
+					for (std::map<std::string, std::vector<std::string> >::iterator iter_compiler = iter_cand->location_directives.begin(); iter_compiler != iter_cand->location_directives.end(); iter_compiler++){
 						if (iter_compiler->first == "fastcgi_pass"){
 							compiler = iter_compiler->second[0];
 						}
