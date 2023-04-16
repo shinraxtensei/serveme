@@ -98,7 +98,7 @@ void Client::cgi_handler(){
 		std::string cookie_value = this->response->parseCookies();
 		cookie_value = cookie_value.substr(0, cookie_value.find("\n") - 1);
 		//--------------------------------------------------------------
-
+        surfix = "\\." + surfix + "$";
         tmp_surfix = "\\." + surfix + "$";
 		try {
         	for (iter_cand = candidates.begin(); iter_cand < candidates.end(); iter_cand++)

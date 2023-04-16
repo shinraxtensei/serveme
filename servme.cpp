@@ -72,7 +72,7 @@ int main(int argc, char **argv)
 
     if (argc == 1)
     {
-        std::cout << BLUE << "---------------------- Serverme  -------------------------" << RESET << std::endl;
+        std::cout << BLUE << "---------------------- Servrme  -------------------------" << RESET << std::endl;
     
         try{
             Parser::lex("nginx.conf");
@@ -84,7 +84,6 @@ int main(int argc, char **argv)
             Servme::deleteCore();
             Parser::deleteHttp();
             Parser::deleteLex();
-
         }
         catch (const std::exception &e)
         {

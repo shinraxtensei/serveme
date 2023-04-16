@@ -54,7 +54,7 @@ bool directiveDuplicable(std::string directive)
 
 void Parser::parse_directives(int type)
 {
-    // std::cout <<" parse_directives : " << type << std::endl;
+    // //std::cout <<" parse_directives : " << type << std::endl;
     std::string directive = Parser::lex()->next_token(true);
     std::vector<std::string> values;
     std::string value;
@@ -85,10 +85,8 @@ void Parser::parse_directives(int type)
 
     if (type == 0)
     {
-        // Parser::getHttp()->http_directives[directive] = values;
-        Parser::getHttp()->http_directives.insert(pair);
 
-        // std::cout << RED << Parser::getHttp()->http_directives.find(directive)->second[0] << RESET << std::endl;
+        Parser::getHttp()->http_directives.insert(pair);
 
         if (checkDup(Parser::getHttp()->http_directives, pair.first) && directiveDuplicable(directive) == false )
             throw std::runtime_error("Error: duplicate directive :" + directive);
@@ -99,7 +97,7 @@ void Parser::parse_directives(int type)
 
     else if (type == 1)
     {
-        // Parser::getHttp()->servers.back().server_directives[directive] = values;
+
         Parser::getHttp()->servers.back().server_directives.insert(pair);
         if (checkDup(Parser::getHttp()->servers.back().server_directives, directive) && directiveDuplicable(directive) == false)
             throw std::runtime_error("Error: duplicate directive :" + directive);
@@ -107,28 +105,21 @@ void Parser::parse_directives(int type)
     }
     else if (type == 2)
     {
-        // Parser::getHttp()->servers.back().locations.back().location_directives[directive] = values;
+
         Parser::getHttp()->servers.back().locations.back().location_directives.insert(pair);
-        // if (checkDup(Parser::getHttp()->servers.back().locations.back().location_directives, directive) && directiveDuplicable(directive) == false)
-            // throw std::runtime_error("Error: duplicate directive :" + directive);
+
 
         if (pair.first == "return")
         {       
                 if (pair.second.size() > 3)
                 {
                     throw std::runtime_error("Error: return directive must have 2 arguments");
-                    // std::cout << "Error: return directive must have 2 arguments" << std::endl;
-                    // exit(1);
+
                 }
                 Parser::getHttp()->servers.back().locations.back().returned = 1;
                 Parser::getHttp()->servers.back().locations.back().returnUrl = pair.second[0];
                 Parser::getHttp()->servers.back().locations.back().returnType = pair.second[1];
-                // if (Parser::getHttp()->servers.back().locations.back().returnType != "permanent" && Parser::getHttp()->servers.back().locations.back().returnType != "temporary")
-                    // throw std::runtime_error("Error: type not valid: " + Parser::getHttp()->servers.back().locations.back().returnType );
 
-
-                // Parser::getHttp()->servers.back().locations.back().Return.first = std::stoi(pair.second[0]);
-                // Parser::getHttp()->servers.back().locations.back().Return.second = pair.second[1];
         }
         if (pair.first == "root")
         {
@@ -137,18 +128,15 @@ void Parser::parse_directives(int type)
     }
     else if (type == 3)
     {
-        // Parser::getHttp()->servers.back().locations.back().locations.back().location_directives[directive] = values;
         Parser::getHttp()->servers.back().locations.back().locations.back().location_directives.insert(pair);
-        
-        // if (checkDup(Parser::getHttp()->servers.back().locations.back().locations.back().location_directives, directive) && directiveDuplicable(directive) == false )
-            // throw std::runtime_error("Error: duplicate directive :" + directive);
+
 
         if (pair.first == "return")
         {
                 if (pair.second.size() > 3)
                 {
                     throw std::runtime_error("Error: return directive must have 2 arguments");
-                    // std::cout << "Error: return directive must have 2 arguments" << std::endl;
+                    // //std::cout << "Error: return directive must have 2 arguments" << std::endl;
                     // exit(1);
                 }
                 Parser::getHttp()->servers.back().locations.back().locations.back().returned = 1;
@@ -156,10 +144,6 @@ void Parser::parse_directives(int type)
                 Parser::getHttp()->servers.back().locations.back().locations.back().returnType = pair.second[1];
                 if (Parser::getHttp()->servers.back().locations.back().locations.back().returnType != "permanent" && Parser::getHttp()->servers.back().locations.back().locations.back().returnType != "temporary")
                     throw std::runtime_error("Error: type not valid: " + Parser::getHttp()->servers.back().locations.back().locations.back().returnType );
-
-
-                // Parser::getHttp()->servers.back().locations.back().locations.back().Return.first = std::stoi(pair.second[0]);
-                // Parser::getHttp()->servers.back().locations.back().locations.back().Return.second = pair.second[1];
         }
         if (pair.first == "root")
         {
@@ -168,7 +152,7 @@ void Parser::parse_directives(int type)
     }
     else
         throw std::runtime_error("Error: type not found");
-        // std::cout << "Error: type not found" << std::endl;
+
 }
 
 void Parser::parse_location(int sublocation)
@@ -242,10 +226,6 @@ void Parser::parse_server()
 
 void Parser::parse()
 {
-
-    // TODO : handle a bug (when the last directive and ;  are seperated by a space the ; is taken as a token by itself) -> this makes the parser return an error of more that one value for a directive that can only have one value
-    
-
         Parser::lex()->set_input(Parser::lex()->input);
         while (Parser::lex()->next_token(false) != "EOF")
         {
@@ -285,38 +265,4 @@ void Parser::parse()
         Parser::init_http();
         Parser::init_servers();
 
-
-
-    // for (auto server  : Parser::getHttp()->servers)
-    // {
-    //     std::cout << "---------------------------------" << std::endl;
-    //     std::cout << "server_name : " << server.server_name << std::endl;
-    //     std::cout << "root : " << server.root << std::endl;
-    //     std::cout << "index : " << server.index[0] << std::endl;
-    //     // std::cout << "error_page : "<< server.error_page.first ;
-    //     for(auto page : server.error_page)
-    //     {
-    //         std::cout << "error_page : "<< page.first << " "  << std::endl;
-    //         for(auto p : page.second)
-    //             std::cout << p << std::endl;
-    //     }
-
-    //     // std::cout << "error_page : "<< server.error_page.first << " " << server.error_page.second[0]  << std::endl;
-    //     std::cout << "autoindex : " << server.autoindex << std::endl;
-    //     std::cout << "client_max_body_size : " << server.client_max_body_size << std::endl;
-    //     for(auto method : server.allowed_methods)
-    //         std::cout << "allowed_methods : " << method << std::endl;
-    //     // std::cout << "allowed_methods : " << server.allowed_methods[0] << std::endl;
-    //     std::cout << "ip : " << server.ipPort.first << std::endl;
-    //     std::cout << "port : " << server.ipPort.second << std::endl;
-    //     std::cout << "---------------------------------" << std::endl;
-
-    //     for (auto location : server.locations)
-    //     {
-    //         std::cout  << "location " <<std::endl; 
-    //         std::cout << BLUE << "root" << RESET << " : " << location.root << std::endl;
-    //         std::cout<< BLUE << "location path :"<< RESET <<  location.path << std::endl;
-    //         std::cout << BLUE<< "return :" << RESET <<  location.Return.first << " " << location.Return.second << std::endl;
-    //     }
-    // }
 }

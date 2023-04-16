@@ -12,6 +12,8 @@ std::string	normalizePath(std::string	path)
 
 	while (!path.empty())
 	{
+		std::cout << "path : " << path << std::endl;
+		std::cout << "wla hna" << std::endl;
 		index = path.find_first_of('/');
 		if (index == 0)
 		{
@@ -40,6 +42,7 @@ std::string	normalizePath(std::string	path)
 		paths.push("/");	
 	while (!paths.empty())
 	{
+		std::cout << "hna" << std::endl;
 		toPop = paths.top();
 		if (toPop == "/")
 			newStr = toPop + newStr;
