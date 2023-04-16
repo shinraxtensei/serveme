@@ -185,7 +185,31 @@ void Core::handleConnections()
 
                     this->pollFds[i].events |= POLLOUT;
                     if (this->map_clients[this->pollFds[i].fd]->request->method.size() != 0)
-                        this->map_clients[this->pollFds[i].fd]->generateResponse();
+                    {
+                        try
+                        {
+                            this->map_clients[this->pollFds[i].fd]->generateResponse();
+
+                        }
+                        catch(const std::exception& e)
+                        {
+
+                            Parser::lex()->set_input(e.what());
+                            int code = atoi(Parser::lex()->next_token(false).c_str());
+
+                            if (this->map_clients[this->pollFds[i].fd]->response->checkError(code))
+                                this->map_clients[this->pollFds[i].fd]->response->responseStr = this->map_clients[this->pollFds[i].fd]->response->generateError(e.what(), DEFAULT);
+                            else
+                                this->map_clients[this->pollFds[i].fd]->response->responseStr = this->map_clients[this->pollFds[i].fd]->response->generateError(e.what(), MINE);
+
+                            send(this->pollFds[i].fd, this->map_clients[this->pollFds[i].fd]->response->responseStr.c_str(), this->map_clients[this->pollFds[i].fd]->response->responseStr.size(), 0);
+                            // this->map_clients[this->pollFds[i].fd]->request->state = DONE;  
+                            removeClient(*this->map_clients[this->pollFds[i].fd]);
+                            continue;
+                            // i--;
+                        }
+
+                    }
                     this->pollFds[i].events &= ~POLLOUT;
                 }
                 check_client_inactivity(*this->map_clients[this->pollFds[i].fd] , TIMEOUT);
