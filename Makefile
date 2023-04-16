@@ -9,16 +9,12 @@ WHITE = \033[0;37m
 
 NAME = servme
 
-# SRCS = srcs/parser.cpp srcs/core.cpp \
- 		# srcs/client.cpp servme.cpp  srcs/generateError.cpp\
-		# srcs/lexer.cpp srcs/request.cpp srcs/server.cpp\
-		# srcs/socketWrapper.cpp
+SRCS = srcs/cgi.cpp srcs/delete.cpp srcs/http.cpp srcs/post.cpp srcs/response.cpp \
+		srcs/client.cpp srcs/generateError.cpp srcs/lexer.cpp srcs/request.cpp srcs/servme.cpp\
+		srcs/core.cpp srcs/get.cpp srcs/parser.cpp srcs/responeUtilities.cpp srcs/socketWrapper.cpp servme.cpp
 
-SRCS = $(shell find srcs -type f -name "*.cpp") servme.cpp
-
-
-HEADER_DIR = inc/
-HEADERS  = $(shell find $(HEADER_DIR) -type f -name "*.hpp")
+HEADERS = inc/cgi.hpp inc/core.hpp inc/macros.hpp inc/servme.hpp\
+			inc/client.hpp inc/lexer.hpp inc/parser.hpp inc/socketWrapper.hpp
 
 
 
@@ -28,7 +24,6 @@ OBJS = $(addprefix $(OBJ_DIR), $(SRCS:.cpp=.o))
 CC = c++
 
 CFLAGS = -Wall -Wextra -Werror -std=c++17 -fsanitize=address  -g
-# CFLAGS = -Weverything
 
 
 all: $(NAME)
