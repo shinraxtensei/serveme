@@ -20,12 +20,6 @@ Response::~Response()
 	//std::cout << "Response destroyed" << std::endl;
 }
 
-void	Response::writeResponse()
-{
-	this->client->lastActivity = time(0);
-	send(this->client_fd, this->responseStr.c_str(), this->responseStr.length(), 0);
-}
-
 int	Response::checkAccess(std::string path)
 {
     std::ifstream file(path.substr(1));
@@ -65,8 +59,6 @@ int	Response::checkError(int error)
 	else
 	{
 		this->client->selectServer();
-			// //std::cout << "client: " << Servme::getCore()->map_clients[this->client_fd] << std::endl;
-
 		if (!this->client->server->error_page.empty())
 			member = this->client->server->error_page;
 		root = this->client->server->root;
@@ -131,7 +123,6 @@ void	Response::checkAllowedMethods()
 		if (*iter == this->client->request->method)
 			return ;
 	}
-	//std::cout << RED << "chi 7aja trat 3ndi" << RESET << std::endl;
 	throw std::runtime_error(E405);
 }
 
@@ -160,9 +151,14 @@ std::vector<Location>	Response::getLocations(std::vector<Location> locations)
 	this->client = Servme::getCore()->map_clients[this->client_fd];
 
 	iter = locations.begin();
-	
 	for (iter = this->client->server->locations.begin(); iter < this->client->server->locations.end(); iter++)
-		candidates.push_back(*iter);
+	{
+		if (iter->path.back() != '$')
+		{
+			iter->path = normalizePath(iter->path);
+			candidates.push_back(*iter);
+		}
+	}
 	return (candidates);
 }
 
@@ -195,7 +191,7 @@ void	Response::matchLocation(std::vector<Location> locations)
 		std::sort(candidates.begin(), candidates.end(), compareFields);
 		for (iter = candidates.begin(); iter < candidates.end(); iter++)
 		{
-			iter->path = normalizePath(iter->path);
+			// iter->path = normalizePath(iter->path);
 			if (LocationFound(iter->path, this->client->request->url))
 			{
 				this->client->location = new Location(*iter);
@@ -217,7 +213,6 @@ void	Response::checkCgi()
 		return ;
 	}
 	else
-
 		this->client->cgiFlag = 0;
 }
 
@@ -337,11 +332,6 @@ void	Response::handleFile()
 
 void	Response::getPath()
 {
-	if (this->client->location->root.empty())
-	{
-		//std::cout << "we can't have a location without root achrif" << std::endl;
-		exit (1);
-	}
 	if (this->client->request->url != this->client->location->path)
 	{
 		if (this->client->location->path != "/")
@@ -350,6 +340,7 @@ void	Response::getPath()
 	}
 	else
 		this->client->path = this->client->location->root;
+	std::cout << "this->client->path : " << this->client->path << std::endl;
 }
 
 void	Response::parseUrl()
@@ -394,6 +385,9 @@ void    Response::handleNormalReq()
 			if (this->client->server->locations.empty())
 				throw std::runtime_error(E404);
     		this->matchLocation(this->client->server->locations);
+			std::cout << "asdbjkadksjfhgasdhjfgdf" << std::endl;
+			if (this->checkReturn())
+				return ;
 			if (!this->client->location)
 				throw std::runtime_error(E404);
 			this->checkAllowedMethods();
