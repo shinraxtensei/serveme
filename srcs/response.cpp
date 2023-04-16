@@ -4,7 +4,7 @@
 
 Response::Response()
 {
-	std::cout << "Response created" << std::endl;
+	//std::cout << "Response created" << std::endl;
 	this->GENERATE_RES = false;
 	this->responseSent = 0;
 	this->responseStr = "";
@@ -17,7 +17,7 @@ Response::Response()
 
 Response::~Response()
 {
-	std::cout << "Response destroyed" << std::endl;
+	//std::cout << "Response destroyed" << std::endl;
 }
 
 void	Response::writeResponse()
@@ -48,7 +48,7 @@ int	Response::checkError(int error)
 
 	if (this->client == nullptr)
 	{
-		std::cout << "why no server" << std::endl;
+		//std::cout << "why no server" << std::endl;
 		return 0;
 	}
 	if (this->client->location != nullptr)
@@ -65,7 +65,7 @@ int	Response::checkError(int error)
 	else
 	{
 		this->client->selectServer();
-			// std::cout << "client: " << Servme::getCore()->map_clients[this->client_fd] << std::endl;
+			// //std::cout << "client: " << Servme::getCore()->map_clients[this->client_fd] << std::endl;
 
 		if (!this->client->server->error_page.empty())
 			member = this->client->server->error_page;
@@ -118,7 +118,7 @@ void	Response::checkAllowedMethods()
 
 	if (this->client->request->method.empty())
 	{
-		std::cout << "maymknch tkoun request bla method" << std::endl;
+		//std::cout << "maymknch tkoun request bla method" << std::endl;
 		exit (1);
 	}
 	this->client = Servme::getCore()->map_clients[this->client_fd];
@@ -131,7 +131,7 @@ void	Response::checkAllowedMethods()
 		if (*iter == this->client->request->method)
 			return ;
 	}
-	std::cout << RED << "chi 7aja trat 3ndi" << RESET << std::endl;
+	//std::cout << RED << "chi 7aja trat 3ndi" << RESET << std::endl;
 	throw std::runtime_error(E405);
 }
 
@@ -285,14 +285,14 @@ int	Response::checkReturn()
 			}
 			else
 			{
-				std::cout << "maymknch nwslou lhna blama ykoun 3ndna server" << std::endl;
+				//std::cout << "maymknch nwslou lhna blama ykoun 3ndna server" << std::endl;
 				exit (1);
 			}
 		}
 	}
 	else
 	{
-		std::cout << "maymknch nwslou lhna blama ykoun client" << std::endl;
+		//std::cout << "maymknch nwslou lhna blama ykoun client" << std::endl;
 		exit (1);
 	}
 	return (0);
@@ -339,7 +339,7 @@ void	Response::getPath()
 {
 	if (this->client->location->root.empty())
 	{
-		std::cout << "we can't have a location without root achrif" << std::endl;
+		//std::cout << "we can't have a location without root achrif" << std::endl;
 		exit (1);
 	}
 	if (this->client->request->url != this->client->location->path)

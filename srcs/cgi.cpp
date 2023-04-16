@@ -76,25 +76,11 @@ std::string Cgi::parseSurfix(std::string path_info){
 }
 
 
-/*     			TO DO				*/
-// 0. check the macthing location
-// 1. check if the file is executable
-// 2. check if the file is a cgi file
-// 3. check if the file is a python file
-// 4. check if the file is a php file
-// 5. check if the file is a bash file
-// 6. check if the file is a c file
-// 7. check if the file is a c++ file
-// 8. check if method is allowed
-// 9. check if the file is a directory
-// 10. check if the file is a file
-// 11. check which compiler to use
 
 void Client::cgi_handler(){
-	// this->response->parseCookies();
+
     std::vector<Location>   candidates;
 
-	std::cout << "Body size" << this->request->bodyString.size() << std::endl;
 	if (this->request->method == "GET" || (this->request->method == "POST" && (unsigned long)this->request->contentLength == this->request->bodyString.size())){
         candidates = this->response->getLocations(this->server->locations);
 		/****************************************************************/
@@ -114,11 +100,8 @@ void Client::cgi_handler(){
 		std::string tmp_filename =  std::string("tmp/serveme-") + std::to_string(rand()) + ".tmp";
 		std::string cookie_value = this->response->parseCookies();
 		cookie_value = cookie_value.substr(0, cookie_value.find("\n") - 1);
-		std::cout << "1 - cookie_value: " << cookie_value << std::endl;
-		// std::string compiler								= this->cgi->CompilerPathsByLanguage[surfix];
-		//--------------------------------------------------------------
+
         surfix = "\\." + surfix + "$";
-		std::cout << "surfix: " << surfix << std::endl;
 
 		try {
         	for (iter_cand = candidates.begin(); iter_cand < candidates.end(); iter_cand++)
@@ -152,7 +135,6 @@ void Client::cgi_handler(){
 
 			if (pipe(pipefd) == -1)
 				throw this->response->generateError(E503, 0);
-			// cookie_value = cookie_value.substr(cookie_value.find("color") + 6, cookie_value.find(";") - cookie_value.find("color") - 6);
 			if ((pid = fork()) == -1)
 				throw this->response->generateError(E503, 0);
 			/*child process*/
@@ -175,7 +157,7 @@ void Client::cgi_handler(){
 
 
 					// cookie_value = cookie_value.substr(0, cookie_value.find("\n") - 1);
-					std::cout << "HTTP_COOKIE: " << cookie_value;
+					//std::cout << "HTTP_COOKIE: " << cookie_value;
 					if (cookie_value.size() > 0)
 						setenv("HTTP_COOKIE", cookie_value.c_str(), 1);
 					setenv("REQUEST_METHOD", this->request->method.c_str(), 1);
@@ -210,7 +192,7 @@ void Client::cgi_handler(){
 					if (execve(path, arg, env) == -1)
 						throw this->response->generateError(E503, 0);
 				} catch (std::string body){
-					std::cout << body;
+					//std::cout << body;
 					exit(1);
 				}
 			} 
@@ -236,16 +218,16 @@ void Client::cgi_handler(){
 
 				cookie_value = cookie_value.substr(cookie_value.find("=") + 1, cookie_value.find(";"));
 				// cookie_value = cookie_value.substr(0 , cookie_value.find("\n"));
-				std::cout << "cookie_value: " << cookie_value << std::endl;
+				//std::cout << "cookie_value: " << cookie_value << std::endl;
 				if (cookie_value != "" || querys_map.find("color") != querys_map.end()){
 					if (cookie_value != ""){
-						std::cout << "-------------> cookie_value: " << cookie_value << std::endl;
+						//std::cout << "-------------> cookie_value: " << cookie_value << std::endl;
 						header = "HTTP/1.1 200 OK\r\n";
 						header += "Set-Cookie: color=" + cookie_value + "\r\n";
 					}
 					if (querys_map.find("color") != querys_map.end()){
-						std::cout << "querys_map[color]: " << querys_map["color"] << std::endl;
-						std::cout << "querys_map[color]: " << querys_map["color"] << std::endl;
+						//std::cout << "querys_map[color]: " << querys_map["color"] << std::endl;
+						//std::cout << "querys_map[color]: " << querys_map["color"] << std::endl;
 						header = "HTTP/1.1 200 OK\r\n";
 						header += "Set-Cookie: color=" + querys_map["color"] + "\r\n";
 					}
@@ -258,7 +240,7 @@ void Client::cgi_handler(){
         	    header += "Connection: keep-alive\r\n\r\n";
         	    header += body;
 				// this->request->bodyString = "";
-				std::cout << "header :\n" << header;
+				//std::cout << "header :\n" << header;
         	    int bytes = send(this->request->client_fd, header.c_str(), header.size(), 0);
 				if (bytes == -1)
 					throw this->response->generateError(E503, 0);
