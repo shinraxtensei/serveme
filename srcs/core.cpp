@@ -189,6 +189,12 @@ void Core::handleConnections()
                     this->pollFds[i].events &= ~POLLOUT;
                 }
                 check_client_inactivity(*this->map_clients[this->pollFds[i].fd] , TIMEOUT);
+						if (this->map_clients[this->pollFds[i].fd]->fd == -1)
+						{
+							removeClient(*this->map_clients[this->pollFds[i].fd]);
+							// i--;
+						}
+							
             }
 
   
@@ -232,7 +238,9 @@ void Core::handleConnections()
                             this->map_clients[this->pollFds[i].fd]->response->responseStr = this->map_clients[this->pollFds[i].fd]->response->generateError(e.what(), MINE);
 
                         send(this->pollFds[i].fd, this->map_clients[this->pollFds[i].fd]->response->responseStr.c_str(), this->map_clients[this->pollFds[i].fd]->response->responseStr.size(), 0);
-                        this->map_clients[this->pollFds[i].fd]->request->state = DONE;  
+                        // this->map_clients[this->pollFds[i].fd]->request->state = DONE;  
+						removeClient(*this->map_clients[this->pollFds[i].fd]);
+						// i--;
                     }
                 }
             }

@@ -227,8 +227,9 @@ void Request::ParseBody()
     // //std::cout << CYAN << "STATE: " << (this->state == BODY ? "BODY normal" : "weird") << RESET << std::endl;
     static int bodySize = 0;
     char buffer[1024];
-
-    int bytesRead = recv(this->client_fd, buffer, std::min((this->contentLength - bodySize) , 1024), 0);
+	int bytesRead = 0;
+	if (this->client_fd != -1)
+    	bytesRead = recv(this->client_fd, buffer, std::min((this->contentLength - bodySize) , 1024), 0);
 
     if (bytesRead == -1)
         throw std::runtime_error("Error: read() failed. from ParseBody");

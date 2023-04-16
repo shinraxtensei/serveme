@@ -163,9 +163,9 @@ void Client::handleRequest()
 
         static std::string line = "";
         char buffer[1];
-        int ret;
- 
-        ret = recv(this->fd, buffer, 1, 0);
+        int ret = 0;
+		if (this->fd != -1)
+        	ret = recv(this->fd, buffer, 1, 0);
         if (ret == -1)
         {
             std::cerr << "Error: recv() failed" << std::endl;
