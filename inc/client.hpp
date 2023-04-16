@@ -141,10 +141,10 @@ class Response
 			Response();
 			~Response();
 
-			size_t	readPos = 0;
-			int		responseSent = 0;
-			size_t	sendPos = 0;
-			int		started = 0;
+			size_t	readPos ;
+			int		responseSent;
+			size_t	sendPos;
+			int		started ;
 
 			size_t	contentLength;
 

@@ -158,7 +158,7 @@ void Client::handleRequest()
 
 
 
-    if (this->request->state & (Stat::START | Stat::FIRSTLINE | Stat::HEADERS))
+    if (this->request->state & (START | FIRSTLINE | HEADERS))
     {
 
         static std::string line = "";
@@ -180,36 +180,36 @@ void Client::handleRequest()
         this->request->line += buffer[0];
         this->request->buffer += buffer[0];
 
-        if ((this->request->line.find("\r") != std::string::npos || this->request->line.find("\n") != std::string::npos || this->request->line.find("\r\n") != std::string::npos ) && this->request->state & Stat::START)
+        if ((this->request->line.find("\r") != std::string::npos || this->request->line.find("\n") != std::string::npos || this->request->line.find("\r\n") != std::string::npos ) && this->request->state & START)
         {
             this->request->line = "";
             return;
         }
-        if (this->request->state & Stat::START)
-            this->request->state = Stat::FIRSTLINE;
+        if (this->request->state & START)
+            this->request->state = FIRSTLINE;
         if (this->request->line.find("\r\n") != std::string::npos || this->request->line.find("\n") != std::string::npos)
         {
             if (this->request->line == "\r\n" || this->request->line == "\n")
             {
                 this->response->GENERATE_RES = true;
-                this->request->state = Stat::BODY;
+                this->request->state = BODY;
             }
-            if (this->request->state & Stat::FIRSTLINE)
+            if (this->request->state & FIRSTLINE)
             {
                 this->request->ParseFirstLine(this->request->line);
-                this->request->state = Stat::HEADERS;
+                this->request->state = HEADERS;
             }
-            else if (this->request->state & Stat::HEADERS)
+            else if (this->request->state & HEADERS)
             {
                 this->request->ParseHeaders(this->request->line);
             }
             this->request->line = "";
         }
         if (this->request->buffer.find("\r\n\r\n") != std::string::npos)
-            this->request->state = Stat::BODY;
+            this->request->state = BODY;
     }
 
-    else if (this->request->state & Stat::BODY)
+    else if (this->request->state & BODY)
     {        
         //std::cout << CYAN << "STATE: " << (this->request->state == BODY ? "BODY" : "weird") << RESET << std::endl;
         
@@ -232,7 +232,7 @@ void Client::handleRequest()
                 //std::cout << e.what() << std::endl;
         }
 
-        if (this->request->bodyType == BodyType::CHUNKED)
+        if (this->request->bodyType == CHUNKED)
         {
 
 			
@@ -240,19 +240,19 @@ void Client::handleRequest()
             {
                 flag = 1;
                 //std::cout << BLUE <<"this is the start of chunked body" << RESET << std::endl;
-                this->request->state = Stat::CHUNKED_START;
+                this->request->state = CHUNKED_START;
             }
             this->request->ParseChunkedBody(); 
         }
 
-        else if (this->request->bodyType == BodyType::MULTIPART)
+        else if (this->request->bodyType == MULTIPART)
         {
 			//std::cout << "state : " << this->request->state << std::endl;
 			//std::cout << "body type : multipart" << std::endl;
             if (flag == 0)
             {
                 flag = 1;
-                this->request->state = Stat::MULTI_PART_START;
+                this->request->state = MULTI_PART_START;
             }
             this->request->ParseMultiPartBody(); 
         }

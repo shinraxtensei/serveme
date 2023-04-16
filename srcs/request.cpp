@@ -39,8 +39,8 @@ Request::Request()
 
     //std::cout << "Request created\n";
     
-    this->state = Stat::START;
-    this->bodyType = BodyType::NONE;
+    this->state = START;
+    this->bodyType = NONE;
     pos = 0;
     this->line = "";
     this->host = "";
@@ -188,7 +188,7 @@ void Request::ParseHeaders(std::string &line)
     {
         if (value.find("chunked") != std::string::npos)
         {
-            this->bodyType = BodyType::CHUNKED;
+            this->bodyType = CHUNKED;
         }
         
         this->transferEncoding = value;
@@ -202,7 +202,7 @@ void Request::ParseHeaders(std::string &line)
             this->boundary = value.substr(value.find("boundary=") + 9);
             Parser::lex()->set_input(this->boundary);
             boundary = Parser::lex()->next_token(true);
-            this->bodyType = BodyType::MULTIPART;
+            this->bodyType = MULTIPART;
 
         }
         else {
@@ -222,7 +222,7 @@ void Request::ParseHeaders(std::string &line)
 
 void Request::ParseBody()
 {
-    if (this->state == Stat::END || this->method == "GET")
+    if (this->state == END || this->method == "GET")
         return;
     // //std::cout << CYAN << "STATE: " << (this->state == BODY ? "BODY normal" : "weird") << RESET << std::endl;
     static int bodySize = 0;
@@ -238,14 +238,14 @@ void Request::ParseBody()
 
     this->bodyString += std::string(buffer, bytesRead);
 
-    if (this->bodyType != BodyType::CHUNKED && this->bodyType != BodyType::MULTIPART)
+    if (this->bodyType != CHUNKED && this->bodyType != MULTIPART)
     {
         if ((int)this->bodyString.size() >= this->contentLength)
         {
             this->bodyString = this->bodyString.substr(0, this->contentLength);
             //std::cout << RED  << this->bodyString.size() << RESET << std::endl;
 
-            this->state = Stat::END;
+            this->state = END;
 
         }
     }
@@ -285,21 +285,21 @@ void Request::ParseChunkedBody() {
     this->pos = 0;
     static std::string data;
 
-    if (this->state == Stat::END) {
+    if (this->state == END) {
         //std::cout << "STAT: END" << std::endl;
         return;
     }
 
-    if (this->state & Stat::CHUNKED_START)
+    if (this->state & CHUNKED_START)
     {
         //std::cout << BOLDYELLOW << "STAT: CHUNKED START" << RESET << std::endl;
-        this->state = Stat::CHUNKED_SIZE;
+        this->state = CHUNKED_SIZE;
     }
 
 
 
 
-    if (this->state & Stat::CHUNKED_SIZE) {
+    if (this->state & CHUNKED_SIZE) {
 
         //std::cout << BOLDYELLOW << "STAT: CHUNKED SIZE"  << RESET << std::endl;
         std::string line ;
@@ -315,15 +315,15 @@ void Request::ParseChunkedBody() {
         if (chunkSize == 0)
         {
             this->bodyString = data;
-            this->state = Stat::END;
+            this->state = END;
             return;
         }
-        this->state = Stat::CHUNKED_DATA;
+        this->state = CHUNKED_DATA;
         
     }
 
 
-    if (this->state & Stat::CHUNKED_DATA) {
+    if (this->state & CHUNKED_DATA) {
     
         //std::cout << BOLDYELLOW << "STAT: CHUNKED DATA" << RESET << std::endl;
 
@@ -345,7 +345,7 @@ void Request::ParseChunkedBody() {
             if (chunkSize == 0)
             {
                 //std::cout << BLUE <<  "chunk has been read " << data <<RESET << std::endl;
-                this->state = Stat::CHUNKED_SIZE;
+                this->state = CHUNKED_SIZE;
                 break;
             }
         }
@@ -374,10 +374,10 @@ void Request::ParseMultiPartBody()
     std::string line = "";
 
 
-    if (this->state & Stat::MULTI_PART_START)
+    if (this->state & MULTI_PART_START)
     {
         //std::cout << "STATE: MULTI_PART_START" << std::endl;
-        this->state = Stat::MULTI_PART_BOUNDARY;
+        this->state = MULTI_PART_BOUNDARY;
     }
 
 
@@ -389,18 +389,18 @@ void Request::ParseMultiPartBody()
             return;
 
 
-        if (this->state & Stat::MULTI_PART_BOUNDARY)
+        if (this->state & MULTI_PART_BOUNDARY)
         {
             //std::cout << "STATE: MULTI_PART_BOUNDARY" << std::endl;
             if (line.find(this->boundary) != std::string::npos)
             {
 
-                this->state = Stat::MULTI_PART_HEADERS;
+                this->state = MULTI_PART_HEADERS;
             }
         }
 
 
-        else if (this->state & Stat::MULTI_PART_HEADERS)
+        else if (this->state & MULTI_PART_HEADERS)
         {
             Parser::lex()->set_input(line);
             if (Parser::match("Content-Disposition:") && Parser::match("form-data;"))
@@ -441,11 +441,11 @@ void Request::ParseMultiPartBody()
                 //std::cout << "ContentType: " << ContentType <<RESET<< std::endl;
                 this->multipart_env[fieldname] = Multipart_ENV(filename , ContentType);
                 //std::cout << BLUE << "switching to MULTI_PART_DATA" << RESET << std::endl;
-                this->state = Stat::MULTI_PART_DATA;
+                this->state = MULTI_PART_DATA;
             }
         }
 
-        else if (this->state & Stat::MULTI_PART_DATA)
+        else if (this->state & MULTI_PART_DATA)
         {
             //std::cout << "STATE: MULTI_PART_DATA" << std::endl;
             if (line.find(this->boundary + "--") != std::string::npos)
@@ -453,7 +453,7 @@ void Request::ParseMultiPartBody()
                 this->multipart_env[fieldname].data += data;
                 data = "";
                 //std::cout << "end " << std::endl;
-                this->state = Stat::END;
+                this->state = END;
 
             }
             else if (line.find(this->boundary) != std::string::npos)
@@ -462,13 +462,13 @@ void Request::ParseMultiPartBody()
                 //std::cout << GREEN << "DATA: " << data << RESET << std::endl;
 
                 data = "";
-                this->state = Stat::MULTI_PART_HEADERS;
+                this->state = MULTI_PART_HEADERS;
             }
             else
                 data += line + '\n';   
         }
 
-        if (this->state & Stat::END)
+        if (this->state & END)
             return;
     }
 }

@@ -1,8 +1,0 @@
-{
-    "files.associations": {
-        "stdexcept": "cpp",
-        "vector": "cpp",
-        "algorithm": "cpp",
-        "iostream": "cpp"
-    }
-}
