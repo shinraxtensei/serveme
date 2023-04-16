@@ -75,7 +75,7 @@ int main(int argc, char **argv)
         std::cout << BLUE << "---------------------- Servrme  -------------------------" << RESET << std::endl;
     
         try{
-            Parser::lex("nginx.conf");
+            Parser::lex("servme.conf");
             Parser::parse();
             Servme::getCore()->startup();
             Servme::getCore()->handleConnections();
