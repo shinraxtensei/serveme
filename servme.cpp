@@ -112,7 +112,7 @@ int main(int argc, char **argv)
 
             try
             {
-                Parser::lex("nginx.conf");
+                Parser::lex("servme.conf");
                 Parser::parse();
                 Parser::deleteHttp();
                 Parser::deleteLex();
@@ -130,7 +130,7 @@ int main(int argc, char **argv)
         else if (std::string av(argv[1]) ; av == "-d")
         {
             try{
-                Parser::lex("nginx.conf");
+                Parser::lex("servme.conf");
                 Parser::parse();
                 std::cout << GREEN << "Syntax OK" << RESET << std::endl;
                 generate_dot(*Parser::getHttp());
