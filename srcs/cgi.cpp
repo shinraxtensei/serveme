@@ -23,7 +23,6 @@ Cgi::Cgi(){
 	this->SCRIPT_FILENAME = "";
 	this->CONTENT_TYPE = "";
 	this->BODY = "";
-	// this->FULLBODY = make;
 	this->QUERY_MAP = std::map<std::string, std::string>();
 
 	this->CompilerPathsByLanguage = std::map<std::string, std::string>{
@@ -76,7 +75,6 @@ std::string Cgi::parseSurfix(std::string path_info){
 }
 
 void Client::cgi_handler(){
-	// this->response->parseCookies();
     std::vector<Location>   candidates;
 
 	if (this->request->method == "GET" || (this->request->method == "POST" && (unsigned long)this->request->contentLength == this->request->bodyString.size())){
@@ -90,6 +88,7 @@ void Client::cgi_handler(){
 		std::vector<std::string>::iterator					iter_meth;
 		std::map<std::string, std::string>::iterator		iter_query;
 		std::string 										compiler;
+		std::string 										tmp_surfix;
 		std::map<std::string, std::string>	querys_map		= this->cgi->parseQuery(this->request->url);
 		std::string query_string							= this->request->url.find_first_of("?") != std::string::npos ? this->request->url.substr(this->request->url.find_first_of("?") + 1) : "";
 		std::string file_path								= this->cgi->parseUrl(this->request->url);
@@ -99,19 +98,18 @@ void Client::cgi_handler(){
 		std::string cookie_value = this->response->parseCookies();
 		cookie_value = cookie_value.substr(0, cookie_value.find("\n") - 1);
 		//--------------------------------------------------------------
-        surfix = "\\." + surfix + "$";
+
+        tmp_surfix = "\\." + surfix + "$";
 		try {
         	for (iter_cand = candidates.begin(); iter_cand < candidates.end(); iter_cand++)
         	{
-        	    if (!strcmp(surfix.c_str(), iter_cand->path.c_str()))
+        	    if (!strcmp(tmp_surfix.c_str(), iter_cand->path.c_str()))
 				{
 					allowed_meth = iter_cand->allowed_methods;
 					for (std::map<std::string, std::vector<std::string>>::iterator iter_compiler = iter_cand->location_directives.begin(); iter_compiler != iter_cand->location_directives.end(); iter_compiler++){
 						if (iter_compiler->first == "fastcgi_pass"){
 							compiler = iter_compiler->second[0];
 						}
-						// if (iter_compiler->first == "server_name")
-						// 	this->server->server_name = iter_compiler->second[0];
 					}
         	        break;
         		}
@@ -131,10 +129,8 @@ void Client::cgi_handler(){
 				throw this->response->generateError(E405, 0);
 			}
 			/*	**************************************	*/
-
 			if (pipe(pipefd) == -1)
 				throw this->response->generateError(E503, 0);
-			// cookie_value = cookie_value.substr(cookie_value.find("color") + 6, cookie_value.find(";") - cookie_value.find("color") - 6);
 			if ((pid = fork()) == -1)
 				throw this->response->generateError(E503, 0);
 			/*child process*/
@@ -154,9 +150,6 @@ void Client::cgi_handler(){
 						close(fdf);
 					}
 					/*++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
-
-
-					// cookie_value = cookie_value.substr(0, cookie_value.find("\n") - 1);
 					if (cookie_value.size() > 0)
 						setenv("HTTP_COOKIE", cookie_value.c_str(), 1);
 					setenv("REQUEST_METHOD", this->request->method.c_str(), 1);
@@ -203,53 +196,52 @@ void Client::cgi_handler(){
 						exit(-1);
 				}
 			} 
-				int error_status;
-				wait(&error_status);
-				char buff;
-				std::string body;
-				if (error_status != 0) {
-					close(pipefd[0]);
-					close(pipefd[1]);
-					unlink(tmp_filename.c_str());
-					if (WEXITSTATUS(error_status) == 4)
-						throw this->response->generateError(E404, 0);
-					else if (WEXITSTATUS(error_status) == 5)
-						throw this->response->generateError(E503, 0);
-					else if (WEXITSTATUS(error_status) == 6)
-						throw this->response->generateError(E500, 0);
-					else
-						throw this->response->generateError(E503, 0);
-				}
+			int error_status;
+			wait(&error_status);
+			char buff;
+			std::string body;
+			if (error_status != 0) {
+				close(pipefd[0]);
 				close(pipefd[1]);
-				while (read(pipefd[0], &buff, 1) > 0){
-					body.push_back(buff);
-				}
-        	    std::string header;
-        	    body = body.substr(body.find("\r\n\r\n") + 4);
-
-				cookie_value = cookie_value.substr(cookie_value.find("=") + 1, cookie_value.find(";"));
-				if (cookie_value != "" || querys_map.find("color") != querys_map.end()){
-					if (cookie_value != ""){
-						header = "HTTP/1.1 200 OK\r\n";
-						header += "Set-Cookie: color=" + cookie_value + "\r\n";
-					}
-					if (querys_map.find("color") != querys_map.end()){
-						header = "HTTP/1.1 200 OK\r\n";
-						header += "Set-Cookie: color=" + querys_map["color"] + "\r\n";
-					}
-				}
-				else
-					header = "HTTP/1.1 200 OK\r\n";
-        	    header += "Content-Type: text/html\r\n";
-        	    header += "Content-Length: " + std::to_string(body.size()) + "\r\n";
-        	    header += "Server: server/" + this->server->server_name + "--v Beta" + "\r\n";
-        	    header += "Connection: keep-alive\r\n\r\n";
-        	    header += body;
-        	    int bytes = send(this->request->client_fd, header.c_str(), header.size(), 0);
-				if (bytes == -1)
+				unlink(tmp_filename.c_str());
+				if (WEXITSTATUS(error_status) == 4)
+					throw this->response->generateError(E404, 0);
+				else if (WEXITSTATUS(error_status) == 5)
 					throw this->response->generateError(E503, 0);
-				header = "";
-				this->request->state = DONE;
+				else if (WEXITSTATUS(error_status) == 6)
+					throw this->response->generateError(E500, 0);
+				else
+					throw this->response->generateError(E503, 0);
+			}
+			close(pipefd[1]);
+			while (read(pipefd[0], &buff, 1) > 0){
+				body.push_back(buff);
+			}
+        	std::string header;
+        	body = body.substr(body.find("\r\n\r\n") + 4);
+			cookie_value = cookie_value.substr(cookie_value.find("=") + 1, cookie_value.find(";"));
+			if (cookie_value != "" || querys_map.find("color") != querys_map.end()){
+				if (cookie_value != ""){
+					header = "HTTP/1.1 200 OK\r\n";
+					header += "Set-Cookie: color=" + cookie_value + "\r\n";
+				}
+				if (querys_map.find("color") != querys_map.end()){
+					header = "HTTP/1.1 200 OK\r\n";
+					header += "Set-Cookie: color=" + querys_map["color"] + "\r\n";
+				}
+			}
+			else
+				header = "HTTP/1.1 200 OK\r\n";
+        	header += "Content-Type: text/html\r\n";
+        	header += "Content-Length: " + std::to_string(body.size()) + "\r\n";
+        	header += "Server: server/" + this->server->server_name + "--v Beta" + "\r\n";
+        	header += "Connection: keep-alive\r\n\r\n";
+        	header += body;
+        	int bytes = send(this->request->client_fd, header.c_str(), header.size(), 0);
+			if (bytes == -1)
+				throw this->response->generateError(E503, 0);
+			header = "";
+			this->request->state = DONE;
 			unlink(tmp_filename.c_str());
 			close(pipefd[0]);
 		}
