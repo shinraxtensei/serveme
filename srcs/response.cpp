@@ -358,8 +358,8 @@ void	Response::parseUrl()
 void    Response::handleNormalReq()
 {
 	this->client = Servme::getCore()->map_clients[this->client_fd];
-	try
-	{
+	// try
+	// {
 		if (this->responseSent == 0)
 		{
 			if (this->checkReturn())
@@ -385,20 +385,20 @@ void    Response::handleNormalReq()
 			send(this->client_fd, this->responseStr.c_str(), this->responseStr.length(), 0);
 			this->responseSent = 1;
 		}
-	}
-	catch(const std::exception& e)
-	{
-		Parser::lex()->set_input(e.what());
-		int	code = atoi(Parser::lex()->next_token(false).c_str());
-		if (checkError(code))
-			this->responseStr = generateError(e.what(), DEFAULT);
-		else
-			this->responseStr = generateError(e.what(), MINE);
-		send(this->client_fd, this->responseStr.c_str(), this->responseStr.length(), 0);
-		this->responseSent = 1;
-		this->client->fd = -1;
-		this->client->request->state = DONE;
-	}
+	// }
+	// catch(const std::exception& e)
+	// {
+	// 	Parser::lex()->set_input(e.what());
+	// 	int	code = atoi(Parser::lex()->next_token(false).c_str());
+	// 	if (checkError(code))
+	// 		this->responseStr = generateError(e.what(), DEFAULT);
+	// 	else
+	// 		this->responseStr = generateError(e.what(), MINE);
+	// 	send(this->client_fd, this->responseStr.c_str(), this->responseStr.length(), 0);
+	// 	this->responseSent = 1;
+	// 	this->client->fd = -1;
+	// 	this->client->request->state = DONE;
+	// }
 }
 
 
