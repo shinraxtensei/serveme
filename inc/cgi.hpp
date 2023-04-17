@@ -26,6 +26,7 @@ class Cgi{
 		std::vector<std::string>			FULLBODY;
 		std::map<std::string, std::string>	QUERY_MAP;
 		std::map<std::string, std::string> 	CompilerPathsByLanguage;
+		// std::vector<int> 					pids;
 
 		//*********        functions        *********//
 		std::string							parseUrl(std::string url);

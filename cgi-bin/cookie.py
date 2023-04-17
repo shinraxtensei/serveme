@@ -23,6 +23,7 @@ if form.getvalue('color') and form.getvalue('color') != color:
 
 print ("HTTP/1.1 200 OK")
 print ("server: Garson/0.1.5 (1337)")
+print ("set-cookie: color=%s" % (color))
 print ("Content-type:text/html\n\r\n\r")
 
 print ("<html>")
