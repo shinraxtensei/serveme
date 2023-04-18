@@ -14,17 +14,8 @@ class Cgi{
 		// ~Cgi();
 
 		//*********        variables        *********//
-		int									CONTENT_LENGTH;
-		std::string							REQUEST_METHOD;
-		std::string							PATH_INFO;
-		std::string							SCRIPT_FILENAME;
-		std::string							CONTENT_TYPE;
-		std::string							BODY;
-		std::string							QUERY_STRING;
-		std::string							CGI_PATH;
-		std::vector<std::string>			FULLBODY;
+		int state;
 		std::map<std::string, std::string>	QUERY_MAP;
-		std::map<std::string, std::string> 	CompilerPathsByLanguage;
 		// std::vector<int> 					pids;
 
 		//*********        functions        *********//
