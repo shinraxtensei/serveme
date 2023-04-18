@@ -3,6 +3,7 @@
 #include "cgi.hpp"
 #include "servme.hpp"
 #include <fcntl.h>
+#include <sys/_types/_pid_t.h>
 #include <unistd.h>
 
 class Core;
@@ -120,8 +121,6 @@ class Request
         void ParseMultiPartBody();
 
 		std::string	query;
-
- 
 };
 
 
@@ -211,6 +210,7 @@ class Client
 		Location		*location; // need to get the location path in config parsing
 
 		int				cgiFlag;
+        pid_t				pid;
 
         Cgi *cgi;
         // Response *response;

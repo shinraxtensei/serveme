@@ -11,7 +11,6 @@
 #include <ostream>
 #include <stdlib.h>
 #include <string>
-#include <sys/_types/_pid_t.h>
 #include <sys/fcntl.h>
 #include <sys/wait.h>
 #include <unistd.h>
@@ -91,10 +90,8 @@ void Client::cgi_handler(){
 	if (this->request->method == "GET" || (this->request->method == "POST" && (unsigned long)this->request->contentLength == this->request->bodyString.size())){
         candidates = this->response->getLocations2(this->server->locations);
 		/****************************************************************/
-		static std::vector<int> 										pids;
 		
 		int		pipefd[2];
-		pid_t	pid = -1;
 		srand(time(NULL));
 		std::vector<std::string> 							allowed_meth;
         std::vector<Location>::iterator                     iter_cand;
@@ -146,11 +143,10 @@ void Client::cgi_handler(){
 			/*	**************************************	*/
 			if (pipe(pipefd) == -1)
 				throw this->response->generateError(E503, 0);
-			if ((pid = fork()) == -1)
+			if ((this->pid  = fork()) == -1)
 				throw this->response->generateError(E503, 0);
 			/*child process*/
-			pids.push_back(pid);
-			if (pid == 0) {
+			if (this->pid  == 0) {
 				try{
 					if (this->request->method == "POST"){
 						std::ofstream ofs(tmp_filename);
@@ -201,7 +197,10 @@ void Client::cgi_handler(){
 					unlink(tmp_filename.c_str());
 					std::cerr << "SCRIPT_FILENAME: " << server_path << std::endl;
 					if (execve(path, arg, env) == -1)
+					{
+						exit(6);
 						throw 500;
+					}
 				} catch (int error){
 					close(pipefd[0]);
 					close(pipefd[1]);
@@ -216,19 +215,20 @@ void Client::cgi_handler(){
 						body = this->response->generateError(E503, 0);
 					send(this->request->client_fd, body.c_str(), body.size(), 0);
 				}
-			} 
+
+			}
 
 
 			// int error_status;
-			// for (size_t i = 0 ; i < pids.size() ; i++)
+			// for (size_t i = 0 ; i < this->pid s.size() ; i++)
 			// {
-			// 	int pid = waitpid(pids[i], &error_status, WNOHANG);
-			// 	std::cout << "pid: " << pid << std::endl;
+			// 	int this->pid  = waitthis->pid (this->pid s[i], &error_status, WNOHANG);
+			// 	std::cout << "this->pid : " << this->pid  << std::endl;
 			// 	if (error_status > 0)
 			// 	{
 
 			// 		// handle
-			// 		pids.erase(pids.begin() + i);
+			// 		this->pid s.erase(this->pid s.begin() + i);
 			// 		i--;
 			// 		break;
 			// 	}
@@ -290,5 +290,14 @@ void Client::cgi_handler(){
 			if (bytes == -1)
 				return;
 		}
+	}
+	int status;
+	if (this->pid == 0)
+		return;
+	waitpid(this->pid, &status, WNOHANG);
+	if (WIFEXITED(status) || WIFSIGNALED(status))
+	{
+		this->request->state = DONE;
+		std::cout << "exit status: " << WEXITSTATUS(status) << std::endl;
 	}
 }
