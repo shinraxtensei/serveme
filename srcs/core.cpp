@@ -136,8 +136,8 @@ void reset(Client *client)
     client->response = new Response();
     client->cgi = new Cgi();
 
-    client->server = nullptr;
-	client->location = nullptr;
+    client->server = NULL;
+	client->location = NULL;
     client->request->client_fd = client->fd;
     client->response->client_fd = client->fd;
     
@@ -170,56 +170,56 @@ void Core::handleConnections()
 
 
 
-            if (this->map_clients[this->pollFds[i].fd] &&  check_servers_socket(this->pollFds[i].fd) == -1)
-            {
-                if (this->map_clients[this->pollFds[i].fd]->request->state == DONE)
-                {
-                    reset(this->map_clients[this->pollFds[i].fd]);
+            // if (this->map_clients[this->pollFds[i].fd] &&  check_servers_socket(this->pollFds[i].fd) == -1)
+            // {
+            //     if (this->map_clients[this->pollFds[i].fd]->request->state == DONE)
+            //     {
+            //         reset(this->map_clients[this->pollFds[i].fd]);
 
-                }
-                if (this->map_clients[this->pollFds[i].fd]->response->GENERATE_RES )
-                {
+            //     }
+            //     if (this->map_clients[this->pollFds[i].fd]->response->GENERATE_RES )
+            //     {
 
-                    this->map_clients[this->pollFds[i].fd]->selectServer();
+            //         this->map_clients[this->pollFds[i].fd]->selectServer();
 
 
-                    this->pollFds[i].events |= POLLOUT;
-                    if (this->map_clients[this->pollFds[i].fd]->request->method.size() != 0)
-                    {
-                        try
-                        {
-                            this->map_clients[this->pollFds[i].fd]->generateResponse();
+            //         this->pollFds[i].events |= POLLOUT;
+            //         if (this->map_clients[this->pollFds[i].fd]->request->method.size() != 0)
+            //         {
+            //             try
+            //             {
+            //                 this->map_clients[this->pollFds[i].fd]->generateResponse();
 
-                        }
-                        catch(const std::exception& e)
-                        {
+            //             }
+            //             catch(const std::exception& e)
+            //             {
 
-                            Parser::lex()->set_input(e.what());
-                            int code = atoi(Parser::lex()->next_token(false).c_str());
+            //                 Parser::lex()->set_input(e.what());
+            //                 int code = atoi(Parser::lex()->next_token(false).c_str());
 
-                            if (this->map_clients[this->pollFds[i].fd]->response->checkError(code))
-                                this->map_clients[this->pollFds[i].fd]->response->responseStr = this->map_clients[this->pollFds[i].fd]->response->generateError(e.what(), DEFAULT);
-                            else
-                                this->map_clients[this->pollFds[i].fd]->response->responseStr = this->map_clients[this->pollFds[i].fd]->response->generateError(e.what(), MINE);
+            //                 if (this->map_clients[this->pollFds[i].fd]->response->checkError(code))
+            //                     this->map_clients[this->pollFds[i].fd]->response->responseStr = this->map_clients[this->pollFds[i].fd]->response->generateError(e.what(), DEFAULT);
+            //                 else
+            //                     this->map_clients[this->pollFds[i].fd]->response->responseStr = this->map_clients[this->pollFds[i].fd]->response->generateError(e.what(), MINE);
 
-                            send(this->pollFds[i].fd, this->map_clients[this->pollFds[i].fd]->response->responseStr.c_str(), this->map_clients[this->pollFds[i].fd]->response->responseStr.size(), 0);
-                            // this->map_clients[this->pollFds[i].fd]->request->state = DONE;  
-                            removeClient(*this->map_clients[this->pollFds[i].fd]);
-                            continue;
-                            // i--;
-                        }
+            //                 send(this->pollFds[i].fd, this->map_clients[this->pollFds[i].fd]->response->responseStr.c_str(), this->map_clients[this->pollFds[i].fd]->response->responseStr.size(), 0);
+            //                 // this->map_clients[this->pollFds[i].fd]->request->state = DONE;  
+            //                 removeClient(*this->map_clients[this->pollFds[i].fd]);
+            //                 continue;
+            //                 // i--;
+            //             }
 
-                    }
-                    this->pollFds[i].events &= ~POLLOUT;
-                }
-                check_client_inactivity(*this->map_clients[this->pollFds[i].fd] , TIMEOUT);
-						if (this->map_clients[this->pollFds[i].fd]->fd == -1)
-						{
-							removeClient(*this->map_clients[this->pollFds[i].fd]);
-							continue;
-						}
+            //         }
+            //         this->pollFds[i].events &= ~POLLOUT;
+            //     }
+            //     check_client_inactivity(*this->map_clients[this->pollFds[i].fd] , TIMEOUT);
+			// 			if (this->map_clients[this->pollFds[i].fd]->fd == -1)
+			// 			{
+			// 				removeClient(*this->map_clients[this->pollFds[i].fd]);
+			// 				continue;
+			// 			}
 							
-            }
+            // }
 
   
 

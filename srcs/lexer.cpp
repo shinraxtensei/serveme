@@ -5,14 +5,14 @@
 //  this is a singleton for the lexer object
 Lexer *Parser::lex(std::string filename)
 {
-    if (Parser::ptr == nullptr)
+    if (Parser::ptr == NULL)
         Parser::ptr = new Lexer(filename);
     return ptr;
 }
 //  this is a singleton for the lexer object
 Lexer *Parser::lex()
 {
-    if (Parser::ptr == nullptr)
+    if (Parser::ptr == NULL)
     {
         //std::cout << "Error: No file specified" << std::endl;
         return NULL;
@@ -23,7 +23,7 @@ Lexer *Parser::lex()
 // this is a singleton for the http object
 Http *Parser::getHttp()
 {
-    if (Parser::http == nullptr)
+    if (Parser::http == NULL)
         Parser::http = new Http();
     return http;
 }

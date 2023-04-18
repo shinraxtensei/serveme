@@ -100,6 +100,7 @@ class Request
         std::stringstream ss;
         std::ofstream body;
         std::string bodyString;
+        std::string chunkedBody;
         int pos;
 
         int 		contentLength;
@@ -168,6 +169,7 @@ class Response
 			int		checkResourseType();
 			void	handleFile();
 			void	handleDirectory();
+            void    handleChuncked();
 			std::string	newPath;
 			void	handleGet(int type);
 			void	sendFile();

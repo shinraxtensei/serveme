@@ -40,12 +40,12 @@ int	Response::checkError(int error)
 
 	this->client = Servme::getCore()->map_clients[this->client_fd];
 
-	if (this->client == nullptr)
+	if (this->client == NULL)
 	{
 		//std::cout << "why no server" << std::endl;
 		return 0;
 	}
-	if (this->client->location != nullptr)
+	if (this->client->location != NULL)
 	{
 		root = this->client->location->root;
 		if (!this->client->location->error_page.empty())
@@ -224,9 +224,9 @@ std::string	Response::getIndex()
 
 int	Response::checkReturn()
 {
-	if (this->client != nullptr)
+	if (this->client != NULL)
 	{
-		if (this->client->location != nullptr)
+		if (this->client->location != NULL)
 		{
 			if (this->client->location->returned != 0)
 			{
@@ -250,7 +250,7 @@ int	Response::checkReturn()
 		}
 		else
 		{
-			if (this->client->server != nullptr)
+			if (this->client->server != NULL)
 			{
 				if (this->client->server->returned != 0)
 				{

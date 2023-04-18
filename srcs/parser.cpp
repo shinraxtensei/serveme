@@ -5,16 +5,16 @@
 
 void Parser::deleteHttp()
 {
-    if (Parser::http != nullptr)
+    if (Parser::http != NULL)
         delete Parser::http;
-    Parser::http = nullptr;
+    Parser::http = NULL;
 }
 
 void Parser::deleteLex()
 {
-    if (Parser::ptr != nullptr)
+    if (Parser::ptr != NULL)
         delete Parser::ptr;
-    Parser::ptr = nullptr;
+    Parser::ptr = NULL;
 }
 
 

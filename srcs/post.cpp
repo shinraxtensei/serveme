@@ -1,10 +1,68 @@
 #include "../inc/client.hpp"
 #include "../inc/macros.hpp"
 
+void	Response::handleChuncked()
+{
+	if (this->started == 1 && this->responseSent == 1 && this->readPos == this->client->request->chunkedBody.length())
+	{
+		this->client->request->state = DONE;
+		this->fileWrite.close();
+		return ;
+	}
+	if (this->readPos < this->client->request->chunkedBody.length())
+	{
+		if (this->started == 0)
+		{
+			std::map<std::string, std::string>::iterator	it;
+			std::string	extension;
+			if (this->client->request->contentType.back() == '\r')
+				this->client->request->contentType.pop_back();
+			if (this->client->request->contentType.back() == '\n')
+				this->client->request->contentType.pop_back();
+	
+			for (it = this->contentTypes.begin(); it != this->contentTypes.end(); it++)
+			{
+				if (this->client->request->contentType.find((*it).second) != std::string::npos)
+				{
+					extension = (*it).first;
+					break ;
+				}
+			}
+			if (it == this->contentTypes.end())
+				extension = "txt";
+			static std::string	path = "upload/random." + extension;
+			this->fileWrite.open(path, std::ios_base::app);
+			if (!this->fileWrite.good())
+				throw std::runtime_error(E500);
+			this->started = 1;
+		}
+		int	toStore;
+		if (this->client->request->chunkedBody.length() - this->readPos > 1024)
+			toStore = 1024;
+		else
+			toStore = this->client->request->chunkedBody.length() - this->readPos;
+		std::string store = this->client->request->chunkedBody.substr(this->readPos, toStore);
+		this->fileWrite << store;
+		this->readPos += toStore;
+	}
+	if (this->responseSent == 0)
+	{
+		this->body = "<html><head></head><body><h1>KOULCHI NADI AWLDI</h1></body></html>";
+		std::stringstream ss;
+		ss << this->body.length();
+		this->responseStr = "HTTP/1.1 200 OK\r\n"
+				"Content-Type: text/html\r\n"
+				"Content-Length:" + ss.str() + " \r\n"
+				"Connection: keep-alive\r\n\r\n" + this->body;
+	}	
+}
+
 void	Response::handlePost()
 {
 	if (this->client->request->bodyType == MULTIPART)
 		this->handleMultipart();
+	else if (this->client->request->bodyType == CHUNKED)
+		this->handleChuncked();
 	else
 	{
 		this->handleNormalBody();
