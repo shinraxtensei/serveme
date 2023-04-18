@@ -116,6 +116,9 @@ Client::Client(SocketWrapper *sock)
     pollfd_.fd = fd;
     pollfd_.events = POLLIN;
     pollfd_.revents = 0;
+
+    this->pid = 0;
+    // this->cgistate = 0;
 }
 
 
