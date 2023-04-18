@@ -1,7 +1,5 @@
 #include "../inc/lexer.hpp"
 
-
-
 //  this is a singleton for the lexer object
 Lexer *Parser::lex(std::string filename)
 {
@@ -14,7 +12,7 @@ Lexer *Parser::lex()
 {
     if (Parser::ptr == NULL)
     {
-        //std::cout << "Error: No file specified" << std::endl;
+        // std::cout << "Error: No file specified" << std::endl;
         return NULL;
     }
     return ptr;
@@ -28,12 +26,11 @@ Http *Parser::getHttp()
     return http;
 }
 
-
 std::vector<std::string> Lexer::getStringTokens(std::string const &str)
 {
     Parser::lex()->set_input(str);
     std::vector<std::string> tokens;
-    while(true)
+    while (true)
     {
         std::string token = Parser::lex()->next_token(true);
         if (token == "EOF")
@@ -42,8 +39,6 @@ std::vector<std::string> Lexer::getStringTokens(std::string const &str)
     }
     return tokens;
 }
-
-
 
 bool Lexer::errors_check()
 {
@@ -72,26 +67,21 @@ bool Lexer::errors_check()
             }
             //*******************************
 
-
             newline += token + " ";
             tokens.push_back(token);
             size += token.size();
         }
         if (!tokens.empty() && size > 0 && tokens.back().back() != ';' && (tokens[0] != "server" && tokens[0] != "location" && tokens[0] != "http" && tokens[0] != "events" && tokens[0] != "{" && tokens[0] != "}" && tokens.back().back() != '\'' && tokens.back().back() != '"'))
             throw std::runtime_error("Error: missing ; at the end of the line: \n" + newline);
-
     }
     if (!stack.empty())
         throw std::runtime_error("Error: unclosed curly braces");
 
-
     return true;
 }
 
-
-
 Lexer::Lexer(std::string filename)
-{   
+{
     // *** this is for inserting all the directives inside a vector in order to check if the directive is valid or not
     this->streamPos = 0;
 
@@ -100,11 +90,8 @@ Lexer::Lexer(std::string filename)
     std::string line;
     while (std::getline(dir, line))
         this->all_directs.push_back(line);
-    
 
     // *********************************************************
-
-
 
     std::ifstream file(filename);
     if (!file.is_open())
@@ -119,12 +106,11 @@ Lexer::Lexer(std::string filename)
     }
     if (this->errors_check())
         this->input = input;
-        
 };
 
 void Lexer::print_input()
 {
-    //std::cout << this->input << std::endl;
+    // std::cout << this->input << std::endl;
 }
 
 void Lexer::set_input(const std::string &input)
@@ -135,7 +121,7 @@ void Lexer::set_input(const std::string &input)
 
 static bool is_whitespace(char c)
 {
-    return c == ' ' || c == '\t' || c == '\n' || c == '\r' ;
+    return c == ' ' || c == '\t' || c == '\n' || c == '\r';
 }
 
 static void skip_whitespace(std::istringstream &input)
@@ -153,13 +139,11 @@ static void skip_whitespace(std::istringstream &input)
     }
 }
 
-
 void Lexer::refrechPos()
 {
     this->input_stream.seekg(this->streamPos);
     this->next_token(true);
 }
-
 
 std::string Lexer::next_line()
 {
@@ -167,14 +151,14 @@ std::string Lexer::next_line()
     std::string line;
     if (input_stream.eof())
         return "EOF";
-    while(!input_stream.eof())
+    while (!input_stream.eof())
     {
         if (input_stream.peek() == '\n')
         {
             input_stream.get();
             break;
         }
-        else  if (input_stream.peek() == '\r')
+        else if (input_stream.peek() == '\r')
         {
             input_stream.get();
             input_stream.get();
@@ -184,9 +168,6 @@ std::string Lexer::next_line()
     }
     return line;
 }
-
-
-
 
 std::string Lexer::next_token(bool consume)
 {
@@ -207,7 +188,6 @@ std::string Lexer::next_token(bool consume)
             while (!input_stream.eof() && (input_stream.peek() != quote) && (quote == '(' && input_stream.peek() != ')'))
             {
                 token += input_stream.get();
-
             }
         }
         if (is_whitespace(input_stream.peek()))
@@ -217,19 +197,15 @@ std::string Lexer::next_token(bool consume)
 
     char last = token.back();
     char first = token.front();
-    if (last == -1 )
+    if (last == -1)
         token.pop_back();
     if (first == -112)
         token.erase(token.begin());
-
-
 
     token.erase(std::remove(token.begin(), token.end(), '\r'), token.end());
     token.erase(std::remove(token.begin(), token.end(), '\n'), token.end());
     if (consume == false)
         input_stream.seekg(pos);
-    
-
 
     this->tokens.push_back(token);
     return token;

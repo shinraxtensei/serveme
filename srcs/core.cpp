@@ -21,8 +21,6 @@ Core::~Core()
     for (std::vector<SocketWrapper *>::iterator it = this->serverSockets.begin(); it != this->serverSockets.end(); it++)
         delete *it;
     this->serverSockets.clear();
-
-    
 }
 
 void Core::parseMimeTypes()
@@ -84,26 +82,17 @@ void Core::startup()
     }
 }
 
-
-
-
-
-bool Core::check_client_inactivity(Client &client , time_t timeout)
+bool Core::check_client_inactivity(Client &client, time_t timeout)
 {
     time_t now = time(NULL);
 
-
-    if (now - client.lastActivity > timeout )
+    if (now - client.lastActivity > timeout)
     {
-        //std::cout << "Client with fd: " << client.fd  << " timed out\n";
-        if ((client.request->connection.find("keep-alive") == std::string::npos))
-            this->removeClient(client);
+        throw std::runtime_error(E504);
         return true;
     }
     return false;
 }
-
-
 
 void Core::removeClient(Client &client)
 {
@@ -115,14 +104,10 @@ void Core::removeClient(Client &client)
             close(client.fd);
             this->pollFds.erase(this->pollFds.begin() + i);
             this->map_clients.erase(client.fd);
-            i--;
             return;
         }
     }
 }
-
-
-
 
 void reset(Client *client)
 {
@@ -131,24 +116,32 @@ void reset(Client *client)
     delete client->response;
     delete client->cgi;
 
-
     client->request = new Request();
     client->response = new Response();
     client->cgi = new Cgi();
 
     client->server = NULL;
-	client->location = NULL;
+    client->location = NULL;
     client->request->client_fd = client->fd;
     client->response->client_fd = client->fd;
-    
-
 }
 
+void Core::handleCatchBlock(std::string errorCode, int i)
+{
+    Parser::lex()->set_input(errorCode);
+    int code = atoi(Parser::lex()->next_token(false).c_str());
 
+    if (this->map_clients[this->pollFds[i].fd]->response->checkError(code))
+        this->map_clients[this->pollFds[i].fd]->response->responseStr = this->map_clients[this->pollFds[i].fd]->response->generateError(errorCode, DEFAULT);
+    else
+        this->map_clients[this->pollFds[i].fd]->response->responseStr = this->map_clients[this->pollFds[i].fd]->response->generateError(errorCode, MINE);
 
+    send(this->pollFds[i].fd, this->map_clients[this->pollFds[i].fd]->response->responseStr.c_str(), this->map_clients[this->pollFds[i].fd]->response->responseStr.size(), 0);
+    removeClient(*this->map_clients[this->pollFds[i].fd]);
+}
 
 void Core::handleConnections()
-{   
+{
     for (std::vector<SocketWrapper *>::iterator it = this->serverSockets.begin(); it != this->serverSockets.end(); it++)
     {
         pollfd fd;
@@ -158,121 +151,93 @@ void Core::handleConnections()
 
         this->pollFds.push_back(fd);
     }
-    
+
     while (true)
     {
         int ret = poll(this->pollFds.data(), this->pollFds.size(), 60);
         if (ret < 0)
             throw std::runtime_error("poll() failed");
- 
+
         for (size_t i = 0; i < this->pollFds.size(); i++)
         {
 
-
-
-            if (this->map_clients[this->pollFds[i].fd] &&  check_servers_socket(this->pollFds[i].fd) == -1)
+            // this is for response generation
+            if (this->map_clients[this->pollFds[i].fd] && check_servers_socket(this->pollFds[i].fd) == -1)
             {
                 if (this->map_clients[this->pollFds[i].fd]->request->state == DONE)
                 {
                     reset(this->map_clients[this->pollFds[i].fd]);
-
                 }
-                if (this->map_clients[this->pollFds[i].fd]->response->GENERATE_RES )
+                if (this->map_clients[this->pollFds[i].fd]->response->GENERATE_RES)
                 {
 
                     this->map_clients[this->pollFds[i].fd]->selectServer();
 
-
-                    this->pollFds[i].events |= POLLOUT;
                     if (this->map_clients[this->pollFds[i].fd]->request->method.size() != 0)
                     {
                         try
                         {
+                            this->pollFds[i].events |= POLLOUT;
                             this->map_clients[this->pollFds[i].fd]->generateResponse();
-
+                            this->pollFds[i].events &= ~POLLOUT;
                         }
-                        catch(const std::exception& e)
+                        catch (const std::exception &e)
                         {
-
-                            Parser::lex()->set_input(e.what());
-                            int code = atoi(Parser::lex()->next_token(false).c_str());
-
-                            if (this->map_clients[this->pollFds[i].fd]->response->checkError(code))
-                                this->map_clients[this->pollFds[i].fd]->response->responseStr = this->map_clients[this->pollFds[i].fd]->response->generateError(e.what(), DEFAULT);
-                            else
-                                this->map_clients[this->pollFds[i].fd]->response->responseStr = this->map_clients[this->pollFds[i].fd]->response->generateError(e.what(), MINE);
-
-                            send(this->pollFds[i].fd, this->map_clients[this->pollFds[i].fd]->response->responseStr.c_str(), this->map_clients[this->pollFds[i].fd]->response->responseStr.size(), 0);
-                            // this->map_clients[this->pollFds[i].fd]->request->state = DONE;  
-                            removeClient(*this->map_clients[this->pollFds[i].fd]);
+                            handleCatchBlock(e.what(), i);
                             continue;
-                            // i--;
                         }
-
                     }
-                    this->pollFds[i].events &= ~POLLOUT;
                 }
-                check_client_inactivity(*this->map_clients[this->pollFds[i].fd] , TIMEOUT);
-						if (this->map_clients[this->pollFds[i].fd]->fd == -1)
-						{
-							removeClient(*this->map_clients[this->pollFds[i].fd]);
-							continue;
-						}
-							
+                // this is in case the fd has been changed to -1 from the response generation in case of an error
+                if (this->map_clients[this->pollFds[i].fd]->fd == -1)
+                {
+                    removeClient(*this->map_clients[this->pollFds[i].fd]);
+                    continue;
+                }
+
+                // this try block to to check for client inactivity
+                try
+                {
+                    check_client_inactivity(*this->map_clients[this->pollFds[i].fd], TIMEOUT);
+                }
+                catch (const std::exception &e)
+                {
+                    handleCatchBlock(e.what(), i);
+                    continue;
+                }
             }
 
-  
-
             if (this->pollFds[i].revents & POLLIN)
-            {   
+            {
 
-
+                // this is for new connections
                 if (check_servers_socket(this->pollFds[i].fd) != -1)
                 {
                     int it = check_servers_socket(this->pollFds[i].fd);
-                        // New connection
-
+                    // New connection
                     this->clients.push_back(new Client(this->serverSockets[it]));
-
                     this->clients.back()->core = this;
-
                     this->map_clients.insert(std::make_pair(this->clients.back()->fd, this->clients.back()));
-
-                    
                     this->pollFds.push_back(this->clients.back()->pollfd_);
-
-
-
                 }
                 else
-                {	
-                    try {
-                            // //std::cout << "handle request\n" << std::endl;
-                            this->map_clients[this->pollFds[i].fd]->handleRequest();
-                    }
-                    catch(const std::exception& e)
+                {
+                    // already established connection but need to be handled
+                    try
                     {
-
-                        Parser::lex()->set_input(e.what());
-                        int code = atoi(Parser::lex()->next_token(false).c_str());
-
-                        if (this->map_clients[this->pollFds[i].fd]->response->checkError(code))
-                            this->map_clients[this->pollFds[i].fd]->response->responseStr = this->map_clients[this->pollFds[i].fd]->response->generateError(e.what(), DEFAULT);
-                        else
-                            this->map_clients[this->pollFds[i].fd]->response->responseStr = this->map_clients[this->pollFds[i].fd]->response->generateError(e.what(), MINE);
-
-                        send(this->pollFds[i].fd, this->map_clients[this->pollFds[i].fd]->response->responseStr.c_str(), this->map_clients[this->pollFds[i].fd]->response->responseStr.size(), 0);
-                        // this->map_clients[this->pollFds[i].fd]->request->state = DONE;  
-						removeClient(*this->map_clients[this->pollFds[i].fd]);
-						continue;
-						// i--;
+                        this->map_clients[this->pollFds[i].fd]->handleRequest();
+                    }
+                    catch (const std::exception &e)
+                    {
+                        handleCatchBlock(e.what(), i);
+                        continue;
                     }
                 }
             }
-            
+
             else if (this->pollFds[i].revents & POLLHUP)
             {
-                //std::cout << "dissconected\n";
+                // std::cout << "dissconected\n";
                 this->pollFds[i].fd = -1;
                 close(this->pollFds[i].fd);
                 this->pollFds.erase(this->pollFds.begin() + i);
@@ -280,12 +245,11 @@ void Core::handleConnections()
                 delete this->map_clients[this->pollFds[i].fd];
                 this->map_clients.erase(this->pollFds[i].fd);
                 i--;
-
             }
-            
+
             else if (this->pollFds[i].revents & POLLERR)
-            {  
-                //std::cout << "error\n";
+            {
+                // std::cout << "error\n";
                 this->pollFds[i].fd = -1;
                 close(this->pollFds[i].fd);
                 this->pollFds.erase(this->pollFds.begin() + i);
@@ -296,4 +260,3 @@ void Core::handleConnections()
         }
     }
 }
-
