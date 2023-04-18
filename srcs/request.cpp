@@ -50,7 +50,9 @@ Request::Request()
     this->method = "";
     this->url = "";
     this->version = "";
+    
     this->bodyString = "";
+    this->chunkedBody = "";
     this->contentType = "";
     this->boundary = "";
 }
@@ -278,11 +280,10 @@ std::string nextLine(int &pos , std::string &str)
 
 
 
-
+// TODO: fix chunked and multipart data
 
 void Request::ParseChunkedBody() {
     static size_t chunkSize = 0;
-    this->pos = 0;
     static std::string data;
 
     if (this->state == END) {
@@ -292,6 +293,7 @@ void Request::ParseChunkedBody() {
 
     if (this->state & CHUNKED_START)
     {
+        this->pos = 0;
         //std::cout << BOLDYELLOW << "STAT: CHUNKED START" << RESET << std::endl;
         this->state = CHUNKED_SIZE;
     }
@@ -301,34 +303,35 @@ void Request::ParseChunkedBody() {
 
     if (this->state & CHUNKED_SIZE) {
 
-        //std::cout << BOLDYELLOW << "STAT: CHUNKED SIZE"  << RESET << std::endl;
-        std::string line ;
-        line = nextLine(this->pos , this->bodyString);
-
-        if (line == "EOF" || this->bodyString == "\r\n" || this->bodyString == "\n")
-            return;
-        //std::cout << "line: " << line << std::endl;
-        if (line.find_first_not_of("0123456789abcdefABCDEF") != std::string::npos)
-            throw std::runtime_error("Error: invalid chunk size.");
-        chunkSize = strtol(line.c_str(), NULL, 16);
-
+        // std::cout << BOLDYELLOW << "STAT: CHUNKED SIZE"  << RESET << std::endl;
+        // read till \r\n or \n then conver to int from hexa with c++98
+        // std::string line = nextLine(this->pos , this->bodyString);
+        // if (line == "EOF")
+            // return;
+        std::string line = "";
+        while (this->bodyString[this->pos] != '\r' && this->bodyString[this->pos] != '\n' && this->pos < (int)this->bodyString.size())
+        {
+            line += this->bodyString[this->pos];
+            this->pos++;
+        }
+        std::stringstream ss;
+        ss << std::hex << line;
+        ss >> chunkSize;
+        // std::cout << BOLDYELLOW << "CHUNK SIZE: " << chunkSize << RESET << std::endl;
         if (chunkSize == 0)
         {
-            this->bodyString = data;
+            std::cout<< "end";
+            // std::cout << BOLDYELLOW << "chunked body:"  <<  this->chunkedBody << RESET << std::endl;
             this->state = END;
             return;
         }
         this->state = CHUNKED_DATA;
-        
     }
 
 
     if (this->state & CHUNKED_DATA) {
     
-        //std::cout << BOLDYELLOW << "STAT: CHUNKED DATA" << RESET << std::endl;
-
-
-        
+        // std::cout << BOLDYELLOW << "STAT: CHUNKED DATA" << RESET << std::endl;
         std::string line;
 
         while(1)
@@ -338,17 +341,20 @@ void Request::ParseChunkedBody() {
                 return;
             while(chunkSize > 0 && line.size() > 0)
             {
-                data += line[0];
+                this->chunkedBody += line[0];
                 line.erase(0, 1);
                 chunkSize--;
             }
             if (chunkSize == 0)
             {
-                //std::cout << BLUE <<  "chunk has been read " << data <<RESET << std::endl;
+                // std::cout << BLUE <<  "chunk has been read " << data <<RESET << std::endl;
                 this->state = CHUNKED_SIZE;
                 break;
             }
         }
+
+
+
     }
 }
 

@@ -2,14 +2,14 @@
 
 Core *Servme::getCore()
 {
-    if (Servme::core == nullptr)
+    if (Servme::core == NULL)
         Servme::core = new Core();
     return Servme::core;
 };
 
 void Servme::deleteCore()
 {
-    if (Servme::core != nullptr)
+    if (Servme::core != NULL)
         delete Servme::core;
-    Servme::core = nullptr;
+    Servme::core = NULL;
 };

@@ -15,7 +15,7 @@ Client::Client()
     this->request->core = this->core;
     this->request->client = this;
 
-    this->location = nullptr;
+    this->location = NULL;
     this->response = new Response();
     this->response->http = this->core->get_http();
     this->response->client = this;
@@ -38,43 +38,43 @@ Client::~Client()
         close(this->pollfd_.fd);
         this->pollfd_.fd = -1;
     }
-    if (this->socket != nullptr)
+    if (this->socket != NULL)
     {
         delete this->socket;
-        this->socket = nullptr;
+        this->socket = NULL;
     }
 
-    if (this->addr != nullptr)
+    if (this->addr != NULL)
     {
         delete this->addr;
-        this->addr = nullptr;
+        this->addr = NULL;
     }
-    if (this->request != nullptr)
+    if (this->request != NULL)
     {
         delete this->request;
-        this->request = nullptr;
+        this->request = NULL;
     }
-    if (this->response != nullptr)
+    if (this->response != NULL)
     {
         delete this->response;
-        this->response = nullptr;
+        this->response = NULL;
     }
 
 
-    if (this->cgi != nullptr)
+    if (this->cgi != NULL)
     {
         delete this->cgi;
-        this->cgi = nullptr;
+        this->cgi = NULL;
     }
-    if (this->server != nullptr)
+    if (this->server != NULL)
     {
         delete this->server;
-        this->server = nullptr;
+        this->server = NULL;
     }
-    if (this->location != nullptr)
+    if (this->location != NULL)
     {
         delete this->location;
-        this->location = nullptr;
+        this->location = NULL;
     }
 
 }
@@ -94,8 +94,8 @@ Client::Client(SocketWrapper *sock)
     this->response->client = this;
 
     this->request->core = this->core;
-    this->server = nullptr;
-	this->location = nullptr;
+    this->server = NULL;
+	this->location = NULL;
 
     // this->response->http = this->core->get_http();
 
@@ -156,10 +156,6 @@ void Client::handleRequest()
 {   
 
     this->lastActivity = time(NULL);
-
-
-
-
 
     if (this->request->state & (START | FIRSTLINE | HEADERS))
     {
@@ -248,7 +244,7 @@ void Client::handleRequest()
             this->request->ParseChunkedBody(); 
         }
 
-        else if (this->request->bodyType == MULTIPART)
+        if (this->request->bodyType == MULTIPART)
         {
 			//std::cout << "state : " << this->request->state << std::endl;
 			//std::cout << "body type : multipart" << std::endl;

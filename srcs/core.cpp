@@ -136,8 +136,8 @@ void reset(Client *client)
     client->response = new Response();
     client->cgi = new Cgi();
 
-    client->server = nullptr;
-	client->location = nullptr;
+    client->server = NULL;
+	client->location = NULL;
     client->request->client_fd = client->fd;
     client->response->client_fd = client->fd;
     

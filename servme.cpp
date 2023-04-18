@@ -1,9 +1,9 @@
 
 #include "inc/servme.hpp"
 
-Lexer *Parser::ptr = nullptr;
-Http *Parser::http = nullptr;
-Core *Servme::core = nullptr;
+Lexer *Parser::ptr = NULL;
+Http *Parser::http = NULL;
+Core *Servme::core = NULL;
 
 // void generate_dot(Http &http)
 // {
