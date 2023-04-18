@@ -87,10 +87,11 @@ void Client::cgi_handler(){
     std::vector<Location>   candidates;
 
 
+	std::cout << "size of body: " << this->request->bodyString.size() << std::endl;
 	if (this->request->method == "GET" || (this->request->method == "POST" && (unsigned long)this->request->contentLength == this->request->bodyString.size())){
         candidates = this->response->getLocations2(this->server->locations);
 		/****************************************************************/
-		
+		std::cout << "cgi_handler" << std::endl;
 		int		pipefd[2];
 		srand(time(NULL));
 		std::vector<std::string> 							allowed_meth;
@@ -214,6 +215,7 @@ void Client::cgi_handler(){
 					else
 						body = this->response->generateError(E503, 0);
 					send(this->request->client_fd, body.c_str(), body.size(), 0);
+					exit(-1);
 				}
 
 			}
@@ -298,6 +300,5 @@ void Client::cgi_handler(){
 	if (WIFEXITED(status) || WIFSIGNALED(status))
 	{
 		this->request->state = DONE;
-		std::cout << "exit status: " << WEXITSTATUS(status) << std::endl;
 	}
 }
