@@ -1,11 +1,11 @@
 #include "../inc/client.hpp"
 #include "../inc/macros.hpp"
 
-void	Response::handleGet(int type)
+void Response::handleGet(int type)
 {
 	if (type == FILE)
 	{
-		struct stat	infos;
+		struct stat infos;
 		stat(this->newPath.c_str(), &infos);
 		this->contentLength = infos.st_size;
 		if (access(this->newPath.c_str(), R_OK) == 0)
@@ -36,18 +36,18 @@ void	Response::handleGet(int type)
 	}
 }
 
-void	Response::sendDirectory()
+void Response::sendDirectory()
 {
 	if (this->responseSent == 0)
 	{
-    	DIR	*dir = opendir(this->client->path.substr(1).c_str());
+		DIR *dir = opendir(this->client->path.substr(1).c_str());
 		if (dir == NULL)
 			throw std::runtime_error(E500);
-		std::string	body = "<html>\n<head></head>\n<body>\n<h1>Index of " + newPath + "</h1>\n"
-			"<table style=\"width: 50%\">\n"
-			"<tr><td>Name</td><td>Last Modified</td><td>Size</td></tr>\n";
-		struct	dirent	*dirent;
-		struct	stat	infos;
+		std::string body = "<html>\n<head></head>\n<body>\n<h1>Index of " + newPath + "</h1>\n"
+																					  "<table style=\"width: 50%\">\n"
+																					  "<tr><td>Name</td><td>Last Modified</td><td>Size</td></tr>\n";
+		struct dirent *dirent;
+		struct stat infos;
 		while ((dirent = readdir(dir)) != NULL)
 		{
 			std::string filename = dirent->d_name;
@@ -67,16 +67,17 @@ void	Response::sendDirectory()
 		}
 		body += "</table>\n</body>\n</html>";
 		this->body = body;
-		std::stringstream	ss;
+		std::stringstream ss;
 		ss << this->body.size();
 		closedir(dir);
-		this->responseStr = 
+		this->responseStr =
 			"HTTP/1.1 200 OK\r\n"
 			"Content-Type: text/html\r\n"
 			"Accept-Ranges: none\r\n"
-			"Content-Length: " + ss.str() + "\r\n"
-			"Connection: keep-alive\r\n\r\n";
-		return ;
+			"Content-Length: " +
+			ss.str() + "\r\n"
+					   "Connection: keep-alive\r\n\r\n";
+		return;
 	}
 	if (this->responseSent == 1 && this->sendPos == this->body.size())
 		this->client->request->state = DONE;
@@ -90,15 +91,15 @@ void	Response::sendDirectory()
 	this->sendPos += sent;
 }
 
-void	Response::sendFile()
+void Response::sendFile()
 {
 	if (this->responseSent == 0)
 	{
 		this->fileRead.open(this->newPath.c_str(), std::ios::binary);
 		if (!this->fileRead.good())
 			throw std::runtime_error(E500);
-		std::string	extension;
-		std::string	contentType;
+		std::string extension;
+		std::string contentType;
 		std::string::size_type dotIndex = this->newPath.rfind('.');
 		if (dotIndex != std::string::npos)
 		{
@@ -110,14 +111,14 @@ void	Response::sendFile()
 		else
 			contentType = "text/plain";
 		this->responseStr =
-		"HTTP/1.1 200 OK\r\n"
-		"Content-Type: "
-		+ contentType + "\r\n"
-		"Accept-Ranges: none\r\n"
-		"Content-Length: "
-		+ std::to_string(this->contentLength) + "\r\n"
-		"Connection: keep-alive\r\n\r\n";
-		return ;
+			"HTTP/1.1 200 OK\r\n"
+			"Content-Type: " +
+			contentType + "\r\n"
+						  "Accept-Ranges: none\r\n"
+						  "Content-Length: " +
+			std::to_string(this->contentLength) + "\r\n"
+												  "Connection: keep-alive\r\n\r\n";
+		return;
 	}
 	if (this->responseSent == 1 && this->sendPos == this->contentLength)
 	{
@@ -126,12 +127,12 @@ void	Response::sendFile()
 	}
 	if (this->sendPos < this->contentLength)
 	{
-		int	size;
+		int size;
 		if (this->contentLength - this->sendPos > 1024)
 			size = 1024;
 		else
 			size = this->contentLength - this->sendPos;
-		char	buffer[size];
+		char buffer[size];
 		this->fileRead.read(buffer, sizeof(buffer));
 		size_t sent = send(this->client_fd, buffer, sizeof(buffer), 0);
 		this->sendPos += sent;
