@@ -3,7 +3,7 @@
 
 void	Response::handleChuncked()
 {
-	if (this->started == 1 && this->responseSent == 1 && this->readPos == this->client->request->chunkedBody.length())
+	if (this->started == 1 && this->responseSent == 1 && this->client->request->state == END && this->readPos == this->client->request->chunkedBody.length())
 	{
 		this->client->request->state = DONE;
 		this->fileWrite.close();
