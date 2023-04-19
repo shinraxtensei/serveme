@@ -228,6 +228,8 @@ class Client
         void handleCookies();
     	void handleRequest();
     	void cgi_handler();
+        void checkReturn();
+        void checkReturn(std::string url, std::string type);
     	// void generateResponse();
     	// void writeResponse();
     	// void checkInactivity();
