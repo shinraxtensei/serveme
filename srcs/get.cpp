@@ -76,18 +76,23 @@ void Response::sendDirectory()
 			"Accept-Ranges: none\r\n"
 			"Content-Length: " +
 			ss.str() + "\r\n"
-					   "Connection: keep-alive\r\n\r\n";
+			"Connection: keep-alive\r\n\r\n";
 		return;
 	}
 	if (this->responseSent == 1 && this->sendPos == this->body.size())
+	{
 		this->client->request->state = DONE;
+		return ;
+	}
 	int toSend;
 	if (this->body.size() - this->sendPos > 1024)
 		toSend = 1024;
 	else
 		toSend = this->body.size() - this->sendPos;
-	std::string toSendStr = this->body.substr(this->sendPos, toSend);
-	int sent = send(this->client_fd, toSendStr.c_str(), toSendStr.length(), 0);
+	this->responseStr = this->body.substr(this->sendPos, toSend);
+	int sent = send(this->client_fd, this->responseStr.c_str(), this->responseStr.length(), 0);
+	if (sent == -1 || sent == 0)
+		throw std::runtime_error(E500);
 	this->sendPos += sent;
 }
 
@@ -114,10 +119,10 @@ void Response::sendFile()
 			"HTTP/1.1 200 OK\r\n"
 			"Content-Type: " +
 			contentType + "\r\n"
-						  "Accept-Ranges: none\r\n"
-						  "Content-Length: " +
+			"Accept-Ranges: none\r\n"
+			"Content-Length: " +
 			std::to_string(this->contentLength) + "\r\n"
-												  "Connection: keep-alive\r\n\r\n";
+			"Connection: keep-alive\r\n\r\n";
 		return;
 	}
 	if (this->responseSent == 1 && this->sendPos == this->contentLength)
@@ -132,9 +137,11 @@ void Response::sendFile()
 			size = 1024;
 		else
 			size = this->contentLength - this->sendPos;
-		char buffer[size];
-		this->fileRead.read(buffer, sizeof(buffer));
-		size_t sent = send(this->client_fd, buffer, sizeof(buffer), 0);
+		char	buffer[size];
+		this->fileRead.read(buffer, size);
+		int sent = send(this->client_fd, buffer, sizeof(buffer), 0);
+		if (sent == -1 || sent == 0)
+			throw std::runtime_error(E500);
 		this->sendPos += sent;
 	}
 }
