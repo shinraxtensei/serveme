@@ -96,8 +96,8 @@ void Client::checkReturn(){
 																	  "Content-Length: 0\r\n"
 																	  "Connection: keep-alive\r\n\r\n";
 			int bytes = send(this->request->client_fd, body.c_str(), body.length(), 0);
-			if (bytes != 1 || bytes == 0)
-				throw this->response->generateError(E500, MINE);
+			if (bytes != 1)
+				throw std::runtime_error(E500);
 			body = 1;
 			this->request->state = DONE;
 			return;
@@ -135,6 +135,7 @@ void Client::cgi_handler(){
 		this->checkReturn();
 		return ;
 	}
+	// this->response->checkError()
 	if (!this->cgi->state && (this->request->method == "GET" || (this->request->method == "POST" && (unsigned long)this->request->contentLength == this->request->bodyString.size()))){
         candidates = this->response->getLocations2(this->server->locations);
 		/****************************************************************/
@@ -161,9 +162,9 @@ void Client::cgi_handler(){
 		std::string cookie_value = this->response->parseCookies();
 		cookie_value = cookie_value.substr(0, cookie_value.find("\n") - 1);
         tmp_surfix = "\\." + surfix + "$";
-		try {
+		// try {
 			if (stat(state_path.c_str(), &infos) == -1)
-				throw this->response->generateError(E404, 0);
+				throw std::runtime_error(E404);
 			else if (S_ISDIR(infos.st_mode)){
 				this->response->handleNormalReq();
 				return;
@@ -186,25 +187,24 @@ void Client::cgi_handler(){
         		}
 			}
 			if (compiler == ""){
-				std::string body = this->response->generateError(E503, 0);
-				throw body;
+				throw std::runtime_error(E503);
 			}
 
 			if (iter_cand == candidates.end())
-				throw this->response->generateError(E503, 0);
+				throw std::runtime_error(E503);
 			/*	**************************************	*/
 			for (iter_meth = allowed_meth.begin(); iter_meth != allowed_meth.end(); iter_meth++){
 				if (this->request->method == *iter_meth)
 					break;
 			}
 			if (iter_meth == allowed_meth.end()){
-				throw this->response->generateError(E405, 0);
+				throw  std::runtime_error(E405);
 			}
 			/*	**************************************	*/
 			if (pipe(pipefd) == -1)
-				throw this->response->generateError(E503, 0);
+				throw std::runtime_error(E503);
 			if ((this->pid  = fork()) == -1)
-				throw this->response->generateError(E503, 0);
+				throw std::runtime_error(E503);
 			/*child process*/
 			if (this->pid  == 0) {
 				try{
@@ -278,13 +278,6 @@ void Client::cgi_handler(){
 			this->cgi->state = 1;
 			unlink(tmp_filename.c_str());
 			close(pipefd[0]);
-		}
-		catch (std::string body){
-			this->request->state = DONE;
-			int bytes = send(this->request->client_fd, body.c_str(), body.size(), 0);
-			if (bytes == -1 || bytes == 0)
-				return;
-		}
 	}
 	int status;
 	if (this->pid == 0 && this->cgi->state == 0)
