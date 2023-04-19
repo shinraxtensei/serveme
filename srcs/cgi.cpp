@@ -92,7 +92,11 @@ void Client::cgi_handler(){
 		std::string 										compiler;
 		std::string 										tmp_surfix;
 		std::map<std::string, std::string>	querys_map		= this->cgi->parseQuery(this->request->url);
-		std::string query_string							= this->request->url.find_first_of("?") != std::string::npos ? this->request->url.substr(this->request->url.find_first_of("?") + 1) : "";
+		std::string query_string;
+		if (this->request->url.find_first_of("?") != std::string::npos)
+			query_string = this->request->url.substr(this->request->url.find_first_of("?") + 1);
+		else
+			query_string = "";
 		std::string file_path								= this->cgi->parseUrl(this->request->url);
 		// 												    change user name of the pathname
 		std::string server_path								= "/Users/rsaf/Desktop/serveme" + file_path;

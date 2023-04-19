@@ -1,5 +1,5 @@
 <?php
-$body = "hello from PHP"; 
+$body = "hello from PHP GET"; 
 $len = strlen($body);
 header ("content-length: $len");
 
