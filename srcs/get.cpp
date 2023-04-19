@@ -140,8 +140,8 @@ void Response::sendFile()
 		char	buffer[size];
 		this->fileRead.read(buffer, size);
 		int sent = send(this->client_fd, buffer, sizeof(buffer), 0);
-		if (sent == -1 || sent == 0)
-			throw std::runtime_error(E500);
+		if (sent == -1)
+			return ;
 		this->sendPos += sent;
 	}
 }
