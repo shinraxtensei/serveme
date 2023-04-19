@@ -95,7 +95,9 @@ void Client::checkReturn(){
 																	  "Content-Type: text/html\r\n"
 																	  "Content-Length: 0\r\n"
 																	  "Connection: keep-alive\r\n\r\n";
-			send(this->request->client_fd, body.c_str(), body.length(), 0);
+			int bytes = send(this->request->client_fd, body.c_str(), body.length(), 0);
+			if (bytes != 1)
+				throw this->response->generateError(E500, 0);
 			body = 1;
 			this->request->state = DONE;
 			return;
@@ -103,48 +105,27 @@ void Client::checkReturn(){
 }
 
 void Client::checkReturn(std::string url, std::string type){
-		std::string body = "";
-		if (this->server->returned != 0)
-		{
-			if (type == "permanent")
-				body = "HTTP/1.1 308 Permanent Redirect\r\n"
-									"Location: " +
-									url + "\r\n"
-																	  "Content-Type: text/html\r\n"
-																	  "Content-Length: 0\r\n"
-																	  "Connection: keep-alive\r\n\r\n";
-			else
-				body = "HTTP/1.1 307 Temporary Redirect\r\n"
-									"Location: " +
-									url + "\r\n"
-																	  "Content-Type: text/html\r\n"
-																	  "Content-Length: 0\r\n"
-																	  "Connection: keep-alive\r\n\r\n";
-			send(this->request->client_fd, body.c_str(), body.length(), 0);
-			body = 1;
-			this->request->state = DONE;
-			return;
-		}
-		else {
-			if (type == "permanent")
-				body = "HTTP/1.1 308 Permanent Redirect\r\n"
-									"Location: " +
-									url + "\r\n"
-																	  "Content-Type: text/html\r\n"
-																	  "Content-Length: 0\r\n"
-																	  "Connection: keep-alive\r\n\r\n";
-			else
-				body = "HTTP/1.1 307 Temporary Redirect\r\n"
-									"Location: " +
-									url + "\r\n"
-																	  "Content-Type: text/html\r\n"
-																	  "Content-Length: 0\r\n"
-																	  "Connection: keep-alive\r\n\r\n";
-			send(this->request->client_fd, body.c_str(), body.length(), 0);
-			body = 1;
-			this->request->state = DONE;
-			return;
-		}
+	std::string body = "";
+		if (type == "permanent")
+			body = "HTTP/1.1 308 Permanent Redirect\r\n"
+								"Location: " +
+								url + "\r\n"
+																  "Content-Type: text/html\r\n"
+																  "Content-Length: 0\r\n"
+																  "Connection: keep-alive\r\n\r\n";
+		else
+			body = "HTTP/1.1 307 Temporary Redirect\r\n"
+								"Location: " +
+								url + "\r\n"
+																  "Content-Type: text/html\r\n"
+																  "Content-Length: 0\r\n"
+																  "Connection: keep-alive\r\n\r\n";
+		int bytes = send(this->request->client_fd, body.c_str(), body.length(), 0);
+		if (bytes != 1)
+			throw 500;
+		body = 1;
+		this->request->state = DONE;
+		return;
 }
 
 void Client::cgi_handler(){
@@ -175,19 +156,18 @@ void Client::cgi_handler(){
 		std::string file_path								= this->cgi->parseUrl(this->request->url);
 		std::string server_path								= SERVER_PATH + file_path;
 		std::string state_path								= file_path.substr(1);
-
-		if (stat(state_path.c_str(), &infos) == -1)
-			throw std::runtime_error(E404);
-		else if (S_ISDIR(infos.st_mode)){
-			this->response->handleNormalReq();
-			return;
-		}
 		std::string surfix		 = this->cgi->parseSurfix(file_path);
 		std::string tmp_filename =  std::string("tmp/serveme-") + std::to_string(rand()) + ".tmp";
 		std::string cookie_value = this->response->parseCookies();
 		cookie_value = cookie_value.substr(0, cookie_value.find("\n") - 1);
         tmp_surfix = "\\." + surfix + "$";
 		try {
+			if (stat(state_path.c_str(), &infos) == -1)
+				throw this->response->generateError(E404, 0);
+			else if (S_ISDIR(infos.st_mode)){
+				this->response->handleNormalReq();
+				return;
+			}
         	for (iter_cand = candidates.begin(); iter_cand < candidates.end(); iter_cand++)
         	{
         	    if (!strcmp(tmp_surfix.c_str(), iter_cand->path.c_str()))
@@ -290,7 +270,7 @@ void Client::cgi_handler(){
 					else
 						body = this->response->generateError(E503, 0);
 					send(this->request->client_fd, body.c_str(), body.size(), 0);
-					exit(-1);
+					exit(-2);
 				}
 
 			}
