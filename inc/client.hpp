@@ -169,6 +169,7 @@ class Response
             void    		handleChuncked();
 			void			handleGet(int type);
 			void			sendFile();
+            std::vector<Location>    getLocations2(std::vector<Location> locations);
 			// void	sendDirectory();
 			void			writeResponse(char *tab);
 			void			writeStr();
