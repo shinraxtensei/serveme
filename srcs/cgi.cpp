@@ -94,7 +94,7 @@ void Client::cgi_handler(){
 		std::map<std::string, std::string>	querys_map		= this->cgi->parseQuery(this->request->url);
 		std::string query_string							= this->request->url.find_first_of("?") != std::string::npos ? this->request->url.substr(this->request->url.find_first_of("?") + 1) : "";
 		std::string file_path								= this->cgi->parseUrl(this->request->url);
-		// 														change user name of the pathname
+		// 												    change user name of the pathname
 		std::string server_path								= "/Users/rsaf/Desktop/serveme" + file_path;
 		std::string surfix									= this->cgi->parseSurfix(file_path);
 		std::string tmp_filename =  std::string("tmp/serveme-") + std::to_string(rand()) + ".tmp";
@@ -158,8 +158,6 @@ void Client::cgi_handler(){
 					setenv("REQUEST_METHOD", this->request->method.c_str(), 1);
 					setenv("REQUEST_URI", this->request->url.c_str(), 1);
 					setenv("SCRIPT_FILENAME", server_path.c_str(), 1);
-					// std::cerr << "SCRIPT_FILENAME: " << server_path << std::endl;
-					// setenv("SCRIPT_FILENAME", "/Users/rsaf/Desktop/serveme/cgi-bin/php.php" , 1);
 					setenv("SCRIPT_NAME", file_path.c_str(), 1);
 					setenv("CONTENT_TYPE", this->request->contentType.c_str(), 1); // empty [FIXED]
 					setenv("CONTENT_BODY", this->request->bodyString.c_str(), 1);
