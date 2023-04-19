@@ -126,14 +126,17 @@ void Response::handleMultipart()
 
 void Response::handleNormalBody()
 {
-	if (this->started == 1 && this->responseSent == 1 && this->readPos == this->client->request->bodyString.length())
+	if (this->started == 1 && this->responseSent == 1 && this->readPos == this->client->request->bodyString.length() && (int)this->client->request->bodyString.length() >= this->client->request->contentLength)
 	{
 		this->client->request->state = DONE;
 		this->fileWrite.close();
 		return;
 	}
+	// std::cout << "read pos " << this->readPos << std::endl;
+	// std::cout << "body length " << this->client->request->bodyString.length() << std::endl;
 	if (this->readPos < this->client->request->bodyString.length())
 	{
+		// std::cout << RED << "still storing" << << std::endl;
 		if (this->started == 0)
 		{
 			std::map<std::string, std::string>::iterator it;
@@ -177,7 +180,7 @@ void Response::handleNormalBody()
 							"Content-Type: text/html\r\n"
 							"Content-Length:" +
 							ss.str() + " \r\n"
-									   "Connection: keep-alive\r\n\r\n" +
+							"Connection: keep-alive\r\n\r\n" +
 							this->body;
 	}
 }

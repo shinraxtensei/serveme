@@ -143,8 +143,9 @@ void Client::handleRequest()
             ret = recv(this->fd, buffer, 1, 0);
         if (ret == -1)
         {
-            std::cerr << "Error: recv() failed" << std::endl;
-            this->core->removeClient(*this);
+            throw std::runtime_error(E500);
+            // std::cerr << "Error: recv() failed" << std::endl;
+            // this->core->removeClient(*this);
         }
         else if (ret == 0)
         {

@@ -121,7 +121,7 @@ void Client::checkReturn(std::string url, std::string type){
 																  "Content-Length: 0\r\n"
 																  "Connection: keep-alive\r\n\r\n";
 		int bytes = send(this->request->client_fd, body.c_str(), body.length(), 0);
-		if (bytes != 1)
+		if (bytes != 1 || bytes == 0)
 			throw 500;
 		body = 1;
 		this->request->state = DONE;
@@ -278,13 +278,6 @@ void Client::cgi_handler(){
 			this->cgi->state = 1;
 			unlink(tmp_filename.c_str());
 			close(pipefd[0]);
-		// }
-		// catch (std::string body){
-		// 	this->request->state = DONE;
-		// 	int bytes = send(this->request->client_fd, body.c_str(), body.size(), 0);
-		// 	if (bytes == -1)
-		// 		return;
-		// }
 	}
 	int status;
 	if (this->pid == 0 && this->cgi->state == 0)

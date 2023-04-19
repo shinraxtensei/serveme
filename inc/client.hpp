@@ -134,10 +134,8 @@ class Response
 			Location	*location;
             bool 		GENERATE_RES;
 			std::map<std::string, std::string>	contentTypes;	
-
 			std::string		responseStr;
 			std::string		body;
-	
 			Response();
 			~Response();
 
@@ -153,48 +151,45 @@ class Response
 			
 			void	handleNormalReq();
 			void	storeMimeTypes();
-			void	sendChunked(std::ifstream &file);
 			std::string	generateError(std::string error, int flag);
-			int	checkAccess(std::string path);
+			int		checkAccess(std::string path);
 			int		checkError(int	error);
 
 //-------new methods----------------
 			std::ifstream	fileRead;
 			std::ofstream	fileWrite;
 			std::ofstream 	writeMultipart;
-			int		checkReturn();
-			void	parseUrl();
-			void	getPath();
-			int		checkResourseType();
-			void	handleFile();
-			void	handleDirectory();
-            void    handleChuncked();
-			std::string	newPath;
-			void	handleGet(int type);
-			void	sendFile();
-			void	sendDirectory();
-			void	writeResponse();
+			std::string		newPath;
+			int				checkReturn();
+			void			parseUrl();
+			void			getPath();
+			int				checkResourseType();
+			void			handleFile();
+			void			sendDirectory();
+            void    		handleChuncked();
+			void			handleGet(int type);
+			void			sendFile();
+            std::vector<Location>    getLocations2(std::vector<Location> locations);
+			// void	sendDirectory();
+			void			writeResponse(char *tab);
+			void			writeStr();
 			std::string		getIndex();
 			void			handleNormalBody();
 			std::string		parseCookies();
 			std::map<std::string, std::string>	cookies;
+			int				flag;
+			// void			getQuery();
+			void			checkAllowedMethods();
+			void			matchLocation(std::vector<Location> locations);
+			void			checkCgi();
+			// void			checkPath();
+			void			handleDelete();
+			std::vector<Location>	getLocations(std::vector<Location> locations);
+			void			handlePost();
+			void			handleMultipart();
+			void			handleDirectory();
 //----------------------------------
 
-			void					getQuery();
-			void					checkAllowedMethods();
-			void					matchLocation(std::vector<Location> locations);
-			void					checkCgi();
-			void					checkPath();
-			void					listDirectory();
-			std::vector<Location>	getLocations(std::vector<Location> locations);
-
-			void	listDirectory(std::string	newPath, DIR *dir);
-
-			void	handleDelete();
-			void	handlePost();
-			void	handleMultipart();
-
-            std::vector<Location>	getLocations2(std::vector<Location> locations);
 };
 
 class Client

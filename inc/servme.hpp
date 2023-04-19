@@ -42,7 +42,7 @@
 
 
 #define TIMEOUT 3600
-#define SERVER_PATH "/Users/rsaf/Desktop/serveme" // change user name of the pathname
+#define SERVER_PATH "/Users/ahouari/Desktop/serveme" // change user name of the pathname
 // std::string	generateError(std::string error);
 
 class Core;

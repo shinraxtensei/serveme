@@ -136,7 +136,11 @@ void Core::handleCatchBlock(std::string errorCode, int i)
     else
         this->map_clients[this->pollFds[i].fd]->response->responseStr = this->map_clients[this->pollFds[i].fd]->response->generateError(errorCode, MINE);
 
-    send(this->pollFds[i].fd, this->map_clients[this->pollFds[i].fd]->response->responseStr.c_str(), this->map_clients[this->pollFds[i].fd]->response->responseStr.size(), 0);
+    // this gets executed inside a catch block so no need to protect it
+    int sent = send(this->pollFds[i].fd, this->map_clients[this->pollFds[i].fd]->response->responseStr.c_str(), this->map_clients[this->pollFds[i].fd]->response->responseStr.size(), 0);
+    if (sent == 0 || sent == -1)
+        throw std::runtime_error("send() failed");
+
     removeClient(*this->map_clients[this->pollFds[i].fd]);
 }
 
