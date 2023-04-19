@@ -1,12 +1,10 @@
 #include "../inc/servme.hpp"
 
-
-
 // #include <vector>
 
 Client::Client()
 {
-    //std::cout << " Client created without socket\n";
+    // std::cout << " Client created without socket\n";
     this->lastActivity = time(NULL);
 
     this->addr = new sockaddr_in;
@@ -15,7 +13,7 @@ Client::Client()
     this->request->core = this->core;
     this->request->client = this;
 
-    this->location = nullptr;
+    this->location = NULL;
     this->response = new Response();
     this->response->http = this->core->get_http();
     this->response->client = this;
@@ -23,69 +21,59 @@ Client::Client()
     this->pollfd_.fd = -1;
 }
 
-
-
-
-
-
-
 Client::~Client()
 {
- 
 
     if (this->pollfd_.fd != -1)
     {
         close(this->pollfd_.fd);
         this->pollfd_.fd = -1;
     }
-    if (this->socket != nullptr)
+    if (this->socket != NULL)
     {
         delete this->socket;
-        this->socket = nullptr;
+        this->socket = NULL;
     }
 
-    if (this->addr != nullptr)
+    if (this->addr != NULL)
     {
         delete this->addr;
-        this->addr = nullptr;
+        this->addr = NULL;
     }
-    if (this->request != nullptr)
+    if (this->request != NULL)
     {
         delete this->request;
-        this->request = nullptr;
+        this->request = NULL;
     }
-    if (this->response != nullptr)
+    if (this->response != NULL)
     {
         delete this->response;
-        this->response = nullptr;
+        this->response = NULL;
     }
 
-
-    if (this->cgi != nullptr)
+    if (this->cgi != NULL)
     {
         delete this->cgi;
-        this->cgi = nullptr;
+        this->cgi = NULL;
     }
-    if (this->server != nullptr)
+    if (this->server != NULL)
     {
         delete this->server;
-        this->server = nullptr;
+        this->server = NULL;
     }
-    if (this->location != nullptr)
+    if (this->location != NULL)
     {
         delete this->location;
-        this->location = nullptr;
+        this->location = NULL;
     }
-
 }
 
 Client::Client(SocketWrapper *sock)
 {
-    
-    //std::cout << " Client created with socket\n";
-    // //std::cout << "memory address" << this << std::endl;
-    this->lastActivity = time(NULL);
 
+    // std::cout << " Client created with socket\n";
+    //  //std::cout << "memory address" << this << std::endl;
+    this->lastActivity = time(NULL);
 
     this->cgi = new Cgi();
     this->request = new Request();
@@ -94,8 +82,8 @@ Client::Client(SocketWrapper *sock)
     this->response->client = this;
 
     this->request->core = this->core;
-    this->server = nullptr;
-	this->location = nullptr;
+    this->server = NULL;
+    this->location = NULL;
 
     // this->response->http = this->core->get_http();
 
@@ -121,16 +109,12 @@ Client::Client(SocketWrapper *sock)
     // this->cgistate = 0;
 }
 
-
-
-
-
 std::string Request::checkType(std::string path)
 {
     size_t dot = path.find_last_of('.');
     if (dot == std::string::npos)
     {
-        //std::cout << "No extension" << std::endl;
+        // std::cout << "No extension" << std::endl;
         return "";
     }
     else
@@ -144,22 +128,10 @@ std::string Request::checkType(std::string path)
     }
 }
 
-
-
-
-
-
-
-
-
 void Client::handleRequest()
-{   
+{
 
     this->lastActivity = time(NULL);
-
-
-
-
 
     if (this->request->state & (START | FIRSTLINE | HEADERS))
     {
@@ -167,23 +139,22 @@ void Client::handleRequest()
         static std::string line = "";
         char buffer[1];
         int ret = 0;
-		if (this->fd != -1)
-        	ret = recv(this->fd, buffer, 1, 0);
+        if (this->fd != -1)
+            ret = recv(this->fd, buffer, 1, 0);
         if (ret == -1)
         {
             std::cerr << "Error: recv() failed" << std::endl;
             this->core->removeClient(*this);
-    
         }
         else if (ret == 0)
         {
-            //std::cout << "disconnection" << std::endl;
+            // std::cout << "disconnection" << std::endl;
             this->core->removeClient(*this);
         }
         this->request->line += buffer[0];
         this->request->buffer += buffer[0];
 
-        if ((this->request->line.find("\r") != std::string::npos || this->request->line.find("\n") != std::string::npos || this->request->line.find("\r\n") != std::string::npos ) && this->request->state & START)
+        if ((this->request->line.find("\r") != std::string::npos || this->request->line.find("\n") != std::string::npos || this->request->line.find("\r\n") != std::string::npos) && this->request->state & START)
         {
             this->request->line = "";
             return;
@@ -213,92 +184,85 @@ void Client::handleRequest()
     }
 
     else if (this->request->state & BODY)
-    {        
-        //std::cout << CYAN << "STATE: " << (this->request->state == BODY ? "BODY" : "weird") << RESET << std::endl;
-        
+    {
+        // std::cout << CYAN << "STATE: " << (this->request->state == BODY ? "BODY" : "weird") << RESET << std::endl;
 
         static int flag = 0;
 
-        
-
-        try {
+        try
+        {
             this->request->ParseBody();
         }
-        catch (const std::exception& e)
+        catch (const std::exception &e)
         {
 
             if (std::string(e.what()) == "Disconnected")
             {
-                //std::cout <<  "disconnection" << std::endl;
+                // std::cout <<  "disconnection" << std::endl;
                 this->core->removeClient(*this);
             }
-                //std::cout << e.what() << std::endl;
+            // std::cout << e.what() << std::endl;
         }
 
         if (this->request->bodyType == CHUNKED)
         {
 
-			
             if (flag == 0)
             {
                 flag = 1;
-                //std::cout << BLUE <<"this is the start of chunked body" << RESET << std::endl;
+                // std::cout << BLUE <<"this is the start of chunked body" << RESET << std::endl;
                 this->request->state = CHUNKED_START;
             }
-            this->request->ParseChunkedBody(); 
+            this->request->ParseChunkedBody();
         }
 
-        else if (this->request->bodyType == MULTIPART)
+        if (this->request->bodyType == MULTIPART)
         {
-			//std::cout << "state : " << this->request->state << std::endl;
-			//std::cout << "body type : multipart" << std::endl;
+            // std::cout << "state : " << this->request->state << std::endl;
+            // std::cout << "body type : multipart" << std::endl;
             if (flag == 0)
             {
                 flag = 1;
                 this->request->state = MULTI_PART_START;
             }
-            this->request->ParseMultiPartBody(); 
+            this->request->ParseMultiPartBody();
         }
- 
     }
-
-
 }
 
 void Client::generateResponse()
 {
-	//std::cout << "in generateResponse" << std::endl;
+    // std::cout << "in generateResponse" << std::endl;
     this->lastActivity = time(NULL);
-	this->response->checkCgi();
-	if (this->cgiFlag == 1)
+    this->response->checkCgi();
+    if (this->cgiFlag == 1)
         cgi_handler();
-	else
-		this->response->handleNormalReq();
+    else
+        this->response->handleNormalReq();
 }
 
-void	Client::selectServer()
+void Client::selectServer()
 {
     std::vector<Server>::iterator it;
     std::vector<Server> candidates;
 
-
-    for (it = Servme::getCore()->get_http()->servers.begin();  it != Servme::getCore()->get_http()->servers.end(); it++)
+    for (it = Servme::getCore()->get_http()->servers.begin(); it != Servme::getCore()->get_http()->servers.end(); it++)
     {
         if (it->ipPort.second == this->socket->get_listenPair().second)
             candidates.push_back(*it);
     }
-	if (candidates.size() == 0)
-		throw std::runtime_error("Error: No server found for this request.");
-	else
-	{
-		for (it = candidates.begin(); it != candidates.end(); it++)
-		{
-			if (it->server_name == this->request->host)
-			{
-				this->server = new Server(*it);
-				return ;
-			}
-		}
-		this->server = new  Server(candidates[0]);
-  }
+    if (candidates.size() == 0)
+        throw std::runtime_error("Error: No server found for this request.");
+    else
+    {
+        for (it = candidates.begin(); it != candidates.end(); it++)
+        {
+            if (it->server_name == this->request->host)
+            {
+                this->server = new Server(*it);
+                return;
+            }
+        }
+        this->server = new Server(candidates[0]);
+    }
 }

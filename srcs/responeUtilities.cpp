@@ -1,14 +1,14 @@
 #include "../inc/servme.hpp"
 
-std::string	normalizePath(std::string	path)
+std::string normalizePath(std::string path)
 {
-	std::stack<std::string>	paths;
+	std::stack<std::string> paths;
 
-	std::string	toPush;
-	size_t	index;
-	size_t	index2;
-	std::string	toPop;
-	std::string	newStr;
+	std::string toPush;
+	size_t index;
+	size_t index2;
+	std::string toPop;
+	std::string newStr;
 
 	while (!path.empty())
 	{
@@ -26,7 +26,7 @@ std::string	normalizePath(std::string	path)
 			else
 				path = "";
 			if (toPush == ".")
-				continue ;
+				continue;
 			if (toPush == "..")
 			{
 				if (!paths.empty())
@@ -37,7 +37,7 @@ std::string	normalizePath(std::string	path)
 		}
 	}
 	if (paths.empty())
-		paths.push("/");	
+		paths.push("/");
 	while (!paths.empty())
 	{
 		toPop = paths.top();

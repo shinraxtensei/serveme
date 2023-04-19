@@ -36,6 +36,7 @@ class Core
     	Http 		*get_http();
     	void 		startup();
 		void 		removeClient(Client &client);
+		void 		handleCatchBlock(std::string str ,  int i);
 		bool 		check_client_inactivity(Client &client , time_t timeout);
 };
 
