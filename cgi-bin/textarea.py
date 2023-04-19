@@ -16,6 +16,3 @@ print ("Content-type:text/html")
 print ("Content-Length: %d" % len(body_string))
 print ("connection: close\n\r\n\r")
 print (body_string)
-
-while True:
-   pass
