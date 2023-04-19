@@ -128,9 +128,6 @@ void Response::handleNormalBody()
 {
 	if (this->started == 1 && this->responseSent == 1 && this->readPos == this->client->request->bodyString.length() && (int)this->client->request->bodyString.length() >= this->client->request->contentLength)
 	{
-		std::cout << RED << "c l : " << this->client->request->contentLength << std::endl;
-		std::cout << "b l : " << this->client->request->bodyString.length() << std::endl;
-		std::cout << "r p : " << this->readPos << RESET << std::endl;
 		this->client->request->state = DONE;
 		this->fileWrite.close();
 		return;
