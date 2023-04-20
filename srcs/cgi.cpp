@@ -77,14 +77,70 @@ std::vector<Location>	Response::getLocations2(std::vector<Location> locations)
 	return (candidates);
 }
 
+void Client::checkReturn(){
+		std::string body = "";
+		if (this->server->returned != 0)
+		{
+			if (this->server->returnType == "permanent")
+				body = "HTTP/1.1 308 Permanent Redirect\r\n"
+									"Location: " +
+									this->server->returnUrl + "\r\n"
+																	  "Content-Type: text/html\r\n"
+																	  "Content-Length: 0\r\n"
+																	  "Connection: keep-alive\r\n\r\n";
+			else
+				body = "HTTP/1.1 307 Temporary Redirect\r\n"
+									"Location: " +
+									this->server->returnUrl + "\r\n"
+																	  "Content-Type: text/html\r\n"
+																	  "Content-Length: 0\r\n"
+																	  "Connection: keep-alive\r\n\r\n";
+			int bytes = send(this->request->client_fd, body.c_str(), body.length(), 0);
+			if (bytes != 1 || bytes == 0)
+				throw this->response->generateError(E500, MINE);
+			body = 1;
+			this->request->state = DONE;
+			return;
+		}
+}
+
+void Client::checkReturn(std::string url, std::string type){
+	std::string body = "";
+		if (type == "permanent")
+			body = "HTTP/1.1 308 Permanent Redirect\r\n"
+								"Location: " +
+								url + "\r\n"
+																  "Content-Type: text/html\r\n"
+																  "Content-Length: 0\r\n"
+																  "Connection: keep-alive\r\n\r\n";
+		else
+			body = "HTTP/1.1 307 Temporary Redirect\r\n"
+								"Location: " +
+								url + "\r\n"
+																  "Content-Type: text/html\r\n"
+																  "Content-Length: 0\r\n"
+																  "Connection: keep-alive\r\n\r\n";
+		int bytes = send(this->request->client_fd, body.c_str(), body.length(), 0);
+		if (bytes != 1 || bytes == 0)
+			throw 500;
+		body = 1;
+		this->request->state = DONE;
+		return;
+}
+
 void Client::cgi_handler(){
     std::vector<Location>   candidates;
 
+	if (this->server->returned == 1){
+		this->checkReturn();
+		return ;
+	}
 	if (!this->cgi->state && (this->request->method == "GET" || (this->request->method == "POST" && (unsigned long)this->request->contentLength == this->request->bodyString.size()))){
         candidates = this->response->getLocations2(this->server->locations);
 		/****************************************************************/
 		int		pipefd[2];
 		srand(time(NULL));
+		struct stat infos;
 		std::vector<std::string> 							allowed_meth;
         std::vector<Location>::iterator                     iter_cand;
 		std::vector<std::string>::iterator					iter_meth;
@@ -98,21 +154,30 @@ void Client::cgi_handler(){
 		else
 			query_string = "";
 		std::string file_path								= this->cgi->parseUrl(this->request->url);
-		// 												    change user name of the pathname
-		std::string server_path								= "/Users/rsaf/Desktop/serveme" + file_path;
-		std::string surfix									= this->cgi->parseSurfix(file_path);
+		std::string server_path								= SERVER_PATH + file_path;
+		std::string state_path								= file_path.substr(1);
+		std::string surfix		 = this->cgi->parseSurfix(file_path);
 		std::string tmp_filename =  std::string("tmp/serveme-") + std::to_string(rand()) + ".tmp";
 		std::string cookie_value = this->response->parseCookies();
 		cookie_value = cookie_value.substr(0, cookie_value.find("\n") - 1);
-		//--------------------------------------------------------------
         tmp_surfix = "\\." + surfix + "$";
 		try {
+			if (stat(state_path.c_str(), &infos) == -1)
+				throw this->response->generateError(E404, 0);
+			else if (S_ISDIR(infos.st_mode)){
+				this->response->handleNormalReq();
+				return;
+			}
         	for (iter_cand = candidates.begin(); iter_cand < candidates.end(); iter_cand++)
         	{
         	    if (!strcmp(tmp_surfix.c_str(), iter_cand->path.c_str()))
 				{
 					allowed_meth = iter_cand->allowed_methods;
 					for (std::map<std::string, std::vector<std::string> >::iterator iter_compiler = iter_cand->location_directives.begin(); iter_compiler != iter_cand->location_directives.end(); iter_compiler++){
+						if (iter_compiler->first == "return" && iter_cand->returned == 1){
+							this->checkReturn(iter_cand->returnUrl, iter_cand->returnType);
+							return;
+						}
 						if (iter_compiler->first == "fastcgi_pass"){
 							compiler = iter_compiler->second[0];
 						}
@@ -167,9 +232,8 @@ void Client::cgi_handler(){
 					setenv("CONTENT_BODY", this->request->bodyString.c_str(), 1);
 					setenv("QUERY_STRING", query_string.c_str(), 1);
 					setenv("GATEWAY_INTERFACE", "CGI/1.1", 1);
-					setenv("PATH_INFO", "/Users/rsaf/Desktop/serveme/", 1);
 					setenv("PATH_INFO", this->request->url.c_str(), 1);
-					setenv("REDIRECT_STATUS", "1", 1); // for later
+					setenv("REDIRECT_STATUS", "", 1); // for later
 					for (iter_query = this->cgi->QUERY_MAP.begin(); iter_query != this->cgi->QUERY_MAP.end(); ++iter_query)
 					     setenv(iter_query->first.c_str(), iter_query->second.c_str(), 1);
 					if (this->request->method == "POST")
@@ -206,7 +270,7 @@ void Client::cgi_handler(){
 					else
 						body = this->response->generateError(E503, 0);
 					send(this->request->client_fd, body.c_str(), body.size(), 0);
-					exit(-1);
+					exit(-2);
 				}
 
 			}
@@ -218,7 +282,7 @@ void Client::cgi_handler(){
 		catch (std::string body){
 			this->request->state = DONE;
 			int bytes = send(this->request->client_fd, body.c_str(), body.size(), 0);
-			if (bytes == -1)
+			if (bytes == -1 || bytes == 0)
 				return;
 		}
 	}

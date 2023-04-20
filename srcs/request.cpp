@@ -206,7 +206,7 @@ void Request::ParseBody()
         bytesRead = recv(this->client_fd, buffer, std::min((this->contentLength - bodySize), 1024), 0);
 
     if (bytesRead == -1)
-        throw std::runtime_error("Error: read() failed. from ParseBody");
+        throw std::runtime_error(E500);
     if (bytesRead == 0)
         throw std::runtime_error("Disconnected");
 

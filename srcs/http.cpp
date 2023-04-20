@@ -6,7 +6,7 @@ Http::Http()
     this->index.push_back("");
     this->root = "/html";
     this->autoindex = false;
-    this->client_max_body_size = 1024;
+    this->client_max_body_size = 5242880;
     // this->allowed_methods.push_back("GET");
     // this->allowed_methods.push_back("POST");
     // this->allowed_methods.push_back("DELETE");
